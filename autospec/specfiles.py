@@ -637,7 +637,7 @@ class Specfile(object):
             self._write_strip('export CXXFLAGS_USE="$CXXFLAGS {0} "\n'.format(" ".join(useflags)))
             self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
             
-        if  self.config.config_opts['fsalt1']:
+        if self.config.config_opts['fsalt1']:
             if self.config.altflags1:
                 self._write_strip("## altflags1 content")
                 for line in self.config.altflags1:
