@@ -45,7 +45,7 @@ sys.path.append(os.path.dirname(__file__))
 
 def check_requirements(use_git):
     """Ensure all requirements are satisfied before continuing."""
-    required_bins = ["mock", "rpm2cpio", "nm", "objdump", "cpio", "readelf"]
+    required_bins = ["mock", "rpm2cpio", "nm", "objdump", "cpio", "readelf", "git-archive-all"]
 
     if use_git:
         required_bins.append("git")
@@ -67,12 +67,12 @@ def load_specfile(conf, specfile):
 def read_old_metadata():
     """Handle options.conf providing package, url and archives."""
     if not os.path.exists(os.path.join(os.getcwd(), 'options.conf')):
-        return None, None, []
+        return None, None, None, None, []
 
     config_f = configparser.ConfigParser(interpolation=None)
     config_f.read('options.conf')
     if "package" not in config_f.sections():
-        return None, None, []
+        return None, None, None, None, []
 
     archives = config_f["package"].get("archives")
     archives = archives.split() if archives else []
@@ -80,6 +80,8 @@ def read_old_metadata():
 
     return (config_f["package"].get("name"),
             config_f["package"].get("url"),
+            config_f["package"].get("download_from_git"),
+            config_f["package"].get("branch"),
             archives)
 
 
@@ -164,13 +166,41 @@ def main():
     parser.add_argument("-o", "--mock-opts", action="store", default="",
                         help="Arbitrary options to pass down to mock when "
                         "building a package.")
+    parser.add_argument("-s", "--download_from_git", action="store", dest="download_from_git", default="",
+                        help="Download archive from git")
+    parser.add_argument("-f", "--from_branch", action="store", dest="branch", default="",
+                        help="Define git branch to download the archive from")
 
     args = parser.parse_args()
-
-    name, url, archives = read_old_metadata()
+    
+    download_from_git = ""
+    branch = ""
+    name, url, download_from_git, branch, archives = read_old_metadata()
     name = args.name or name
     url = args.url or url
     archives = args.archives or archives
+
+    redownload_from_git = False
+    
+    print('Teste from metadata download_from_git - branch: {} - {}'.format(download_from_git, branch))
+    
+    if args.download_from_git and not download_from_git:
+        download_from_git = args.download_from_git
+        redownload_from_git = True
+        if not args.branch:
+            branch = "master"
+        else:
+            branch = args.branch
+            
+    if download_from_git:
+        if args.branch:
+            if (args.branch == branch):
+                print('Teste args.branch branch equals: {} - {}'.format(args.branch, branch))
+                redownload_from_git = False
+            else:
+                print('Teste args.branch branch NOT equals: {} - {}'.format(args.branch, branch))
+                branch = args.branch
+                redownload_from_git = True
 
     if not args.target:
         parser.error(argparse.ArgumentTypeError(
@@ -190,25 +220,58 @@ def main():
 
     if args.prep_only:
         os.makedirs("workingdir", exists_ok=True)
-        package(args, url, name, archives, "./workingdir")
+        package(args, url, name, archives, "./workingdir", download_from_git, branch, redownload_from_git)
     else:
         with tempfile.TemporaryDirectory() as workingdir:
-            package(args, url, name, archives, workingdir)
+            package(args, url, name, archives, workingdir, download_from_git, branch, redownload_from_git)
 
 
-def package(args, url, name, archives, workingdir):
+def package(args, url, name, archives, workingdir, download_from_git = "", branch = "", redownload_from_git = False):
     """Entry point for building a package with autospec."""
     conf = config.Config(args.target)
     check_requirements(args.git)
     conf.detect_build_from_url(url)
     package = build.Build()
+    
+    print('Teste url 1: ' + url) 
+    # Download the archive from git if necessary
+    if download_from_git:
+        giturl = url
+        print('Teste url 2: ' + url) 
+        print('Teste BRANCH 2: ' + branch) 
+        if (os.path.basename(os.getcwd()) == name):
+            package_path = './'
+            print('Teste package_path 11: ' + package_path) 
+            abs_package_path = os.path.abspath(f'{package_path}{name}.zip')
+            print('Teste package_path 21: ' + abs_package_path) 
+            if not os.path.isfile(abs_package_path) or redownload_from_git:
+                git.clone_and_git_archive_all(package_path, name, url, branch)
+            download_file_full_path = f'file://{abs_package_path}'
+            print('Teste download_file_full_path 11: ' + download_file_full_path)
+            url = download_file_full_path
+            print('Teste giturl 11: ' + giturl)
+        else:
+            package_path = f'packages/{name}'
+            print('Teste package_path 12: ' + package_path) 
+            abs_package_path = os.path.abspath(f'{package_path}/{name}.zip')
+            print('Teste package_path 22: ' + abs_package_path) 
+            if not os.path.isfile(abs_package_path) or redownload_from_git:
+                git.clone_and_git_archive_all(package_path, name, url, branch)
+            download_file_full_path = f'file://{abs_package_path}'
+            print('Teste download_file_full_path 12: ' + download_file_full_path)
+            url = download_file_full_path
+            print('Teste giturl 12: ' + giturl)
+    else:
+        giturl = ""
 
+    print('Teste url 2: ' + url)
+    
     #
     # First, download the tarball, extract it and then do a set
     # of static analysis on the content of the tarball.
     #
     filemanager = files.FileManager(conf, package)
-    content = tarball.Content(url, name, args.version, archives, conf, workingdir)
+    content = tarball.Content(url, name, args.version, archives, conf, workingdir, giturl, download_from_git, branch)
     content.process(filemanager)
     conf.create_versions(content.multi_version)
     conf.content = content  # hack to avoid recursive dependency on init

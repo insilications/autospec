@@ -64,7 +64,6 @@ def cleanup_req(s: str) -> str:
 def check_for_warning_pattern(line):
     """Print warning if a line matches against a warning list."""
     warning_patterns = [
-        "march=native"
     ]
     for pat in warning_patterns:
         if pat in line:

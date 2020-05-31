@@ -21,10 +21,35 @@
 
 import glob
 import os
+import sys
 import subprocess
 
-from util import call, write_out
+from util import call, write_out, print_fatal
 
+def clone_and_git_archive_all(path, name, url, branch = 'master', is_fatal=True):
+    cmd_args = f'{branch} {url} clone_archive'
+    clone_path = f'{path}/clone_archive'
+    clone_file = f'../{name}.zip'
+    print('Teste: ' + 'git clone --depth=1 --branch ' + cmd_args + '\n')
+    print('Teste: cwd=path ' + path + '\n')
+    try:
+        call(f'git clone --depth=1 --branch {cmd_args}', cwd=path)
+    except subprocess.CalledProcessError as err:
+        if is_fatal:
+            print_fatal('Unable to clone {} in {}: {}'.format(url, clone_path, err))
+            sys.exit(1)
+    try:
+        call(f'git-archive-all --force-submodules -9 {clone_file}', cwd=clone_path)
+    except subprocess.CalledProcessError as err:
+        if is_fatal:
+            print_fatal('Unable to archive {} in {} from {}: {}'.format(clone_path, clone_file, url, err))
+            sys.exit(1)
+    try:
+        call('rm -rf clone_archive/', cwd=path)
+    except subprocess.CalledProcessError as err:
+        if is_fatal:
+            print_fatal('Unable to remove clone_archive in {}: {}'.format(clone_path, err))
+            sys.exit(1)
 
 def commit_to_git(config, name, success):
     """Update package's git tree for autospec managed changes."""
@@ -89,6 +114,8 @@ def commit_to_git(config, name, success):
     call("git add whatrequires", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add description", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add attrs", check=False, stderr=subprocess.DEVNULL, cwd=path)
+    call("git add altflags1", check=False, stderr=subprocess.DEVNULL, cwd=path)
+    call("git add altflags_pgo", check=False, stderr=subprocess.DEVNULL, cwd=path)
 
     # remove deprecated config files
     call("git rm make_install_append", check=False, stderr=subprocess.DEVNULL, cwd=path)

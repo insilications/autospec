@@ -162,7 +162,7 @@ def convert_version(ver_str, name):
 class Content(object):
     """Detect static information about the project."""
 
-    def __init__(self, url, name, version, archives, config, base_path):
+    def __init__(self, url, name, version, archives, config, base_path, giturl, download_from_git, branch):
         """Initialize Default content settings."""
         self.name = name
         self.rawname = ""
@@ -174,12 +174,14 @@ class Content(object):
         self.tarball_prefix = ""
         self.gcov_file = ""
         self.archives = archives
-        self.giturl = ""
+        self.giturl = giturl
         self.repo = ""
         self.domain = ""
         self.prefixes = dict()
         self.config = config
         self.base_path = base_path
+        self.download_from_git = download_from_git
+        self.branch = branch
 
     def write_upstream(self, sha, tarfile, mode="w"):
         """Write the upstream hash to the upstream file."""
@@ -208,7 +210,6 @@ class Content(object):
         src_path = self.check_or_get_file(url, os.path.basename(url))
         main_src = Source(url, '', src_path, self.config.default_pattern)
         return main_src
-
     def print_header(self):
         """Print header for autospec run."""
         print("\n")

@@ -87,6 +87,8 @@ class Config(object):
         self.subdir = ""
         self.install_macro = "%make_install"
         self.disable_static = "--disable-static"
+        self.altflags1 = []
+        self.altflags_pgo = []
         self.prep_prepend = []
         self.build_prepend = []
         self.build_append = []
@@ -164,6 +166,8 @@ class Config(object):
             "optimize_size": "optimize build for size over speed",
             "funroll-loops": "optimize build for speed over size",
             "fast-math": "pass -ffast-math to compiler",
+            "fsalt1": "alternative flags",
+            "altflags_pgo": "alternative pgo flags",
             "insecure_build": "set flags to smallest -02 flags possible",
             "conservative_flags": "set conservative build flags",
             "broken_parallel_build": "disable parallelization during build",
@@ -414,7 +418,17 @@ class Config(object):
 
         metadata['giturl'] = self.content.giturl
         metadata['domain'] = self.content.domain
-
+        
+        if self.content.download_from_git:
+            metadata['download_from_git'] = self.content.download_from_git
+        else:
+             metadata['download_from_git'] = ""
+             
+        if self.content.branch:
+            metadata['branch'] = self.content.branch
+        else:
+            metadata['branch'] = ""
+             
         if self.alias:
             metadata['alias'] = self.alias
         else:
@@ -457,6 +471,22 @@ class Config(object):
 
         # default lto to true for new things
         config_f['autospec']['use_lto'] = 'true'
+        
+        # default alternative flags for new things
+        config_f['autospec']['fsalt1'] = 'true'
+        
+        # default alternative pgo flags for new things
+        config_f['autospec']['altflags_pgo'] = 'false'
+        
+        # default 32bits for new things
+        config_f['autospec']['32bit'] = 'false'
+        
+        # new defaults
+        config_f['autospec']['asneeded'] = 'false'
+        config_f['autospec']['allow_test_failures'] = 'false'
+        config_f['autospec']['verify_required'] = 'false'
+        config_f['autospec']['keepstatic'] = 'true'
+        config_f['autospec']['nostrip'] = 'true'
 
         # renamed options need special care
         if os.path.exists("skip_test_suite"):
@@ -987,6 +1017,8 @@ class Config(object):
             # MPI testsuites generally require "openssh"
             requirements.add_buildreq("openssh")
 
+        self.altflags1 = self.read_script_file(os.path.join(self.download_path, "altflags1"))
+        self.altflags_pgo = self.read_script_file(os.path.join(self.download_path, "altflags_pgo"))
         self.prep_prepend = self.read_script_file(os.path.join(self.download_path, "prep_prepend"))
         if os.path.isfile(os.path.join(self.download_path, "prep_append")):
             os.rename(os.path.join(self.download_path, "prep_append"), os.path.join(self.download_path, "build_prepend"))

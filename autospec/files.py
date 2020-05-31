@@ -51,12 +51,13 @@ class FileManager(object):
     @staticmethod
     def banned_path(path):
         """Check if the path is either banned or in a banned subdirectory."""
-        banned_paths = ["/etc",
-                        "/opt",
-                        "/usr/local",
-                        "/usr/etc",
-                        "/usr/src",
-                        "/var"]
+#        banned_paths = ["/etc",
+#                        "/opt",
+#                        "/usr/local",
+#                        "/usr/etc",
+#                        "/usr/src",
+#                        "/var"]
+        banned_paths = []
         for bpath in banned_paths:
             if path.startswith(bpath):
                 return True
