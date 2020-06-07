@@ -1682,9 +1682,7 @@ class Specfile(object):
         if self.config.config_opts['use_clang']:
             extra_qmake_args = "-spec linux-clang "
         if self.config.config_opts['use_lto']:
-            extra_qmake_args += "-config ltcg -config fat-static-lto "
-        else:
-            extra_qmake_args += "QMAKE_CFLAGS+=-fno-lto QMAKE_CXXFLAGS+=-fno-lto "
+            extra_qmake_args += "-config ltcg "
 
         self.write_prep()
         self._write_strip("%build")
