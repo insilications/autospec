@@ -166,8 +166,6 @@ class Config(object):
             "optimize_size": "optimize build for size over speed",
             "funroll-loops": "optimize build for speed over size",
             "fast-math": "pass -ffast-math to compiler",
-            "fsalt1": "alternative flags",
-            "altflags_pgo": "alternative pgo flags",
             "insecure_build": "set flags to smallest -02 flags possible",
             "conservative_flags": "set conservative build flags",
             "broken_parallel_build": "disable parallelization during build",
@@ -182,7 +180,12 @@ class Config(object):
             "autoupdate": "this package is trusted enough to automatically update (used by other tools)",
             "compat": "this package is a library compatibility package and only ships versioned library files",
             "nodebug": "do not generate debuginfo for this package",
-            "openmpi": "configure build also for openmpi"
+            "openmpi": "configure build also for openmpi",
+            "fsalt1": "alternative flags",
+            "altflags_pgo": "alternative pgo flags",
+            "nomissingbuildids": "ignore missing build ids",
+            "noautoreq": "disable automatic requeriments processing",
+            "noautoprov": "disable automatic provides processing"
         }
         # simple_pattern_pkgconfig patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -474,12 +477,21 @@ class Config(object):
         
         # default alternative flags for new things
         config_f['autospec']['fsalt1'] = 'true'
-        
+        1
         # default alternative pgo flags for new things
         config_f['autospec']['altflags_pgo'] = 'false'
         
         # default 32bits for new things
         config_f['autospec']['32bit'] = 'false'
+        
+        # default ignore missing build ids
+        config_f['autospec']['nomissingbuildids'] = 'false'
+        
+        # default disable automatic requeriments processing
+        config_f['autospec']['noautoreq'] = 'false'
+        
+        # default disable automatic provides processing
+        config_f['autospec']['noautoprov'] = 'false'
         
         # new defaults
         config_f['autospec']['asneeded'] = 'false'
