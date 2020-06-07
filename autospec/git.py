@@ -159,6 +159,7 @@ def commit_to_git(config, name, success):
         "results/",
         "rpms/",
         "for-review.txt",
+        "*.tar",
         ""
     ]
     write_out(os.path.join(path, '.gitignore'), '\n'.join(ignorelist))
