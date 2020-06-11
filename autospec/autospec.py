@@ -217,6 +217,8 @@ def main():
         parser.error(argparse.ArgumentTypeError(
             "-a/--archives or options.conf['package']['archives'] requires an "
             "even number of arguments"))
+    
+    print('Teste url 0: ' + url) 
 
     if args.prep_only:
         os.makedirs("workingdir", exists_ok=True)
@@ -228,49 +230,63 @@ def main():
 
 def package(args, url, name, archives, workingdir, download_from_git = "", branch = "", redownload_from_git = False):
     """Entry point for building a package with autospec."""
-    conf = config.Config(args.target)
     check_requirements(args.git)
-    conf.detect_build_from_url(url)
-    package = build.Build()
     
+    url = url
     print('Teste url 1: ' + url) 
     # Download the archive from git if necessary
     if download_from_git:
         giturl = url
+        found_file = False
+        fileslist = None
+        download_file_full_path = 'File'
         print('Teste url 2: ' + url) 
         print('Teste BRANCH 2: ' + branch) 
         if (os.path.basename(os.getcwd()) == name):
             package_path = './'
             print('Teste package_path 11: ' + package_path) 
-            abs_package_path = os.path.abspath(f'{package_path}{name}.zip')
-            print('Teste package_path 21: ' + abs_package_path) 
-            if not os.path.isfile(abs_package_path) or redownload_from_git:
-                git.clone_and_git_archive_all(package_path, name, url, branch)
-            download_file_full_path = f'file://{abs_package_path}'
+            filename_re = f'{name}-\d+(\.\d+)+.zip'
+            fileslist = os.listdir(package_path)
+            fileslist.sort(key=os.path.getmtime)
+            for filename in fileslist:
+                if re.search(filename_re, filename):
+                    found_file = True
+                    download_file_full_path = os.path.abspath(f'{package_path}{filename}')
+                    print('Found old package_path 21: ' + download_file_full_path)
+            if not found_file or redownload_from_git:
+                download_file_full_path = git.clone_and_git_archive_all(package_path, name, url, branch)
             print('Teste download_file_full_path 11: ' + download_file_full_path)
             url = download_file_full_path
             print('Teste giturl 11: ' + giturl)
         else:
             package_path = f'packages/{name}'
             print('Teste package_path 12: ' + package_path) 
-            abs_package_path = os.path.abspath(f'{package_path}/{name}.zip')
-            print('Teste package_path 22: ' + abs_package_path) 
-            if not os.path.isfile(abs_package_path) or redownload_from_git:
-                git.clone_and_git_archive_all(package_path, name, url, branch)
-            download_file_full_path = f'file://{abs_package_path}'
+            fileslist = os.listdir(package_path)
+            fileslist.sort(key=os.path.getmtime)
+            for filename in fileslist:
+                if re.search(filename_re, filename):
+                    found_file = True
+                    download_file_full_path = os.path.abspath(f'{package_path}{filename}')
+                    print('Found old package_path 22: ' + download_file_full_path)
+            if not found_file or redownload_from_git:
+                download_file_full_path = git.clone_and_git_archive_all(package_path, name, url, branch)
             print('Teste download_file_full_path 12: ' + download_file_full_path)
             url = download_file_full_path
             print('Teste giturl 12: ' + giturl)
     else:
         giturl = ""
 
-    print('Teste url 2: ' + url)
+    print('Teste url 3: ' + url)
+    conf = config.Config(args.target)
+    conf.detect_build_from_url(url)
+    package = build.Build()
     
     #
     # First, download the tarball, extract it and then do a set
     # of static analysis on the content of the tarball.
     #
     filemanager = files.FileManager(conf, package)
+    print('Teste url 4: ' + url)
     content = tarball.Content(url, name, args.version, archives, conf, workingdir, giturl, download_from_git, branch)
     content.process(filemanager)
     conf.create_versions(content.multi_version)

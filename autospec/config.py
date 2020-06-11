@@ -422,6 +422,8 @@ class Config(object):
         metadata['giturl'] = self.content.giturl
         metadata['domain'] = self.content.domain
         
+        metadata['url'] = self.content.url
+        
         if self.content.download_from_git:
             metadata['download_from_git'] = self.content.download_from_git
         else:

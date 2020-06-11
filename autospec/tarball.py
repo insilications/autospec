@@ -446,6 +446,7 @@ class Content(object):
         full_archives = self.archives + go_archives + multiver_archives
         # Download and extract full list
         for arch_url, destination in zip(full_archives[::2], full_archives[1::2]):
+            print('Teste arch_url 3: ' + arch_url)
             src_path = self.check_or_get_file(arch_url, os.path.basename(arch_url), mode="a")
             # Create source object and extract archive
             archive = Source(arch_url, destination, src_path, self.config.default_pattern)

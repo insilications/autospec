@@ -29,7 +29,6 @@ from util import call, write_out, print_fatal
 def clone_and_git_archive_all(path, name, url, branch = 'master', is_fatal=True):
     cmd_args = f'{branch} {url} clone_archive'
     clone_path = f'{path}/clone_archive'
-    clone_file = f'../{name}.zip'
     print('Teste: ' + 'git clone --depth=1 --branch ' + cmd_args + '\n')
     print('Teste: cwd=path ' + path + '\n')
     try:
@@ -39,6 +38,11 @@ def clone_and_git_archive_all(path, name, url, branch = 'master', is_fatal=True)
             print_fatal('Unable to clone {} in {}: {}'.format(url, clone_path, err))
             sys.exit(1)
     try:
+        process = subprocess.run(f'git log -1 --date=format:%y.%m.%d --pretty=format:%cd', check=True, shell=True, stdout=subprocess.PIPE, text=True, universal_newlines=True, cwd=clone_path)
+        outputVersion = process.stdout
+        clone_file = f'../{name}-{outputVersion}.zip'
+        clone_file_abs = f'{name}-{outputVersion}.zip'
+        print('clone_file: ' + clone_file + '\n')
         call(f'git-archive-all --force-submodules -9 {clone_file}', cwd=clone_path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
@@ -46,6 +50,11 @@ def clone_and_git_archive_all(path, name, url, branch = 'master', is_fatal=True)
             sys.exit(1)
     try:
         call('rm -rf clone_archive/', cwd=path)
+        absolute_file_path = os.path.abspath(clone_file_abs)
+        print('absolute_file_path: ' + absolute_file_path + '\n')
+        absolute_url_file = f'file://{absolute_file_path}'
+        print('absolute_url_file: ' + absolute_url_file + '\n')
+        return absolute_url_file
     except subprocess.CalledProcessError as err:
         if is_fatal:
             print_fatal('Unable to remove clone_archive in {}: {}'.format(clone_path, err))
