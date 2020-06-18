@@ -628,7 +628,7 @@ class Specfile(object):
         if self.content.gcov_file:
             flags = list(filter((lto).__ne__, flags))
             flags.extend(["-O3", "-fauto-profile=%{{SOURCE{0}}}".format(self.source_index[self.config.sources["gcov"][0]])])
-        if (flags or self.config.config_opts['broken_c++']) and (not self.config.config_opts['fsalt1']):
+        if (flags or self.config.config_opts['broken_c++']) and not self.config.config_opts['fsalt1']:
             flags = sorted(list(set(flags)))
             self._write_strip('export CFLAGS="$CFLAGS {0} "\n'.format(" ".join(flags)))
             self._write_strip('export FCFLAGS="$FFLAGS {0} "\n'.format(" ".join(flags)))
@@ -640,7 +640,7 @@ class Specfile(object):
             # close the open quote from CXXFLAGS export and add newline
             self._write('"\n')
 
-        if self.config.profile_payload and self.config.profile_payload[0] and not self.need_avx2_flags and not self.config.config_opts['fsalt1']:
+        if self.config.profile_payload and self.config.profile_payload[0] and not self.need_avx2_flags and not self.config.config_opts['fsalt1'] and not self.config.config_opts['altflags_pgo']:
             genflags = []
             useflags = []
             genflags.extend(["-fprofile-generate", "-fprofile-dir=/var/tmp/pgo", "-fprofile-update=atomic", "-fprofile-abs-path", "-fprofile-arcs", "-ftest-coverage", "--coverage", "-fprofile-partial-training"])
@@ -658,7 +658,7 @@ class Specfile(object):
             self._write_strip('export CXXFLAGS_USE="$CXXFLAGS {0} "\n'.format(" ".join(useflags)))
             self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
             
-        if self.config.config_opts['fsalt1']:
+        if self.config.config_opts['fsalt1'] and not self.config.config_opts['altflags_pgo']:
             if self.config.altflags1:
                 self._write_strip("## altflags1 content")
                 for line in self.config.altflags1:
@@ -683,7 +683,7 @@ class Specfile(object):
                 # close the open quote from CXXFLAGS export and add newline
                 self._write('"\n')
             
-        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts['fsalt1']:
+        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts['altflags_pgo']:
             genflags = []
             useflags = []
             genflags.extend(["-fprofile-generate", "-fprofile-dir=/var/tmp/pgo", "-fprofile-update=atomic", "-fprofile-abs-path", "-fprofile-arcs", "-ftest-coverage", "--coverage", "-fprofile-partial-training"])

@@ -29,20 +29,21 @@ from util import call, write_out, print_fatal
 def clone_and_git_archive_all(path, name, url, branch = 'master', is_fatal=True):
     cmd_args = f'{branch} {url} clone_archive'
     clone_path = f'{path}/clone_archive'
-    print('Teste: ' + 'git clone --depth=1 --branch ' + cmd_args + '\n')
+    print('Teste: ' + 'git clone --branch ' + cmd_args + '\n')
     print('Teste: cwd=path ' + path + '\n')
     try:
-        call(f'git clone --depth=1 --branch {cmd_args}', cwd=path)
+        call(f'git clone --branch {cmd_args}', cwd=path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
             print_fatal('Unable to clone {} in {}: {}'.format(url, clone_path, err))
             sys.exit(1)
     try:
-        process = subprocess.run(f'git log -1 --date=format:%y.%m.%d --pretty=format:%cd', check=True, shell=True, stdout=subprocess.PIPE, text=True, universal_newlines=True, cwd=clone_path)
-        outputVersion = process.stdout
+        process = subprocess.run(f'git describe --abbrev=0 || git describe --tags || git log -1 --date=format:%y.%m.%d --pretty=format:%cd', check=True, shell=True, stdout=subprocess.PIPE, text=True, universal_newlines=True, cwd=clone_path)
+        outputVersion = process.stdout.rstrip("\n")
         clone_file = f'../{name}-{outputVersion}.zip'
         clone_file_abs = f'{name}-{outputVersion}.zip'
         print('clone_file: ' + clone_file + '\n')
+        print('clone_file_abs: ' + clone_file_abs + '\n')
         call(f'git-archive-all --force-submodules -9 {clone_file}', cwd=clone_path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
