@@ -185,7 +185,8 @@ class Config(object):
             "altflags_pgo": "alternative pgo flags",
             "nomissingbuildids": "ignore missing build ids",
             "noautoreq": "disable automatic requeriments processing",
-            "noautoprov": "disable automatic provides processing"
+            "noautoprov": "disable automatic provides processing",
+            "altcargo1": "alternative cargo pattern"
         }
         # simple_pattern_pkgconfig patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -479,7 +480,7 @@ class Config(object):
         
         # default alternative flags for new things
         config_f['autospec']['fsalt1'] = 'true'
-        1
+
         # default alternative pgo flags for new things
         config_f['autospec']['altflags_pgo'] = 'false'
         
@@ -494,6 +495,9 @@ class Config(object):
         
         # default disable automatic provides processing
         config_f['autospec']['noautoprov'] = 'false'
+        
+        # default alternative cargo patterns
+        config_f['autospec']['altcargo1'] = 'true'
         
         # new defaults
         config_f['autospec']['asneeded'] = 'false'
