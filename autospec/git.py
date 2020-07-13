@@ -38,7 +38,7 @@ def clone_and_git_archive_all(path, name, url, branch = 'master', is_fatal=True)
             print_fatal('Unable to clone {} in {}: {}'.format(url, clone_path, err))
             sys.exit(1)
     try:
-        process = subprocess.run(f'git describe --abbrev=0 || git describe --tags || git log -1 --date=format:%y.%m.%d --pretty=format:%cd', check=True, shell=True, stdout=subprocess.PIPE, text=True, universal_newlines=True, cwd=clone_path)
+        process = subprocess.run(f'git describe --abbrev=0 --tags || git log -1 --date=format:%y.%m.%d --pretty=format:%cd', check=True, shell=True, stdout=subprocess.PIPE, text=True, universal_newlines=True, cwd=clone_path)
         outputVersion = process.stdout.rstrip("\n")
         clone_file = f'../{name}-{outputVersion}.zip'
         clone_file_abs = f'{name}-{outputVersion}.zip'
