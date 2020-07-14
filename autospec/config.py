@@ -72,6 +72,7 @@ class Config(object):
         self.extra_configure = ""
         self.extra_configure32 = ""
         self.extra_configure64 = ""
+        self.extra_configure_special = ""
         self.extra_configure_avx2 = ""
         self.extra_configure_avx512 = ""
         self.config_files = set()
@@ -80,8 +81,10 @@ class Config(object):
         self.extra_make = ""
         self.extra32_make = ""
         self.extra_make_install = ""
+        self.extra_make_install_special = ""
         self.extra_make32_install = ""
         self.extra_cmake = ""
+        self.extra_cmake_special = ""
         self.extra_cmake_openmpi = ""
         self.cmake_srcdir = ".."
         self.subdir = ""
@@ -94,7 +97,9 @@ class Config(object):
         self.build_append = []
         self.make_prepend = []
         self.install_prepend = []
+        self.install_prepend_special = []
         self.install_append = []
+        self.install_append_special = []
         self.service_restart = []
         self.patches = []
         self.verpatches = OrderedDict()
@@ -186,7 +191,8 @@ class Config(object):
             "nomissingbuildids": "ignore missing build ids",
             "noautoreq": "disable automatic requeriments processing",
             "noautoprov": "disable automatic provides processing",
-            "altcargo1": "alternative cargo pattern"
+            "altcargo1": "alternative cargo pattern",
+            "build_special": "configure build with special options"
         }
         # simple_pattern_pkgconfig patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -476,7 +482,7 @@ class Config(object):
                 config_f['autospec'][fname] = 'false'
 
         # default lto to true for new things
-        config_f['autospec']['use_lto'] = 'true'
+        config_f['autospec']['use_lto'] = 'false'
         
         # default alternative flags for new things
         config_f['autospec']['fsalt1'] = 'true'
@@ -498,6 +504,9 @@ class Config(object):
         
         # default alternative cargo patterns
         config_f['autospec']['altcargo1'] = 'true'
+        
+        # default alternative cargo patterns
+        config_f['autospec']['build_special'] = 'false'
         
         # new defaults
         config_f['autospec']['asneeded'] = 'false'
@@ -945,6 +954,9 @@ class Config(object):
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure64"))
         self.extra_configure64 = " \\\n".join(content)
+        
+        content = self.read_conf_file(os.path.join(self.download_path, "configure_special"))
+        self.extra_configure_special = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure_avx2"))
         self.extra_configure_avx2 = " \\\n".join(content)
@@ -963,6 +975,10 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "make_args"))
         if content:
             self.extra_make = " \\\n".join(content)
+            
+        content = self.read_conf_file(os.path.join(self.download_path, "make_args_special"))
+        if content:
+            self.extra_make_special = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make32_args"))
         if content:
@@ -971,6 +987,10 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "make_install_args"))
         if content:
             self.extra_make_install = " \\\n".join(content)
+            
+        content = self.read_conf_file(os.path.join(self.download_path, "make_install_args_special"))
+        if content:
+            self.extra_make_install_special = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make32_install_args"))
         if content:
@@ -983,6 +1003,10 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args"))
         if content:
             self.extra_cmake = " \\\n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_special"))
+        if content:
+            self.extra_cmake_special = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_openmpi"))
         if content:
@@ -1044,12 +1068,19 @@ class Config(object):
         self.build_prepend = self.read_script_file(os.path.join(self.download_path, "build_prepend"))
         self.build_append = self.read_script_file(os.path.join(self.download_path, "build_append"))
         self.install_prepend = self.read_script_file(os.path.join(self.download_path, "install_prepend"))
+        self.install_prepend_special = self.read_script_file(os.path.join(self.download_path, "install_prepend_special"))
         if os.path.isfile(os.path.join(self.download_path, "make_install_append")):
             os.rename(os.path.join(self.download_path, "make_install_append"), os.path.join(self.download_path, "install_append"))
+        if os.path.isfile(os.path.join(self.download_path, "make_install_append_special")):
+            os.rename(os.path.join(self.download_path, "make_install_append_special"), os.path.join(self.download_path, "install_append_special"))
         self.install_append = self.read_script_file(os.path.join(self.download_path, "install_append"))
+        self.install_append_special = self.read_script_file(os.path.join(self.download_path, "install_append_special"))
         self.service_restart = self.read_conf_file(os.path.join(self.download_path, "service_restart"))
 
         if self.config_opts['pgo']:
+            self.profile_payload = self.read_script_file(os.path.join(self.download_path, "profile_payload"))
+            
+        if self.config_opts['altflags_pgo']:
             self.profile_payload = self.read_script_file(os.path.join(self.download_path, "profile_payload"))
 
         self.custom_desc = self.read_conf_file(os.path.join(self.download_path, "description"))
