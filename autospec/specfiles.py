@@ -690,7 +690,7 @@ class Specfile(object):
                 # close the open quote from CXXFLAGS export and add newline
                 self._write('"\n')
             
-        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts['altflags_pgo'] and not self.config.config_opts['fsalt1']:
+        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts['altflags_pgo']:
             genflags = []
             useflags = []
             genflags.extend(["-fprofile-generate", "-fprofile-dir=/var/tmp/pgo", "-fprofile-update=atomic", "-fprofile-abs-path", "-fprofile-arcs", "-ftest-coverage", "--coverage", "-fprofile-partial-training"])
