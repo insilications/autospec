@@ -2099,13 +2099,36 @@ class Specfile(object):
         self.write_prep()
         self.write_lang_c(export_epoch=True)
         self.write_variables()
+
         if self.config.subdir:
             self._write_strip("pushd " + self.config.subdir)
-        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir'
-                          .format(self.config.extra_configure,
-                                  self.config.extra_configure64))
-        self.write_make_prepend()
-        self._write_strip("ninja -v -C builddir")
+
+        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts['altflags_pgo'] and not self.config.config_opts['fsalt1']:
+            init = f"{self.get_profile_generate_flags()}"
+            post = f"{self.get_profile_use_flags()}"
+            if init:
+                self._write_strip(init)
+            self._write_strip('meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+            self.write_make_prepend()
+            self._write_strip("ninja -v -C builddir")
+            self._write_strip("\n")
+            self._write_strip("\n".join(self.config.profile_payload))
+            self._write_strip("\nfind builddir/ -type f -not -name '*.gcno' -delete -print\n")
+            if post:
+                self._write_strip(post)
+            self._write_strip('meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+            self.write_make_prepend()
+            self._write_strip("ninja -v -C builddir")
+            if self.config.subdir:
+                self._write_strip("popd")
+        else:
+            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir'
+                              .format(self.config.extra_configure, self.config.extra_configure64))
+            self.write_make_prepend()
+            self._write_strip("ninja -v -C builddir")
+            if self.config.subdir:
+                self._write_strip("popd")
+
         if self.config.config_opts['use_avx2']:
             self._write_strip('CFLAGS="$CFLAGS -m64 -march=native -mtune=native" CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native " LDFLAGS="$LDFLAGS -m64 -march=native -mtune=native" '
                               'meson --libdir=lib64/haswell --prefix=/usr --buildtype=plain {0} '
