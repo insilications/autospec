@@ -46,7 +46,7 @@ def clone_and_git_archive_all(path, name, url, branch='master', is_fatal=True):
         clone_file_abs = f'{name}-{outputVersion}.zip'
         print('clone_file: ' + clone_file + '\n')
         print('clone_file_abs: ' + clone_file_abs + '\n')
-        call(f'git-archive-all --force-submodules -9 {clone_file}', cwd=clone_path)
+        call(f'git-archive-all --ignore-gitattr --force-submodules -9 {clone_file}', cwd=clone_path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
             print_fatal('Unable to archive {} in {} from {}: {}'.format(clone_path, clone_file, url, err))

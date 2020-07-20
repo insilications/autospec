@@ -166,40 +166,34 @@ def main():
     parser.add_argument("-o", "--mock-opts", action="store", default="",
                         help="Arbitrary options to pass down to mock when "
                         "building a package.")
-    parser.add_argument("-s", "--download_from_git", action="store", dest="download_from_git", default="",
+    parser.add_argument("-s", "--download_from_git", action="store_true", dest="download_from_git", default=False,
                         help="Download archive from git")
-    parser.add_argument("-f", "--from_branch", action="store", dest="branch", default="",
+    parser.add_argument("-r", "--redownload_from_git", action="store_true", dest="redownload_from_git", default=False,
+                        help="Redownload archive from git")
+    parser.add_argument("-f", "--from_branch", action="store", dest="branch", default="master",
                         help="Define git branch to download the archive from")
 
     args = parser.parse_args()
 
-    download_from_git = ""
-    branch = ""
     name, url, download_from_git, branch, archives = read_old_metadata()
     name = args.name or name
     url = args.url or url
     archives = args.archives or archives
 
-    redownload_from_git = False
+    redownload_from_git = args.redownload_from_git
     print('Teste from metadata download_from_git - branch: {} - {}'.format(download_from_git, branch))
 
-    if args.download_from_git and not download_from_git:
-        download_from_git = args.download_from_git
-        redownload_from_git = True
+    if args.download_from_git:
+        download_from_git = True
         if not args.branch:
             branch = "master"
         else:
             branch = args.branch
 
-    if download_from_git:
-        if args.branch:
-            if (args.branch == branch):
-                print('Teste args.branch branch equals: {} - {}'.format(args.branch, branch))
-                redownload_from_git = False
-            else:
-                print('Teste args.branch branch NOT equals: {} - {}'.format(args.branch, branch))
-                branch = args.branch
-                redownload_from_git = True
+    print('Teste args.branch - branch: {} - {}'.format(args.branch, branch))
+    print('Teste args.download_from_git - download_from_git: {} - {}'.format(args.download_from_git, download_from_git))
+    print('Teste redownload_from_git: {}'.format(redownload_from_git))
+    print('Teste args.url - url: {} - {}'.format(args.url, url))
 
     if not args.target:
         parser.error(argparse.ArgumentTypeError(
@@ -238,7 +232,7 @@ def package(args, url, name, archives, workingdir, download_from_git="", branch=
         giturl = url
         found_file = False
         fileslist = None
-        download_file_full_path = 'File'
+        download_file_full_path = ""
         print('Teste url 2: ' + url)
         print('Teste BRANCH 2: ' + branch)
         filename_re = "^{}-{}".format(name, r'(\d+)(\.\d+)+\.zip')
