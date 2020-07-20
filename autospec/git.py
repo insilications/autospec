@@ -26,7 +26,8 @@ import subprocess
 
 from util import call, write_out, print_fatal
 
-def clone_and_git_archive_all(path, name, url, branch = 'master', is_fatal=True):
+
+def clone_and_git_archive_all(path, name, url, branch='master', is_fatal=True):
     cmd_args = f'{branch} {url} clone_archive'
     clone_path = f'{path}/clone_archive'
     print('Teste: ' + 'git clone --branch ' + cmd_args + '\n')
@@ -38,7 +39,8 @@ def clone_and_git_archive_all(path, name, url, branch = 'master', is_fatal=True)
             print_fatal('Unable to clone {} in {}: {}'.format(url, clone_path, err))
             sys.exit(1)
     try:
-        process = subprocess.run(f'git describe --abbrev=0 --tags || git log -1 --date=format:%y.%m.%d --pretty=format:%cd', check=True, shell=True, stdout=subprocess.PIPE, text=True, universal_newlines=True, cwd=clone_path)
+        process = subprocess.run('git describe --abbrev=0 --tags || git log -1 --date=format:%y.%m.%d --pretty=format:%cd',
+                                 check=True, shell=True, stdout=subprocess.PIPE, text=True, universal_newlines=True, cwd=clone_path)
         outputVersion = process.stdout.rstrip("\n")
         clone_file = f'../{name}-{outputVersion}.zip'
         clone_file_abs = f'{name}-{outputVersion}.zip'
@@ -60,6 +62,7 @@ def clone_and_git_archive_all(path, name, url, branch = 'master', is_fatal=True)
         if is_fatal:
             print_fatal('Unable to remove clone_archive in {}: {}'.format(clone_path, err))
             sys.exit(1)
+
 
 def commit_to_git(config, name, success):
     """Update package's git tree for autospec managed changes."""

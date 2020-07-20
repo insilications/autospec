@@ -172,7 +172,7 @@ def main():
                         help="Define git branch to download the archive from")
 
     args = parser.parse_args()
-    
+
     download_from_git = ""
     branch = ""
     name, url, download_from_git, branch, archives = read_old_metadata()
@@ -181,9 +181,8 @@ def main():
     archives = args.archives or archives
 
     redownload_from_git = False
-    
     print('Teste from metadata download_from_git - branch: {} - {}'.format(download_from_git, branch))
-    
+
     if args.download_from_git and not download_from_git:
         download_from_git = args.download_from_git
         redownload_from_git = True
@@ -191,7 +190,7 @@ def main():
             branch = "master"
         else:
             branch = args.branch
-            
+
     if download_from_git:
         if args.branch:
             if (args.branch == branch):
@@ -217,8 +216,8 @@ def main():
         parser.error(argparse.ArgumentTypeError(
             "-a/--archives or options.conf['package']['archives'] requires an "
             "even number of arguments"))
-    
-    print('Teste url 0: ' + url) 
+
+    print('Teste url 0: ' + url)
 
     if args.prep_only:
         os.makedirs("workingdir", exists_ok=True)
@@ -228,31 +227,31 @@ def main():
             package(args, url, name, archives, workingdir, download_from_git, branch, redownload_from_git)
 
 
-def package(args, url, name, archives, workingdir, download_from_git = "", branch = "", redownload_from_git = False):
+def package(args, url, name, archives, workingdir, download_from_git="", branch="", redownload_from_git=False):
     """Entry point for building a package with autospec."""
     check_requirements(args.git)
-    
+
     url = url
-    print('Teste url 1: ' + url) 
+    print('Teste url 1: ' + url)
     # Download the archive from git if necessary
     if download_from_git:
         giturl = url
         found_file = False
         fileslist = None
         download_file_full_path = 'File'
-        print('Teste url 2: ' + url) 
-        print('Teste BRANCH 2: ' + branch) 
+        print('Teste url 2: ' + url)
+        print('Teste BRANCH 2: ' + branch)
+        filename_re = "^{}-{}".format(name, r'(\d+)(\.\d+)+\.zip')
         if (os.path.basename(os.getcwd()) == name):
             package_path = './'
-            print('Teste package_path 11: ' + package_path) 
-            filename_re = f'{name}-\d+(\.\d+)+.zip'
+            print('Teste package_path 11: ' + package_path)
             fileslist = os.listdir(package_path)
             fileslist.sort(key=os.path.getmtime)
             for filename in fileslist:
                 if re.search(filename_re, filename):
                     found_file = True
                     download_file_full_path = os.path.abspath(f'{package_path}{filename}')
-                    print('Found old package_path 21: ' + download_file_full_path)
+                    print('Teste found old package_path 21: ' + download_file_full_path)
             if not found_file or redownload_from_git:
                 download_file_full_path = git.clone_and_git_archive_all(package_path, name, url, branch)
             print('Teste download_file_full_path 11: ' + download_file_full_path)
@@ -260,7 +259,7 @@ def package(args, url, name, archives, workingdir, download_from_git = "", branc
             print('Teste giturl 11: ' + giturl)
         else:
             package_path = f'packages/{name}'
-            print('Teste package_path 12: ' + package_path) 
+            print('Teste package_path 12: ' + package_path)
             fileslist = os.listdir(package_path)
             fileslist.sort(key=os.path.getmtime)
             for filename in fileslist:
@@ -280,7 +279,7 @@ def package(args, url, name, archives, workingdir, download_from_git = "", branc
     conf = config.Config(args.target)
     conf.detect_build_from_url(url)
     package = build.Build()
-    
+
     #
     # First, download the tarball, extract it and then do a set
     # of static analysis on the content of the tarball.

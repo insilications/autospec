@@ -428,19 +428,19 @@ class Config(object):
 
         metadata['giturl'] = self.content.giturl
         metadata['domain'] = self.content.domain
-        
+
         metadata['url'] = self.content.url
-        
+
         if self.content.download_from_git:
             metadata['download_from_git'] = self.content.download_from_git
         else:
-             metadata['download_from_git'] = ""
-             
+            metadata['download_from_git'] = ""
+
         if self.content.branch:
             metadata['branch'] = self.content.branch
         else:
             metadata['branch'] = ""
-             
+
         if self.alias:
             metadata['alias'] = self.alias
         else:
@@ -483,31 +483,31 @@ class Config(object):
 
         # default lto to true for new things
         config_f['autospec']['use_lto'] = 'false'
-        
+
         # default alternative flags for new things
         config_f['autospec']['fsalt1'] = 'true'
 
         # default alternative pgo flags for new things
         config_f['autospec']['altflags_pgo'] = 'false'
-        
+
         # default 32bits for new things
         config_f['autospec']['32bit'] = 'false'
-        
+
         # default ignore missing build ids
         config_f['autospec']['nomissingbuildids'] = 'false'
-        
+
         # default disable automatic requeriments processing
         config_f['autospec']['noautoreq'] = 'false'
-        
+
         # default disable automatic provides processing
         config_f['autospec']['noautoprov'] = 'false'
-        
+
         # default alternative cargo patterns
         config_f['autospec']['altcargo1'] = 'true'
-        
+
         # default alternative cargo patterns
         config_f['autospec']['build_special'] = 'false'
-        
+
         # new defaults
         config_f['autospec']['asneeded'] = 'false'
         config_f['autospec']['allow_test_failures'] = 'false'
@@ -954,7 +954,7 @@ class Config(object):
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure64"))
         self.extra_configure64 = " \\\n".join(content)
-        
+
         content = self.read_conf_file(os.path.join(self.download_path, "configure_special"))
         self.extra_configure_special = " \\\n".join(content)
 
@@ -975,7 +975,7 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "make_args"))
         if content:
             self.extra_make = " \\\n".join(content)
-            
+
         content = self.read_conf_file(os.path.join(self.download_path, "make_args_special"))
         if content:
             self.extra_make_special = " \\\n".join(content)
@@ -987,7 +987,7 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "make_install_args"))
         if content:
             self.extra_make_install = " \\\n".join(content)
-            
+
         content = self.read_conf_file(os.path.join(self.download_path, "make_install_args_special"))
         if content:
             self.extra_make_install_special = " \\\n".join(content)
@@ -1079,7 +1079,7 @@ class Config(object):
 
         if self.config_opts['pgo']:
             self.profile_payload = self.read_script_file(os.path.join(self.download_path, "profile_payload"))
-            
+
         if self.config_opts['altflags_pgo']:
             self.profile_payload = self.read_script_file(os.path.join(self.download_path, "profile_payload"))
 

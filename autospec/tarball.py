@@ -210,6 +210,7 @@ class Content(object):
         src_path = self.check_or_get_file(url, os.path.basename(url))
         main_src = Source(url, '', src_path, self.config.default_pattern)
         return main_src
+
     def print_header(self):
         """Print header for autospec run."""
         print("\n")
