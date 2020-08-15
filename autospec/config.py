@@ -80,15 +80,25 @@ class Config(object):
         self.urlban = ""
         self.extra_make = ""
         self.extra32_make = ""
+        self.extra_make_special = ""
         self.extra_make_install = ""
         self.extra_make_install_special = ""
         self.extra_make32_install = ""
         self.extra_cmake = ""
+        self.extra_cmake_64 = ""
+        self.extra_cmake_32 = ""
         self.extra_cmake_special = ""
         self.extra_cmake_openmpi = ""
         self.cmake_srcdir = ".."
         self.subdir = ""
-        self.install_macro = "%make_install"
+        self.configure_macro = ""
+        self.configure_macro_32 = ""
+        self.install_macro = ""
+        self.install_macro_32 = ""
+        self.install_macro_512 = ""
+        self.install_macro_avx2 = ""
+        self.install_macro_openmpi = ""
+        self.install_macro_build_special = ""
         self.disable_static = "--disable-static"
         self.altflags1 = []
         self.altflags_pgo = []
@@ -440,6 +450,11 @@ class Config(object):
             metadata['branch'] = self.content.branch
         else:
             metadata['branch'] = ""
+
+        if self.content.archives_from_git:
+            metadata['archives_from_git'] = " ".join(self.content.archives_from_git)
+        else:
+            metadata['archives_from_git'] = ""
 
         if self.alias:
             metadata['alias'] = self.alias
@@ -996,13 +1011,49 @@ class Config(object):
         if content:
             self.extra_make32_install = " \\\n".join(content)
 
+        content = self.read_conf_file(os.path.join(self.download_path, "configure_macro"))
+        if content and content[0]:
+            self.configure_macro = " \n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "configure_macro_32"))
+        if content and content[0]:
+            self.configure_macro_32 = " \n".join(content)
+
         content = self.read_conf_file(os.path.join(self.download_path, "install_macro"))
         if content and content[0]:
-            self.install_macro = content[0]
+            self.install_macro = " \n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "install_macro_32"))
+        if content and content[0]:
+            self.install_macro_32 = " \n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "install_macro_512"))
+        if content and content[0]:
+            self.install_macro_512 = " \n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "install_macro_avx2"))
+        if content and content[0]:
+            self.install_macro_avx2 = " \n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "install_macro_openmpi"))
+        if content and content[0]:
+            self.install_macro_openmpi = " \n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "install_macro_build_special"))
+        if content and content[0]:
+            self.install_macro_build_special = " \n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args"))
         if content:
             self.extra_cmake = " \\\n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_64"))
+        if content:
+            self.extra_cmake_64 = " \\\n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_32"))
+        if content:
+            self.extra_cmake_32 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_special"))
         if content:

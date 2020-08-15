@@ -23,6 +23,7 @@ import glob
 import os
 import sys
 import subprocess
+import re
 
 from util import call, write_out, print_fatal
 
@@ -32,36 +33,78 @@ def clone_and_git_archive_all(path, name, url, branch='master', is_fatal=True):
     clone_path = f'{path}/clone_archive'
     print('Teste: ' + 'git clone --branch ' + cmd_args + '\n')
     print('Teste: cwd=path ' + path + '\n')
+
     try:
         call(f'git clone --branch {cmd_args}', cwd=path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
             print_fatal('Unable to clone {} in {}: {}'.format(url, clone_path, err))
             sys.exit(1)
+
     try:
         process = subprocess.run('git describe --abbrev=0 --tags || git log -1 --date=format:%y.%m.%d --pretty=format:%cd',
                                  check=True, shell=True, stdout=subprocess.PIPE, text=True, universal_newlines=True, cwd=clone_path)
-        outputVersion = process.stdout.rstrip("\n")
-        clone_file = f'../{name}-{outputVersion}.zip'
-        clone_file_abs = f'{name}-{outputVersion}.zip'
-        print('clone_file: ' + clone_file + '\n')
-        print('clone_file_abs: ' + clone_file_abs + '\n')
-        call(f'git-archive-all --ignore-gitattr --force-submodules -9 {clone_file}', cwd=clone_path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
-            print_fatal('Unable to archive {} in {} from {}: {}'.format(clone_path, clone_file, url, err))
+            print_fatal('Unable to get version from git describe in {} from {}: {}'.format(clone_path, url, err))
             sys.exit(1)
+
+    outputVersion = process.stdout.rstrip("\n")
+    clone_file = f'../{name}-{outputVersion}.zip'
+    clone_file_abs = f'{name}-{outputVersion}.zip'
+    print('Teste clone_path: ' + clone_path + '\n')
+
+    if os.path.isfile(f'{clone_path}/update_version'):
+        print('Running update_version bash script')
+        # call('./update_version', cwd=clone_path)
+        write_out(os.path.join(clone_path, 'package_version'), 'AUTO_UPDATE=yes\nPACKAGE_VERSION="{}"'.format(re.search(r"(\d+)(\.\d+)+", outputVersion).group(0)))
+        try:
+            call(f'git-archive-all --ignore-gitattr --no-exclude --extra=package_version --force-submodules -9 {clone_file}', cwd=clone_path)
+        except subprocess.CalledProcessError as err:
+            if is_fatal:
+                print_fatal('Unable to archive {} in {} from {}: {}'.format(clone_path, clone_file, url, err))
+                sys.exit(1)
+    elif os.path.isfile(f'{clone_path}/version.sh'):
+        print('Running version.sh bash script')
+        try:
+            process = subprocess.run('./version.sh',
+                                     check=True, shell=True, stdout=subprocess.PIPE, text=True, universal_newlines=True, cwd=clone_path)
+        except subprocess.CalledProcessError as err:
+            if is_fatal:
+                print_fatal('Unable to run version.sh bash script in {} from {} {}: {}'.format(clone_path, clone_file, url, err))
+                sys.exit(1)
+        outputVersion = process.stdout.rstrip("\n")
+        foundVersion = re.search(r"(?<=#define\sX264_POINTVER\s\")(\d+)(\.\d+)+|(\d+)(\.\d+)+", outputVersion).group(0)
+        clone_file = f'../{name}-{foundVersion}.zip'
+        clone_file_abs = f'{name}-{foundVersion}.zip'
+        try:
+            call(f'git-archive-all --ignore-gitattr --no-exclude --force-submodules -9 {clone_file}', cwd=clone_path)
+        except subprocess.CalledProcessError as err:
+            if is_fatal:
+                print_fatal('Unable to archive {} in {} from {}: {}'.format(clone_path, clone_file, url, err))
+                sys.exit(1)
+    else:
+        try:
+            call(f'git-archive-all --ignore-gitattr --no-exclude --force-submodules -9 {clone_file}', cwd=clone_path)
+        except subprocess.CalledProcessError as err:
+            if is_fatal:
+                print_fatal('Unable to archive {} in {} from {}: {}'.format(clone_path, clone_file, url, err))
+                sys.exit(1)
+
     try:
         call('rm -rf clone_archive/', cwd=path)
-        absolute_file_path = os.path.abspath(clone_file_abs)
-        print('absolute_file_path: ' + absolute_file_path + '\n')
-        absolute_url_file = f'file://{absolute_file_path}'
-        print('absolute_url_file: ' + absolute_url_file + '\n')
-        return absolute_url_file
     except subprocess.CalledProcessError as err:
         if is_fatal:
             print_fatal('Unable to remove clone_archive in {}: {}'.format(clone_path, err))
             sys.exit(1)
+
+    print('Teste clone_file: ' + clone_file + '\n')
+    print('Teste clone_file_abs: ' + clone_file_abs + '\n')
+    absolute_file_path = os.path.abspath(clone_file_abs)
+    print('absolute_file_path: ' + absolute_file_path + '\n')
+    absolute_url_file = f'file://{absolute_file_path}'
+    print('absolute_url_file: ' + absolute_url_file + '\n')
+    return absolute_url_file
 
 
 def commit_to_git(config, name, success):
@@ -173,6 +216,7 @@ def commit_to_git(config, name, success):
         "rpms/",
         "for-review.txt",
         "*.tar",
+        "*.gem",
         ""
     ]
     write_out(os.path.join(path, '.gitignore'), '\n'.join(ignorelist))
