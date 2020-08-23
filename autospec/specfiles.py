@@ -568,6 +568,7 @@ class Specfile(object):
         self._write_strip('export AR=gcc-ar')
         self._write_strip('export RANLIB=gcc-ranlib')
         self._write_strip('export NM=gcc-nm')
+        self._write_strip('unset LD_LIBRARY_PATH')
         self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"')
         self._write_strip('export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"')
         self._write_strip('export CFLAGS="${CFLAGS}${CFLAGS:+ }-m32 -mstackrealign"')
