@@ -1375,6 +1375,7 @@ class Specfile(object):
                 self._write_strip("pushd ../build32/" + self.config.subdir)
                 self.write_build_prepend()
                 self.write_32bit_exports()
+                self.write_build_append()
                 self._write_strip("{} ".format(self.config.configure_macro_32))
                 self.write_make_line(True)
                 self._write_strip("popd")
@@ -1382,6 +1383,7 @@ class Specfile(object):
                 self._write_strip("pushd ../build32/" + self.config.subdir)
                 self.write_build_prepend()
                 self.write_32bit_exports()
+                self.write_build_append()
                 self._write_strip("%configure {0} {1}"
                                   " --libdir=/usr/lib32 "
                                   "--build=i686-generic-linux-gnu "
@@ -1477,6 +1479,7 @@ class Specfile(object):
             self._write_strip("pushd ../build32/" + self.config.subdir)
             self.write_build_prepend()
             self.write_32bit_exports()
+            self.write_build_append()
             self._write_strip("%reconfigure {0} {1} "
                               "--libdir=/usr/lib32 "
                               "--build=i686-generic-linux-gnu "
@@ -1537,7 +1540,9 @@ class Specfile(object):
         self._write_strip("\n")
         if self.config.config_opts['32bit']:
             self._write_strip("pushd ../build32/" + self.config.subdir)
+            self.write_build_prepend()
             self.write_32bit_exports()
+            self.write_build_append()
             self.write_make_line(True)
             self._write_strip("popd")
         if self.config.config_opts['build_special']:
@@ -1589,6 +1594,7 @@ class Specfile(object):
             self._write_strip("pushd ../build32/" + self.config.subdir)
             self.write_build_prepend()
             self.write_32bit_exports()
+            self.write_build_append()
             self._write_strip("%autogen {0} {1} {2} "
                               "--libdir=/usr/lib32 "
                               "--build=i686-generic-linux-gnu "
@@ -1915,6 +1921,7 @@ class Specfile(object):
             self._write_strip("pushd clr-build32")
             self.write_build_prepend()
             self.write_32bit_exports()
+            self.write_build_append()
             self._write_strip("%cmake -DLIB_INSTALL_DIR:PATH=/usr/lib32 "
                               "-DCMAKE_INSTALL_LIBDIR=/usr/lib32 "
                               "-DLIB_SUFFIX=32 "
@@ -2262,7 +2269,9 @@ class Specfile(object):
             self._write_strip("popd")
         if self.config.config_opts['32bit']:
             self._write_strip("pushd ../build32/" + self.config.subdir)
+            self.write_build_prepend()
             self.write_32bit_exports()
+            self.write_build_append()
             self._write_strip('meson '
                               '--libdir=lib32 --prefix=/usr --buildtype=plain {0} {1} builddir'
                               .format(self.config.extra_configure,
