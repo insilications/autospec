@@ -45,7 +45,7 @@ sys.path.append(os.path.dirname(__file__))
 
 def check_requirements(use_git):
     """Ensure all requirements are satisfied before continuing."""
-    required_bins = ["mock", "rpm2cpio", "nm", "objdump", "cpio", "readelf", "git-archive-all"]
+    required_bins = ["mock", "rpm2cpio", "nm", "objdump", "cpio", "readelf", "zip"]
 
     if use_git:
         required_bins.append("git")
@@ -67,12 +67,12 @@ def load_specfile(conf, specfile):
 def read_old_metadata():
     """Handle options.conf providing package, url and archives."""
     if not os.path.exists(os.path.join(os.getcwd(), 'options.conf')):
-        return None, None, None, None, [], []
+        return None, None, None, None, None, [], []
 
     config_f = configparser.ConfigParser(interpolation=None)
     config_f.read('options.conf')
     if "package" not in config_f.sections():
-        return None, None, None, None, [], []
+        return None, None, None, None, None, [], []
 
     archives = config_f["package"].get("archives")
     archives = archives.split() if archives else []
@@ -85,6 +85,7 @@ def read_old_metadata():
             config_f["package"].get("url"),
             config_f["package"].get("download_from_git"),
             config_f["package"].get("branch"),
+            config_f["package"].get("force_module"),
             archives,
             archives_from_git)
 
@@ -185,12 +186,15 @@ def main():
                         " /directory/relative/to/extract/root master )")
     parser.add_argument("-rag", "--redownload_archive", action="store_true", dest="redownload_archive", default=False,
                         help="Redownload archives")
+    parser.add_argument("-dsub", "--disable_submodule", action="store_true", dest="force_module", default=False,
+                        help="Disable download submodules from git")
 
     args = parser.parse_args()
 
-    name, url, download_from_git, branch, archives, archives_from_git = read_old_metadata()
+    name, url, download_from_git, branch, force_module, archives, archives_from_git = read_old_metadata()
     name = args.name or name
     url = args.url or url
+    force_module = force_module or args.force_module
     archives = args.archives or archives
     archives_from_git = args.archives_from_git or archives_from_git
 
@@ -210,6 +214,8 @@ def main():
     print('Teste branch: {}'.format(branch))
     print('Teste args.url: {}'.format(args.url))
     print('Teste url: {}'.format(url))
+    print('Teste force_module: {}'.format(force_module))
+    print('Teste args.force_module: {}'.format(args.force_module))
     print('Teste redownload_from_git: {}'.format(redownload_from_git))
     print('Teste args.archives: {}'.format(args.archives))
     print('Teste archives: {}'.format(archives))
@@ -243,13 +249,13 @@ def main():
 
     if args.prep_only:
         os.makedirs("workingdir", exists_ok=True)
-        package(args, url, name, archives, archives_from_git, "./workingdir", download_from_git, branch, redownload_from_git, redownload_archive)
+        package(args, url, name, archives, archives_from_git, "./workingdir", download_from_git, branch, redownload_from_git, redownload_archive, force_module)
     else:
         with tempfile.TemporaryDirectory() as workingdir:
             package(args, url, name, archives, archives_from_git, workingdir, download_from_git, branch, redownload_from_git, redownload_archive)
 
 
-def package(args, url, name, archives, archives_from_git, workingdir, download_from_git=False, branch="", redownload_from_git=False, redownload_archive=False):
+def package(args, url, name, archives, archives_from_git, workingdir, download_from_git=False, branch="", redownload_from_git=False, redownload_archive=False, force_module=False):
     """Entry point for building a package with autospec."""
     print('Teste url 1: ' + url)
     new_archives_from_git = []
@@ -273,7 +279,7 @@ def package(args, url, name, archives, archives_from_git, workingdir, download_f
                     download_file_full_path = "file://{}".format(os.path.abspath(f'{package_path}{filename}'))
                     print('Teste found old package_path 21: ' + download_file_full_path)
             if not found_file or redownload_from_git:
-                download_file_full_path = git.clone_and_git_archive_all(package_path, name, url, branch)
+                download_file_full_path = git.clone_and_git_archive_all(package_path, name, url, branch, force_module)
             print('Teste download_file_full_path 11: ' + download_file_full_path)
             url = download_file_full_path
             print('Teste giturl 11: ' + giturl)
@@ -288,7 +294,7 @@ def package(args, url, name, archives, archives_from_git, workingdir, download_f
                     download_file_full_path = "file://{}".format(os.path.abspath(f'{package_path}{filename}'))
                     print('Teste found old package_path 22: ' + download_file_full_path)
             if not found_file or redownload_from_git:
-                download_file_full_path = git.clone_and_git_archive_all(package_path, name, url, branch)
+                download_file_full_path = git.clone_and_git_archive_all(package_path, name, url, branch, force_module)
             print('Teste download_file_full_path 12: ' + download_file_full_path)
             url = download_file_full_path
             print('Teste giturl 12: ' + giturl)
@@ -335,7 +341,7 @@ def package(args, url, name, archives, archives_from_git, workingdir, download_f
                     print("Index: {}".format(index))
                     print("Destination: {} - Branch: {}".format(arch_destination[index], arch_branch[index]))
                     print("Fazer download archive 1: {} - {}".format(arch_name, new_arch_url))
-                    download_file_full_path = git.clone_and_git_archive_all(package_path, arch_name, new_arch_url, arch_branch[index])
+                    download_file_full_path = git.clone_and_git_archive_all(package_path, arch_name, new_arch_url, arch_branch[index], force_module)
                 print('Teste archive download_file_full_path 1: ' + download_file_full_path)
                 if download_file_full_path in archives or arch_destination[index] in archives:
                     print("\nalready in archives: {}".format(archives))
@@ -362,7 +368,7 @@ def package(args, url, name, archives, archives_from_git, workingdir, download_f
                     print("Index: {}".format(index))
                     print("Destination: {} - Branch: {}".format(arch_destination[index], arch_branch[index]))
                     print("Fazer download archive 2: {} - {}".format(arch_name, new_arch_url))
-                    download_file_full_path = git.clone_and_git_archive_all(package_path, arch_name, new_arch_url, arch_branch[index])
+                    download_file_full_path = git.clone_and_git_archive_all(package_path, arch_name, new_arch_url, arch_branch[index], force_module)
                 print('Teste archive download_file_full_path 2: ' + download_file_full_path)
                 if download_file_full_path in archives or arch_destination[index] in archives:
                     print("\nalready in archives: {}".format(archives))
@@ -386,7 +392,7 @@ def package(args, url, name, archives, archives_from_git, workingdir, download_f
     #
     filemanager = files.FileManager(conf, package)
     print('Teste url 4: ' + url)
-    content = tarball.Content(url, name, args.version, archives, conf, workingdir, giturl, download_from_git, branch, new_archives_from_git)
+    content = tarball.Content(url, name, args.version, archives, conf, workingdir, giturl, download_from_git, branch, new_archives_from_git, force_module)
     content.process(filemanager)
     conf.create_versions(content.multi_version)
     conf.content = content  # hack to avoid recursive dependency on init

@@ -405,9 +405,9 @@ class Specfile(object):
         if build32:
             self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra32_make))
         elif not self.config.config_opts['build_special']:
-            self._write_strip("make {} {}".format(self.config.parallel_build, self.config.extra_make))
+            self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
         elif self.config.config_opts['build_special']:
-            self._write_strip("make {} {}".format(self.config.parallel_build, self.config.extra_make_special))
+            self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special))
 
     def write_install_openmpi(self):
         """Write make install line (openmpi) to spec file."""
@@ -562,9 +562,9 @@ class Specfile(object):
         #                  '-fno-stack-protector -fno-trapping-math -ftree-loop-distribute-patterns -ftree-loop-vectorize '
         #                  '-ftree-vectorize -funroll-loops -fuse-ld=bfd -fuse-linker-plugin -malign-data=cacheline '
         #                  '-feliminate-unused-debug-types -mtls-dialect=gnu2 -Wl,-sort-common -Wno-error -Wp,-D_REENTRANT -pipe"')
-        self._write_strip('export CFLAGS="-g -O3 -fuse-linker-plugin -pipe"')
-        self._write_strip('export CXXFLAGS="-g -O3 -fuse-linker-plugin -fvisibility-inlines-hidden -pipe"')
-        self._write_strip('export LDFLAGS="-g -O3 -fuse-linker-plugin -pipe"')
+        self._write_strip('export CFLAGS="-g -O2 -fuse-linker-plugin -pipe"')
+        self._write_strip('export CXXFLAGS="-g -O2 -fuse-linker-plugin -fvisibility-inlines-hidden -pipe"')
+        self._write_strip('export LDFLAGS="-g -O2 -fuse-linker-plugin -pipe"')
         self._write_strip('export AR=gcc-ar')
         self._write_strip('export RANLIB=gcc-ranlib')
         self._write_strip('export NM=gcc-nm')

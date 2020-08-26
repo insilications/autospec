@@ -80,6 +80,7 @@ class Config(object):
         self.urlban = ""
         self.extra_make = ""
         self.extra32_make = ""
+        self.extra64_make = ""
         self.extra_make_special = ""
         self.extra_make_install = ""
         self.extra_make_install_special = ""
@@ -450,6 +451,11 @@ class Config(object):
             metadata['branch'] = self.content.branch
         else:
             metadata['branch'] = ""
+
+        if self.content.force_module:
+            metadata['force_module'] = self.content.force_module
+        else:
+            metadata['force_module'] = ""
 
         if self.content.archives_from_git:
             metadata['archives_from_git'] = " ".join(self.content.archives_from_git)
@@ -998,6 +1004,10 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "make32_args"))
         if content:
             self.extra32_make = " \\\n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "make64_args"))
+        if content:
+            self.extra64_make = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make_install_args"))
         if content:
