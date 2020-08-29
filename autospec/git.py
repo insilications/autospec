@@ -30,92 +30,103 @@ from util import call, write_out, print_fatal
 
 def remove_clone_archive(path, clone_path, is_fatal):
     try:
-        call('rm -rf clone_archive/', cwd=path)
+        call(f"rm -rf {clone_path}", cwd=path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
-            print_fatal('Unable to remove clone_archive in {}: {}'.format(clone_path, err))
+            print_fatal("Unable to remove {}: {}".format(clone_path, err))
 
 
-def clone_and_git_archive_all(path, name, url, branch='master', force_module=False, is_fatal=True):
-    cmd_args = f'{branch} {url} clone_archive'
-    clone_path = f'{path}clone_archive'
-    print('Teste: ' + 'git clone --branch ' + cmd_args + '\n')
-    print('Teste: cwd=path ' + path + '\n')
+def clone_and_git_archive_all(path, name, url, branch, force_module, is_fatal=True):
+    cmd_args = f"{branch} {url} {name}"
+    clone_path = f"{path}{name}"
+    print("Teste: " + "git clone --branch " + cmd_args + "\n")
+    print("Teste: cwd=path " + path + "\n")
+    print("Teste: force_module " + str(force_module) + "\n")
 
     try:
-        if force_module is False:
-            call(f'git clone --recurse-submodules --remote-submodules --branch={cmd_args}', cwd=path)
+        if force_module is True:
+            call(f"git clone --branch={cmd_args}", cwd=path)
         else:
-            call(f'git clone --branch={cmd_args}', cwd=path)
+            call(f"git clone --recurse-submodules --remote-submodules --branch={cmd_args}", cwd=path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
             remove_clone_archive(path, clone_path, is_fatal)
-            print_fatal('Unable to clone {} in {}: {}'.format(url, clone_path, err))
+            print_fatal("Unable to clone {} in {}: {}".format(url, clone_path, err))
             sys.exit(1)
 
     try:
-        process = subprocess.run('git describe --abbrev=0 --tags || git log -1 --date=format:%y.%m.%d --pretty=format:%cd',
-                                 check=True, shell=True, stdout=subprocess.PIPE, text=True, universal_newlines=True, cwd=clone_path)
+        process = subprocess.run(
+            "git describe --abbrev=0 --tags || git log -1 --date=format:%y.%m.%d --pretty=format:%cd",
+            check=True,
+            shell=True,
+            stdout=subprocess.PIPE,
+            text=True,
+            universal_newlines=True,
+            cwd=clone_path,
+        )
     except subprocess.CalledProcessError as err:
         if is_fatal:
             remove_clone_archive(path, clone_path, is_fatal)
-            print_fatal('Unable to get version from git describe in {} from {}: {}'.format(clone_path, url, err))
+            print_fatal("Unable to get version from git describe in {} from {}: {}".format(clone_path, url, err))
             sys.exit(1)
 
     outputVersion = process.stdout.rstrip("\n")
-    clone_file = f'{name}-{outputVersion}.tar.gz'
-    clone_file_abs = f'{name}-{outputVersion}.tar.gz'
-    print('Teste clone_path: ' + clone_path + '\n')
-    print('Teste: force_module ' + str(force_module) + '\n')
+    clone_file = f"{name}-{outputVersion}.tar.gz"
+    clone_file_abs = f"{name}-{outputVersion}.tar.gz"
+    print("Teste clone_path: " + clone_path + "\n")
 
-    if os.path.isfile(f'{clone_path}/update_version'):
-        print('Running update_version bash script')
+    if os.path.isfile(f"{clone_path}/update_version"):
+        print("Running update_version bash script")
         # call('./update_version', cwd=clone_path)
-        write_out(os.path.join(clone_path, 'package_version'), 'AUTO_UPDATE=yes\nPACKAGE_VERSION="{}"'.format(re.search(r"(\d+)(\.\d+)+", outputVersion).group(0)))
+        write_out(
+            os.path.join(clone_path, "package_version"),
+            'AUTO_UPDATE=yes\nPACKAGE_VERSION="{}"'.format(re.search(r"(\d+)(\.\d+)+", outputVersion).group(0)),
+        )
         try:
-            call(f'tar --create --gzip --file={clone_file} clone_archive/', cwd=path)
+            call(f"tar --create --gzip --file={clone_file} {clone_path}/", cwd=path)
         except subprocess.CalledProcessError as err:
             if is_fatal:
                 remove_clone_archive(path, clone_path, is_fatal)
-                print_fatal('Unable to archive {} in {} from {}: {}'.format(clone_path, clone_file, url, err))
+                print_fatal("Unable to archive {} in {} from {}: {}".format(clone_path, clone_file, url, err))
                 sys.exit(1)
-    elif os.path.isfile(f'{clone_path}/version.sh'):
-        print('Running version.sh bash script')
+    elif os.path.isfile(f"{clone_path}/version.sh"):
+        print("Running version.sh bash script")
         try:
-            process = subprocess.run('./version.sh',
-                                     check=True, shell=True, stdout=subprocess.PIPE, text=True, universal_newlines=True, cwd=clone_path)
+            process = subprocess.run(
+                "./version.sh", check=True, shell=True, stdout=subprocess.PIPE, text=True, universal_newlines=True, cwd=clone_path
+            )
         except subprocess.CalledProcessError as err:
             if is_fatal:
                 remove_clone_archive(path, clone_path, is_fatal)
-                print_fatal('Unable to run version.sh bash script in {} from {} {}: {}'.format(clone_path, clone_file, url, err))
+                print_fatal("Unable to run version.sh bash script in {} from {} {}: {}".format(clone_path, clone_file, url, err))
                 sys.exit(1)
         outputVersion = process.stdout.rstrip("\n")
         foundVersion = re.search(r"(?<=#define\sX264_POINTVER\s\")(\d+)(\.\d+)+|(\d+)(\.\d+)+", outputVersion).group(0)
-        clone_file = f'{name}-{foundVersion}.tar.gz'
-        clone_file_abs = f'{name}-{foundVersion}.tar.gz'
+        clone_file = f"{name}-{foundVersion}.tar.gz"
+        clone_file_abs = f"{name}-{foundVersion}.tar.gz"
         try:
-            call(f'tar --create --gzip --file={clone_file} clone_archive/', cwd=path)
+            call(f"tar --create --gzip --file={clone_file} {clone_path}/", cwd=path)
         except subprocess.CalledProcessError as err:
             if is_fatal:
                 remove_clone_archive(path, clone_path, is_fatal)
-                print_fatal('Unable to archive {} in {} from {}: {}'.format(clone_path, clone_file, url, err))
+                print_fatal("Unable to archive {} in {} from {}: {}".format(clone_path, clone_file, url, err))
                 sys.exit(1)
     else:
         try:
-            call(f'tar --create --gzip --file={clone_file} clone_archive/', cwd=path)
+            call(f"tar --create --gzip --file={clone_file} {clone_path}/", cwd=path)
         except subprocess.CalledProcessError as err:
             if is_fatal:
                 remove_clone_archive(path, clone_path, is_fatal)
-                print_fatal('Unable to archive {} in {} from {}: {}'.format(clone_path, clone_file, url, err))
+                print_fatal("Unable to archive {} in {} from {}: {}".format(clone_path, clone_file, url, err))
                 sys.exit(1)
 
     remove_clone_archive(path, clone_path, is_fatal)
-    print('Teste clone_file: ' + clone_file + '\n')
-    print('Teste clone_file_abs: ' + clone_file_abs + '\n')
+    print("Teste clone_file: " + clone_file + "\n")
+    print("Teste clone_file_abs: " + clone_file_abs + "\n")
     absolute_file_path = os.path.abspath(clone_file_abs)
-    print('absolute_file_path: ' + absolute_file_path + '\n')
-    absolute_url_file = f'file://{absolute_file_path}'
-    print('absolute_url_file: ' + absolute_url_file + '\n')
+    print("absolute_file_path: " + absolute_file_path + "\n")
+    absolute_url_file = f"file://{absolute_file_path}"
+    print("absolute_url_file: " + absolute_url_file + "\n")
     return absolute_url_file
 
 
@@ -129,7 +140,7 @@ def commit_to_git(config, name, success):
         try:
             call("git config --get remote.origin.url", cwd=path)
         except subprocess.CalledProcessError:
-            upstream_uri = config.git_uri % {'NAME': name}
+            upstream_uri = config.git_uri % {"NAME": name}
             call("git remote add origin %s" % upstream_uri, cwd=path)
 
     for config_file in config.config_files:
@@ -149,8 +160,8 @@ def commit_to_git(config, name, success):
     call("git add install_append", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add series", check=False, stderr=subprocess.DEVNULL, cwd=path)
     # Add/remove version specific patch lists
-    for filename in glob.glob('series.*'):
-        base, version = filename.split('.', 1)
+    for filename in glob.glob("series.*"):
+        base, version = filename.split(".", 1)
         if version in config.versions:
             call("git add {}".format(filename), check=False, stderr=subprocess.DEVNULL, cwd=path)
         else:
@@ -229,9 +240,9 @@ def commit_to_git(config, name, success):
         "for-review.txt",
         "*.tar",
         "*.gem",
-        ""
+        "",
     ]
-    write_out(os.path.join(path, '.gitignore'), '\n'.join(ignorelist))
+    write_out(os.path.join(path, ".gitignore"), "\n".join(ignorelist))
     call("git add .gitignore", check=False, stderr=subprocess.DEVNULL, cwd=path)
 
     if success == 0:

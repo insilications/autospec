@@ -524,9 +524,9 @@ class Config(object):
         config_f['autospec']['noautoprov'] = 'false'
 
         # default alternative cargo patterns
-        config_f['autospec']['altcargo1'] = 'true'
+        config_f['autospec']['altcargo1'] = 'false'
 
-        # default alternative cargo patterns
+        # default alternative build special
         config_f['autospec']['build_special'] = 'false'
 
         # new defaults

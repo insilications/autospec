@@ -696,6 +696,9 @@ class Specfile(object):
             self._write_strip('export FFLAGS_USE="$FFLAGS {0} "\n'.format(" ".join(useflags)))
             self._write_strip('export CXXFLAGS_USE="$CXXFLAGS {0} "\n'.format(" ".join(useflags)))
             self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
+            self._write_strip("##")
+            self._write_strip("%define _lto_cflags 1")
+            self._write_strip("##")
 
         if self.config.config_opts['fsalt1'] and not self.config.config_opts['altflags_pgo']:
             if self.config.altflags1:
@@ -703,6 +706,9 @@ class Specfile(object):
                 for line in self.config.altflags1:
                     self._write_strip("{}\n".format(line))
                 self._write_strip("## altflags1 end")
+                self._write_strip("##")
+                self._write_strip("%define _lto_cflags 1")
+                self._write_strip("##")
             else:
                 flagsalt1c.extend(["-g", "-feliminate-unused-debug-types", "-pipe", "-Wall", "-Wl,--hash-style=gnu", "-Wp,-D_REENTRANT", "-Wl,-sort-common", "-Wl,--enable-new-dtags",
                                    "-fasynchronous-unwind-tables", "-falign-functions=32", "-fno-math-errno", "-ftree-loop-distribute-patterns", "-Wl,-O2", "-Wl,-z,now", "-Wl,-z,relro",
@@ -736,7 +742,9 @@ class Specfile(object):
                     self._write('-std=gnu++98')
                 # close the open quote from CXXFLAGS export and add newline
                 self._write('"\n')
-
+                self._write_strip("##")
+                self._write_strip("%define _lto_cflags 1")
+                self._write_strip("##")
         if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts['altflags_pgo']:
             genflags = []
             useflags = []
@@ -748,6 +756,9 @@ class Specfile(object):
                 for line in self.config.altflags_pgo:
                     self._write_strip("{}\n".format(line))
                 self._write_strip("## altflags_pgo end")
+                self._write_strip("##")
+                self._write_strip("%define _lto_cflags 1")
+                self._write_strip("##")
             else:
                 self._write_strip("## altflags_pgo content")
                 self._write_strip("## pgo generate")
@@ -763,6 +774,9 @@ class Specfile(object):
                 self._write_strip('export CXXFLAGS_USE="$CXXFLAGS {0} "\n'.format(" ".join(useflags)))
                 self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
                 self._write_strip("## altflags_pgo end")
+                self._write_strip("##")
+                self._write_strip("%define _lto_cflags 1")
+                self._write_strip("##")
 
     def write_check(self):
         """Write check section to spec file."""
