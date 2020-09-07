@@ -63,6 +63,7 @@ class Specfile(object):
         self.extra_cmake_32 = config.extra_cmake_32 + " " + " ".join(requirements.extra_cmake)
         self.extra_cmake_64 = config.extra_cmake_64 + " " + " ".join(requirements.extra_cmake)
         self.extra_cmake_special = config.extra_cmake_special + " " + " ".join(requirements.extra_cmake)
+        self.extra_cmake_special2 = config.extra_cmake_special2 + " " + " ".join(requirements.extra_cmake)
         self.extra_cmake_openmpi = config.extra_cmake_openmpi + " " + " ".join(requirements.extra_cmake_openmpi)
 
     def write_spec(self):
@@ -73,7 +74,7 @@ class Specfile(object):
         # spec file comment header
         self.write_comment_header()
 
-        if self.config.config_opts.get('keepstatic'):
+        if self.config.config_opts.get("keepstatic"):
             self._write("%define keepstatic 1\n")
 
         # general package header
@@ -143,9 +144,15 @@ class Specfile(object):
         Append systemd unit files, gcov, and additional source tarballs are the currently supported file types.
         """
         count = 0
-        for source in sorted(self.config.sources["version"] + self.config.sources["unit"] + self.config.sources["archive"]
-                             + self.config.sources["tmpfile"] + self.config.sources["sysuser"] + self.config.sources["gcov"] # NOQA
-                             + self.config.sources["godep"]): # NOQA
+        for source in sorted(
+            self.config.sources["version"]
+            + self.config.sources["unit"]
+            + self.config.sources["archive"]
+            + self.config.sources["tmpfile"]
+            + self.config.sources["sysuser"]
+            + self.config.sources["gcov"]  # NOQA
+            + self.config.sources["godep"]
+        ):  # NOQA
             count += 1
             self.source_index[source] = count
             if self.config.urlban:
@@ -175,13 +182,11 @@ class Specfile(object):
     def write_main_subpackage_requires(self):
         """Write subpackage build requirements."""
         for pkg in sorted(self.packages):
-            if pkg == "autostart" and self.config.config_opts.get('no_autostart'):
+            if pkg == "autostart" and self.config.config_opts.get("no_autostart"):
                 continue
             if pkg.startswith("extras-"):
                 continue
-            if pkg in ["ignore", "main", "dev", "active-units", "extras",
-                       "lib32", "dev32", "doc", "examples", "abi", "staticdev",
-                       "staticdev32", "tests"]:
+            if pkg in ["ignore", "main", "dev", "active-units", "extras", "lib32", "dev32", "doc", "examples", "abi", "staticdev", "staticdev32", "tests"]:
                 continue
             # honor requires_ban for manual overrides
             if "{}-{}".format(self.name, pkg) in self.requirements.banned_requires.get(None, []):
@@ -198,31 +203,31 @@ class Specfile(object):
 
     def write_strip_command(self):
         """Write commands to prevent stripping binary if requested."""
-        if self.config.config_opts['nostrip']:
+        if self.config.config_opts["nostrip"]:
             self._write("# Suppress stripping binaries\n")
             self._write("%define __strip /bin/true\n%define debug_package %{nil}\n")
 
     def write_debug_command(self):
         """Write commands to prevent debug info generation if requested."""
-        if self.config.config_opts['nodebug']:
+        if self.config.config_opts["nodebug"]:
             self._write("# Suppress generation of debuginfo\n")
             self._write("%global debug_package %{nil}\n")
 
     def write_missing_build_ids_command(self):
         """Write commands to prevent failure if there are missing build ids."""
-        if self.config.config_opts['nomissingbuildids']:
+        if self.config.config_opts["nomissingbuildids"]:
             self._write("# Ignore missing build ids\n")
             self._write("%undefine _missing_build_ids_terminate_build\n")
 
     def write_disable_autoreq(self):
         """Write commands to disable automatic requeriments processing."""
-        if self.config.config_opts['noautoreq']:
+        if self.config.config_opts["noautoreq"]:
             self._write("# Disable automatic requeriments processing\n")
             self._write("AutoReq: no\n")
 
     def write_disable_autoprov(self):
         """Write commands to disable automatic provides processing."""
-        if self.config.config_opts['noautoprov']:
+        if self.config.config_opts["noautoprov"]:
             self._write("# Disable automatic provides processing\n")
             self._write("AutoProv: no\n")
 
@@ -263,13 +268,13 @@ class Specfile(object):
         deps["libexec"] = ["config", "license"]
         deps["lib32"] = ["data", "license"]
         deps["python"] = ["python3"]
-        if self.config.config_opts.get('dev_requires_extras'):
+        if self.config.config_opts.get("dev_requires_extras"):
             deps["dev"].append("extras")
-        if self.config.config_opts.get('openmpi'):
+        if self.config.config_opts.get("openmpi"):
             deps["dev"].append("openmpi")
         for k, v in self.file_maps.items():
             if "requires" in v:
-                deps[k] = v['requires']
+                deps[k] = v["requires"]
 
         # migration workaround; if we have a python3 package
         # we add an artificial python package
@@ -285,8 +290,7 @@ class Specfile(object):
                 continue
 
             self._write("\n%package {}\n".format(pkg))
-            self._write("Summary: {} components for the {} package.\n"
-                        .format(pkg, self.name))
+            self._write("Summary: {} components for the {} package.\n".format(pkg, self.name))
             if pkg in groups:
                 self._write("Group: {}\n".format(groups[pkg]))
             else:
@@ -324,7 +328,7 @@ class Specfile(object):
     def write_buildpattern(self):
         """Write build pattern to spec file."""
         self._write_strip("\n")
-        pattern_method = getattr(self, 'write_{}_pattern'.format(self.config.default_pattern))
+        pattern_method = getattr(self, "write_{}_pattern".format(self.config.default_pattern))
         if pattern_method:
             pattern_method()
 
@@ -343,7 +347,7 @@ class Specfile(object):
                 content = self.config.read_conf_file("{}.{}".format(script, pkg))
                 if content:
                     self._write("\n%{0} {1}\n".format(script, pkg))
-                    content = ['{}\n'.format(line) for line in content]
+                    content = ["{}\n".format(line) for line in content]
                     self.specfile.writelines(content)
 
     def write_files(self):
@@ -386,7 +390,7 @@ class Specfile(object):
         if export_epoch:
             # time.time() returns a float, but we only need second-precision
             self._write_strip("export SOURCE_DATE_EPOCH={}".format(int(time.time())))
-        if self.config.config_opts['asneeded']:
+        if self.config.config_opts["asneeded"]:
             self._write_strip("unset LD_AS_NEEDED\n")
 
     def write_proxy_exports(self):
@@ -395,33 +399,37 @@ class Specfile(object):
         self._write_strip("unset https_proxy")
         self._write_strip("unset no_proxy")
 
-    def write_make_line(self, build32=False):
+    def write_make_line(self, build32=False, build_type=None):
         """Write make line to spec file."""
         if self.config.make_prepend:
             self._write_strip("## make_prepend content")
             for line in self.config.make_prepend:
                 self._write_strip("{}\n".format(line))
             self._write_strip("## make_prepend end")
-        if build32:
+        if build32 is True and build_type is None:
             self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra32_make))
-        elif not self.config.config_opts['build_special']:
+        elif build32 is False and build_type is None:
             self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
-        elif self.config.config_opts['build_special']:
+        elif build32 is False and build_type == "special":
             self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special))
+        elif build32 is False and build_type == "special2":
+            self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special2))
 
     def write_install_openmpi(self):
         """Write make install line (openmpi) to spec file."""
-        self._write_strip('module load openmpi')
-        make_string = '%make_install_openmpi'
+        self._write_strip("module load openmpi")
+        make_string = "%make_install_openmpi"
         self._write_strip("{} {}".format(make_string, self.config.extra_make_install))
-        self._write_strip('module unload openmpi')
+        self._write_strip("module unload openmpi")
 
     def write_cmake_line_openmpi(self):
         """Write cmake line (openmpi) to spec file."""
-        cmake_string = 'cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=$MPI_ROOT -DCMAKE_INSTALL_SBINDIR=$MPI_BIN \\\n' \
-            '-DCMAKE_INSTALL_LIBDIR=$MPI_LIB -DCMAKE_INSTALL_INCLUDEDIR=$MPI_INCLUDE -DLIB_INSTALL_DIR=$MPI_LIB \\\n' \
-            '-DBUILD_SHARED_LIBS:BOOL=ON -DLIB_SUFFIX=64 \\\n' \
-            '-DCMAKE_AR=/usr/bin/gcc-ar -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_NM=/usr/bin/gcc-nm -DCMAKE_RANLIB=/usr/bin/gcc-ranlib \\\n'
+        cmake_string = (
+            'cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=$MPI_ROOT -DCMAKE_INSTALL_SBINDIR=$MPI_BIN \\\n'
+            "-DCMAKE_INSTALL_LIBDIR=$MPI_LIB -DCMAKE_INSTALL_INCLUDEDIR=$MPI_INCLUDE -DLIB_INSTALL_DIR=$MPI_LIB \\\n"
+            "-DBUILD_SHARED_LIBS:BOOL=ON -DLIB_SUFFIX=64 \\\n"
+            "-DCMAKE_AR=/usr/bin/gcc-ar -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_NM=/usr/bin/gcc-nm -DCMAKE_RANLIB=/usr/bin/gcc-ranlib \\\n"
+        )
         self._write_strip("{} {} {}".format(cmake_string, self.config.cmake_srcdir, self.extra_cmake_openmpi))
 
     def write_prep(self, ruby_pattern=False):
@@ -438,7 +446,7 @@ class Specfile(object):
                 pass
             else:
                 prefix = self.content.prefixes[self.url]
-                if self.config.default_pattern == 'R':
+                if self.config.default_pattern == "R":
                     prefix = self.content.tarball_prefix
                     self._write_strip("%setup -q -c -n " + prefix)
                 elif prefix:
@@ -453,22 +461,22 @@ class Specfile(object):
 
                 for archive in self.config.sources["archive"]:
                     # Skip POM files - they don't need to be extracted
-                    if archive.endswith('.pom'):
+                    if archive.endswith(".pom"):
                         continue
                     # Also JAR files
-                    if archive.endswith('.jar'):
+                    if archive.endswith(".jar"):
                         continue
                     # Patch files
-                    if archive.endswith('.patch'):
+                    if archive.endswith(".patch"):
                         continue
                     # Handle various archive types
-                    extract_cmd = 'tar xf {}'
-                    if archive.endswith('.zip'):
-                        extract_cmd = 'unzip -q {}'
-                    self._write_strip('cd %{_builddir}')
+                    extract_cmd = "tar xf {}"
+                    if archive.endswith(".zip"):
+                        extract_cmd = "unzip -q {}"
+                    self._write_strip("cd %{_builddir}")
                     archive_file = os.path.basename(archive)
                     if self.config.archive_details.get(archive + "prefix"):
-                        self._write_strip(extract_cmd.format('%{_sourcedir}/' + archive_file))
+                        self._write_strip(extract_cmd.format("%{_sourcedir}/" + archive_file))
                     else:
                         # The archive doesn't have a prefix inside, so we have
                         # to create it, then extract the archive under the
@@ -476,35 +484,31 @@ class Specfile(object):
                         fake_prefix = os.path.splitext(os.path.basename(archive))[0]
                         self._write_strip("mkdir -p {}".format(fake_prefix))
                         self._write_strip("cd {}".format(fake_prefix))
-                        self._write_strip(extract_cmd.format('%{_sourcedir}/' + archive_file))
+                        self._write_strip(extract_cmd.format("%{_sourcedir}/" + archive_file))
 
-                self._write_strip('cd %{_builddir}/' + prefix)
+                self._write_strip("cd %{_builddir}/" + prefix)
 
                 # Now handle extra versions, indexed by SOURCE
                 for url in self.config.sources["version"]:
                     prefix = self.content.prefixes[url]
                     if prefix:
                         self._write_strip("cd ..")
-                        self._write_strip("%setup -q -T -n {0} -b {1}"
-                                          .format(prefix, self.source_index[url]))
+                        self._write_strip("%setup -q -T -n {0} -b {1}".format(prefix, self.source_index[url]))
                     else:
                         # Have to make up a path and create it
                         prefix = os.path.splitext(os.path.basename(url))[0]
                         self._write_strip("cd ..")
-                        self._write_strip("%setup -q -T -c -n {0} -b {1}"
-                                          .format(prefix, self.source_index[url]))
+                        self._write_strip("%setup -q -T -c -n {0} -b {1}".format(prefix, self.source_index[url]))
                     # Keep track of this build dir
                     self.build_dirs[url] = prefix
 
         for archive, destination in zip(self.config.sources["archive"], self.config.sources["destination"]):
-            if destination.startswith(':'):
+            if destination.startswith(":"):
                 continue
             if self.config.archive_details[archive + "prefix"] == self.content.tarball_prefix:
-                print("Archive {} already unpacked in {}; ignoring destination"
-                      .format(archive, self.content.tarball_prefix))
+                print("Archive {} already unpacked in {}; ignoring destination".format(archive, self.content.tarball_prefix))
             else:
-                self._write_strip("mkdir -p {}"
-                                  .format(destination))
+                self._write_strip("mkdir -p {}".format(destination))
 
                 # Here again, if the archive file has a top-level prefix
                 # directory, we simply use it. If not, we have to figure
@@ -513,29 +517,30 @@ class Specfile(object):
                 if not archive_prefix:
                     # Make it up
                     archive_prefix = os.path.splitext(os.path.basename(archive))[0]
-                self._write_strip("cp -r %{{_builddir}}/{0}/* %{{_builddir}}/{1}/{2}"
-                                  .format(archive_prefix,
-                                          self.content.tarball_prefix,
-                                          destination))
+                self._write_strip("cp -r %{{_builddir}}/{0}/* %{{_builddir}}/{1}/{2}".format(archive_prefix, self.content.tarball_prefix, destination))
         self.apply_patches()
-        if self.config.default_pattern != 'cmake':
-            if self.config.config_opts['32bit']:
+        if self.config.default_pattern != "cmake":
+            if self.config.config_opts["32bit"]:
                 self._write_strip("pushd ..")
                 self._write_strip("cp -a {} build32".format(self.content.tarball_prefix))
                 self._write_strip("popd")
-            if self.config.config_opts['build_special']:
+            if self.config.config_opts["build_special"]:
                 self._write_strip("pushd ..")
                 self._write_strip("cp -a {} build-special".format(self.content.tarball_prefix))
                 self._write_strip("popd")
-            if self.config.config_opts['use_avx2']:
+            if self.config.config_opts["build_special2"]:
+                self._write_strip("pushd ..")
+                self._write_strip("cp -a {} build-special2".format(self.content.tarball_prefix))
+                self._write_strip("popd")
+            if self.config.config_opts["use_avx2"]:
                 self._write_strip("pushd ..")
                 self._write_strip("cp -a {} buildavx2".format(self.content.tarball_prefix))
                 self._write_strip("popd")
-            if self.config.config_opts['use_avx512']:
+            if self.config.config_opts["use_avx512"]:
                 self._write_strip("pushd ..")
                 self._write_strip("cp -a {} buildavx512".format(self.content.tarball_prefix))
                 self._write_strip("popd")
-            if self.config.config_opts['openmpi']:
+            if self.config.config_opts["openmpi"]:
                 self._write_strip("pushd ..")
                 self._write_strip("cp -a {} build-openmpi".format(self.content.tarball_prefix))
                 self._write_strip("popd")
@@ -565,10 +570,10 @@ class Specfile(object):
         self._write_strip('export CFLAGS="-g -O2 -fuse-linker-plugin -pipe"')
         self._write_strip('export CXXFLAGS="-g -O2 -fuse-linker-plugin -fvisibility-inlines-hidden -pipe"')
         self._write_strip('export LDFLAGS="-g -O2 -fuse-linker-plugin -pipe"')
-        self._write_strip('export AR=gcc-ar')
-        self._write_strip('export RANLIB=gcc-ranlib')
-        self._write_strip('export NM=gcc-nm')
-        self._write_strip('unset LD_LIBRARY_PATH')
+        self._write_strip("export AR=gcc-ar")
+        self._write_strip("export RANLIB=gcc-ranlib")
+        self._write_strip("export NM=gcc-nm")
+        self._write_strip("unset LD_LIBRARY_PATH")
         self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"')
         self._write_strip('export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"')
         self._write_strip('export CFLAGS="${CFLAGS}${CFLAGS:+ }-m32 -mstackrealign"')
@@ -589,7 +594,7 @@ class Specfile(object):
         # a source of headaches for downstream users.
         self._write_strip("export GCC_IGNORE_WERROR=1\n")
 
-        if self.config.config_opts['use_clang']:
+        if self.config.config_opts["use_clang"]:
             self._write_strip("export CC=clang\n")
             self._write_strip("export CXX=clang++\n")
             self._write_strip("export LD=ld.gold\n")
@@ -602,49 +607,53 @@ class Specfile(object):
         if not self.config.set_gopath:
             self._write_strip("export GOPROXY=file:///usr/share/goproxy")
 
-        if self.config.config_opts['optimize_size']:
-            if self.config.config_opts['use_clang']:
+        if self.config.config_opts["optimize_size"]:
+            if self.config.config_opts["use_clang"]:
                 flags.extend(["-Os", "-ffunction-sections", "-fdata-sections"])
             else:
                 flags.extend(["-Os", "-ffunction-sections", "-fdata-sections", "-fno-semantic-interposition"])
-        if self.config.config_opts['security_sensitive']:
+        if self.config.config_opts["security_sensitive"]:
             flags.append("-fstack-protector-strong")
-            if arch == 'x86_64':
+            if arch == "x86_64":
                 flags.append("-mzero-caller-saved-regs=used")
         if self.need_avx2_flags:
             flags.extend(["-O3", "-march=native -mtune=native"])
         if self.need_avx512_flags:
             flags.extend(["-O3", "-march=skylake-avx512"])
-        if self.config.config_opts['insecure_build']:
+        if self.config.config_opts["insecure_build"]:
             self._write_strip('export CFLAGS="-O3 -g -fopt-info-vec "\n')
             self._write_strip("unset LDFLAGS\n")
-        if self.config.config_opts['conservative_flags']:
-            self._write_strip('export CFLAGS="-O2 -g -Wp,-D_FORTIFY_SOURCE=2 '
-                              "-fexceptions -fstack-protector "
-                              "--param=ssp-buffer-size=32 -Wformat "
-                              "-Wformat-security -Wno-error "
-                              "-Wl,-z,max-page-size=0x1000 "
-                              '-march=native -mtune=native"\n')
+        if self.config.config_opts["conservative_flags"]:
+            self._write_strip(
+                'export CFLAGS="-O2 -g -Wp,-D_FORTIFY_SOURCE=2 '
+                "-fexceptions -fstack-protector "
+                "--param=ssp-buffer-size=32 -Wformat "
+                "-Wformat-security -Wno-error "
+                "-Wl,-z,max-page-size=0x1000 "
+                '-march=native -mtune=native"\n'
+            )
             self._write_strip("export CXXFLAGS=$CFLAGS\n")
-            self._write_strip('export FFLAGS="-O2 -g -Wp,-D_FORTIFY_SOURCE=2 '
-                              "-fexceptions -fstack-protector "
-                              "--param=ssp-buffer-size=32 "
-                              "-Wno-error "
-                              "-Wl,-z,max-page-size=0x1000 "
-                              '-march=native -mtune=native"\n')
+            self._write_strip(
+                'export FFLAGS="-O2 -g -Wp,-D_FORTIFY_SOURCE=2 '
+                "-fexceptions -fstack-protector "
+                "--param=ssp-buffer-size=32 "
+                "-Wno-error "
+                "-Wl,-z,max-page-size=0x1000 "
+                '-march=native -mtune=native"\n'
+            )
             self._write_strip("export FCFLAGS=$FFLAGS\n")
             self._write_strip("unset LDFLAGS\n")
-        if self.config.config_opts['use_clang']:
+        if self.config.config_opts["use_clang"]:
             self._write_strip("unset LDFLAGS\n")
-        if self.config.config_opts['funroll-loops']:
-            if self.config.config_opts['use_clang']:
+        if self.config.config_opts["funroll-loops"]:
+            if self.config.config_opts["use_clang"]:
                 flags.extend(["-O3"])
             else:
                 flags.extend(["-O3", "-fno-semantic-interposition", "-falign-functions=32", "-fno-math-errno", "-fno-trapping-math"])
-        if self.config.default_pattern != 'qmake':
-            if self.config.config_opts['use_lto']:
+        if self.config.default_pattern != "qmake":
+            if self.config.config_opts["use_lto"]:
                 flags.extend(["-O3", lto, "-ffat-lto-objects"])
-                if self.config.config_opts['use_clang']:
+                if self.config.config_opts["use_clang"]:
                     self._write_strip("export AR=llvm-ar\n")
                     self._write_strip("export RANLIB=llvm-ranlib\n")
                     self._write_strip("export NM=llvm-nm\n")
@@ -654,35 +663,38 @@ class Specfile(object):
                     self._write_strip("export NM=gcc-nm\n")
             else:
                 flags.extend(["-fno-lto"])
-        if self.config.config_opts['fast-math']:
+        if self.config.config_opts["fast-math"]:
             flags.extend(["-ffast-math", "-ftree-loop-vectorize"])
-        if self.config.config_opts['pgo']:
+        if self.config.config_opts["pgo"]:
             flags.extend(["-O3"])
         if self.content.gcov_file:
             flags = list(filter((lto).__ne__, flags))
             flags.extend(["-O3", "-fauto-profile=%{{SOURCE{0}}}".format(self.source_index[self.config.sources["gcov"][0]])])
-        if (flags or self.config.config_opts['broken_c++']) and not self.config.config_opts['fsalt1'] and not self.config.config_opts['altflags_pgo']:
+        if (flags or self.config.config_opts["broken_c++"]) and not self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"]:
             flags = sorted(list(set(flags)))
             self._write_strip('export CFLAGS="$CFLAGS {0} "\n'.format(" ".join(flags)))
             self._write_strip('export FCFLAGS="$FFLAGS {0} "\n'.format(" ".join(flags)))
             self._write_strip('export FFLAGS="$FFLAGS {0} "\n'.format(" ".join(flags)))
             # leave the export CXXFLAGS line open in case
             self._write('export CXXFLAGS="$CXXFLAGS {0} '.format(" ".join(flags)))
-            if self.config.config_opts['broken_c++']:
-                self._write('-std=gnu++98')
+            if self.config.config_opts["broken_c++"]:
+                self._write("-std=gnu++98")
             # close the open quote from CXXFLAGS export and add newline
             self._write('"\n')
 
-        if self.config.profile_payload and \
-           self.config.profile_payload[0] and not \
-           self.need_avx2_flags and not \
-           self.need_avx512_flags and not \
-           self.config.config_opts["fsalt1"] and not \
-           self.config.config_opts["altflags_pgo"]:
+        if (
+            self.config.profile_payload
+            and self.config.profile_payload[0]
+            and not self.need_avx2_flags
+            and not self.need_avx512_flags
+            and not self.config.config_opts["fsalt1"]
+            and not self.config.config_opts["altflags_pgo"]
+        ):
             genflags = []
             useflags = []
-            genflags.extend(["-fprofile-generate", "-fprofile-dir=/var/tmp/pgo", "-fprofile-update=atomic", "-fprofile-abs-path",
-                             "-fprofile-arcs", "-ftest-coverage", "--coverage", "-fprofile-partial-training"])
+            genflags.extend(
+                ["-fprofile-generate", "-fprofile-dir=/var/tmp/pgo", "-fprofile-update=atomic", "-fprofile-abs-path", "-fprofile-arcs", "-ftest-coverage", "--coverage", "-fprofile-partial-training"]
+            )
             useflags.extend(["-fprofile-use", "-fprofile-dir=/var/tmp/pgo", "-fprofile-correction", "-fprofile-partial-training"])
 
             self._write_strip('export CFLAGS_GENERATE="$CFLAGS {0} "\n'.format(" ".join(genflags)))
@@ -700,7 +712,7 @@ class Specfile(object):
             self._write_strip("%define _lto_cflags 1")
             self._write_strip("##")
 
-        if self.config.config_opts['fsalt1'] and not self.config.config_opts['altflags_pgo']:
+        if self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"]:
             if self.config.altflags1:
                 self._write_strip("## altflags1 content")
                 for line in self.config.altflags1:
@@ -710,24 +722,142 @@ class Specfile(object):
                 self._write_strip("%define _lto_cflags 1")
                 self._write_strip("##")
             else:
-                flagsalt1c.extend(["-g", "-feliminate-unused-debug-types", "-pipe", "-Wall", "-Wl,--hash-style=gnu", "-Wp,-D_REENTRANT", "-Wl,-sort-common", "-Wl,--enable-new-dtags",
-                                   "-fasynchronous-unwind-tables", "-falign-functions=32", "-fno-math-errno", "-ftree-loop-distribute-patterns", "-Wl,-O2", "-Wl,-z,now", "-Wl,-z,relro",
-                                   "-fno-semantic-interposition", "-fno-trapping-math", "-m64", "-ffat-lto-objects", "-fuse-linker-plugin", "-flto=12", "-mtune=native", "-march=native",
-                                   "-fipa-pta", "-fdevirtualize-at-ltrans", "-fno-plt", "-fno-pie", "-fno-PIE", "-fno-PIC", "-fpic", "-fuse-ld=bfd", "-fno-stack-protector", "-O3",
-                                   "-floop-nest-optimize", "-Wl,--build-id=sha1", "-Wno-error", "-ftree-loop-distribute-patterns", "-ftree-vectorize", "-ftree-loop-vectorize",
-                                   "-malign-data=cacheline", "-fasynchronous-unwind-tables", "-Wl,--as-needed", "-funroll-loops", "-fno-stack-protector", "-mtls-dialect=gnu2"])
-                flagsalt1cxx.extend(["-g", "-feliminate-unused-debug-types", "-pipe", "-Wall", "-Wl,--hash-style=gnu", "-Wp,-D_REENTRANT", "-Wl,-sort-common", "-Wl,--enable-new-dtags",
-                                     "-fasynchronous-unwind-tables", "-falign-functions=32", "-fno-math-errno", "-ftree-loop-distribute-patterns", "-Wl,-O2", "-Wl,-z,now", "-Wl,-z,relro",
-                                     "-fno-semantic-interposition", "-fno-trapping-math", "-m64", "-ffat-lto-objects", "-fuse-linker-plugin", "-flto=12", "-mtune=native", "-march=native",
-                                     "-fipa-pta", "-fdevirtualize-at-ltrans", "-fno-plt", "-fvisibility-inlines-hidden", "-Wl,--enable-new-dtags", "-fno-pie", "-fno-PIE", "-fno-PIC",
-                                     "-fpic", "-fuse-ld=bfd", "-fno-stack-protector", "-O3", "-floop-nest-optimize", "-Wl,--build-id=sha1", "-Wno-error", "-ftree-loop-distribute-patterns",
-                                     "-ftree-vectorize", "-ftree-loop-vectorize", "-malign-data=cacheline", "-fasynchronous-unwind-tables", "-Wl,--as-needed", "-funroll-loops",
-                                     "-fno-stack-protector", "-mtls-dialect=gnu2"])
-                flagsalt1ldflags.extend(["-Wl,-sort-common", "-fipa-pta", "-fdevirtualize-at-ltrans", "-fno-semantic-interposition", "-fno-plt", "-Wl,--hash-style=gnu", "-flto=12",
-                                         "-fuse-linker-plugin", "-ffat-lto-objects", "-mtune=native", "-march=native", "-fno-pie", "-fno-PIE", "-fno-PIC", "-fpic", "-fuse-ld=bfd",
-                                         "-fno-stack-protector", "-Wl,-O2", "-Wl,-z,now", "-Wl,-z,relro", "-O3", "-floop-nest-optimize", "-Wl,--build-id=sha1",
-                                         "-ftree-loop-distribute-patterns", "-ftree-vectorize", "-ftree-loop-vectorize", "-malign-data=cacheline", "-fasynchronous-unwind-tables",
-                                         "-Wl,--as-needed", "-funroll-loops", "-fno-stack-protector", "-mtls-dialect=gnu2"])
+                flagsalt1c.extend(
+                    [
+                        "-g",
+                        "-feliminate-unused-debug-types",
+                        "-pipe",
+                        "-Wall",
+                        "-Wl,--hash-style=gnu",
+                        "-Wp,-D_REENTRANT",
+                        "-Wl,-sort-common",
+                        "-Wl,--enable-new-dtags",
+                        "-fasynchronous-unwind-tables",
+                        "-falign-functions=32",
+                        "-fno-math-errno",
+                        "-ftree-loop-distribute-patterns",
+                        "-Wl,-O2",
+                        "-Wl,-z,now",
+                        "-Wl,-z,relro",
+                        "-fno-semantic-interposition",
+                        "-fno-trapping-math",
+                        "-m64",
+                        "-ffat-lto-objects",
+                        "-fuse-linker-plugin",
+                        "-flto=12",
+                        "-mtune=native",
+                        "-march=native",
+                        "-fipa-pta",
+                        "-fdevirtualize-at-ltrans",
+                        "-fno-plt",
+                        "-fno-pie",
+                        "-fno-PIE",
+                        "-fno-PIC",
+                        "-fpic",
+                        "-fuse-ld=bfd",
+                        "-fno-stack-protector",
+                        "-O3",
+                        "-floop-nest-optimize",
+                        "-Wl,--build-id=sha1",
+                        "-Wno-error",
+                        "-ftree-loop-distribute-patterns",
+                        "-ftree-vectorize",
+                        "-ftree-loop-vectorize",
+                        "-malign-data=cacheline",
+                        "-fasynchronous-unwind-tables",
+                        "-Wl,--as-needed",
+                        "-funroll-loops",
+                        "-fno-stack-protector",
+                        "-mtls-dialect=gnu2",
+                    ]
+                )
+                flagsalt1cxx.extend(
+                    [
+                        "-g",
+                        "-feliminate-unused-debug-types",
+                        "-pipe",
+                        "-Wall",
+                        "-Wl,--hash-style=gnu",
+                        "-Wp,-D_REENTRANT",
+                        "-Wl,-sort-common",
+                        "-Wl,--enable-new-dtags",
+                        "-fasynchronous-unwind-tables",
+                        "-falign-functions=32",
+                        "-fno-math-errno",
+                        "-ftree-loop-distribute-patterns",
+                        "-Wl,-O2",
+                        "-Wl,-z,now",
+                        "-Wl,-z,relro",
+                        "-fno-semantic-interposition",
+                        "-fno-trapping-math",
+                        "-m64",
+                        "-ffat-lto-objects",
+                        "-fuse-linker-plugin",
+                        "-flto=12",
+                        "-mtune=native",
+                        "-march=native",
+                        "-fipa-pta",
+                        "-fdevirtualize-at-ltrans",
+                        "-fno-plt",
+                        "-fvisibility-inlines-hidden",
+                        "-Wl,--enable-new-dtags",
+                        "-fno-pie",
+                        "-fno-PIE",
+                        "-fno-PIC",
+                        "-fpic",
+                        "-fuse-ld=bfd",
+                        "-fno-stack-protector",
+                        "-O3",
+                        "-floop-nest-optimize",
+                        "-Wl,--build-id=sha1",
+                        "-Wno-error",
+                        "-ftree-loop-distribute-patterns",
+                        "-ftree-vectorize",
+                        "-ftree-loop-vectorize",
+                        "-malign-data=cacheline",
+                        "-fasynchronous-unwind-tables",
+                        "-Wl,--as-needed",
+                        "-funroll-loops",
+                        "-fno-stack-protector",
+                        "-mtls-dialect=gnu2",
+                    ]
+                )
+                flagsalt1ldflags.extend(
+                    [
+                        "-Wl,-sort-common",
+                        "-fipa-pta",
+                        "-fdevirtualize-at-ltrans",
+                        "-fno-semantic-interposition",
+                        "-fno-plt",
+                        "-Wl,--hash-style=gnu",
+                        "-flto=12",
+                        "-fuse-linker-plugin",
+                        "-ffat-lto-objects",
+                        "-mtune=native",
+                        "-march=native",
+                        "-fno-pie",
+                        "-fno-PIE",
+                        "-fno-PIC",
+                        "-fpic",
+                        "-fuse-ld=bfd",
+                        "-fno-stack-protector",
+                        "-Wl,-O2",
+                        "-Wl,-z,now",
+                        "-Wl,-z,relro",
+                        "-O3",
+                        "-floop-nest-optimize",
+                        "-Wl,--build-id=sha1",
+                        "-ftree-loop-distribute-patterns",
+                        "-ftree-vectorize",
+                        "-ftree-loop-vectorize",
+                        "-malign-data=cacheline",
+                        "-fasynchronous-unwind-tables",
+                        "-Wl,--as-needed",
+                        "-funroll-loops",
+                        "-fno-stack-protector",
+                        "-mtls-dialect=gnu2",
+                    ]
+                )
                 flagsalt1c = sorted(list(set(flagsalt1c)))
                 flagsalt1cxx = sorted(list(set(flagsalt1cxx)))
                 flagsalt1ldflags = sorted(list(set(flagsalt1ldflags)))
@@ -738,18 +868,19 @@ class Specfile(object):
                 self._write_strip('export LDFLAGS="{0} "\n'.format(" ".join(flagsalt1ldflags)))
                 # leave the export CXXFLAGS line open in case
                 self._write('export CXXFLAGS="{0} '.format(" ".join(flagsalt1cxx)))
-                if self.config.config_opts['broken_c++']:
-                    self._write('-std=gnu++98')
+                if self.config.config_opts["broken_c++"]:
+                    self._write("-std=gnu++98")
                 # close the open quote from CXXFLAGS export and add newline
                 self._write('"\n')
                 self._write_strip("##")
                 self._write_strip("%define _lto_cflags 1")
                 self._write_strip("##")
-        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts['altflags_pgo']:
+        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"]:
             genflags = []
             useflags = []
-            genflags.extend(["-fprofile-generate", "-fprofile-dir=/var/tmp/pgo", "-fprofile-update=atomic", "-fprofile-abs-path",
-                             "-fprofile-arcs", "-ftest-coverage", "--coverage", "-fprofile-partial-training"])
+            genflags.extend(
+                ["-fprofile-generate", "-fprofile-dir=/var/tmp/pgo", "-fprofile-update=atomic", "-fprofile-abs-path", "-fprofile-arcs", "-ftest-coverage", "--coverage", "-fprofile-partial-training"]
+            )
             useflags.extend(["-fprofile-use", "-fprofile-dir=/var/tmp/pgo", "-fprofile-correction", "-fprofile-partial-training"])
             if self.config.altflags_pgo and self.config.altflags_pgo[0]:
                 self._write_strip("## altflags_pgo content")
@@ -780,7 +911,7 @@ class Specfile(object):
 
     def write_check(self):
         """Write check section to spec file."""
-        if self.tests_config and not self.config.config_opts['skip_tests']:
+        if self.tests_config and not self.config.config_opts["skip_tests"]:
             self._write_strip("%check")
             self._write_strip("export LANG=C.UTF-8")
             self.write_proxy_exports()
@@ -805,27 +936,25 @@ class Specfile(object):
         post = ""
         if pattern == "configure" and build_type == "special":
             init = f"{self.get_profile_generate_flags()} %configure {self.config.extra_configure_special} "
-        elif pattern == "configure":
+        elif pattern == "configure" and build_type == "special2":
+            init = f"{self.get_profile_generate_flags()} %configure {self.config.extra_configure_special2} "
+        elif pattern == "configure" and build_type is None:
             if self.config.configure_macro:
                 init = f"{self.get_profile_generate_flags()} {self.config.configure_macro} "
             else:
                 init = f"{self.get_profile_generate_flags()} %configure {self.config.extra_configure} {self.config.extra_configure64} "
         elif pattern == "configure_ac" and build_type == "special":
             init = f"{self.get_profile_generate_flags()} %reconfigure {self.config.extra_configure_special} "
-        elif pattern == "configure_ac":
-            init = f"{self.get_profile_generate_flags()}" \
-                f"%reconfigure " \
-                f"{self.config.extra_configure} " \
-                f"{self.config.extra_configure64} "
+        elif pattern == "configure_ac" and build_type == "special2":
+            init = f"{self.get_profile_generate_flags()} %reconfigure {self.config.extra_configure_special2} "
+        elif pattern == "configure_ac" and build_type is None:
+            init = f"{self.get_profile_generate_flags()}" f"%reconfigure " f"{self.config.extra_configure} " f"{self.config.extra_configure64} "
         elif pattern == "autogen" and build_type == "special":
-            init = f"{self.get_profile_generate_flags()}" \
-                f"%autogen " \
-                f"{self.config.extra_configure_special} "
-        elif pattern == "autogen":
-            init = f"{self.get_profile_generate_flags()}" \
-                f"%autogen " \
-                f"{self.config.extra_configure} " \
-                f"{self.config.extra_configure64} "
+            init = f"{self.get_profile_generate_flags()}" f"%autogen " f"{self.config.extra_configure_special} "
+        elif pattern == "autogen" and build_type == "special2":
+            init = f"{self.get_profile_generate_flags()}" f"%autogen " f"{self.config.extra_configure_special2} "
+        elif pattern == "autogen" and build_type is None:
+            init = f"{self.get_profile_generate_flags()}" f"%autogen " f"{self.config.extra_configure} " f"{self.config.extra_configure64} "
         elif pattern == "cmake":
             use_subdir = False
             init = f"{self.get_profile_generate_flags()} "
@@ -837,7 +966,7 @@ class Specfile(object):
             self._write_strip("pushd " + self.config.subdir)
         if init:
             self._write_strip(init)
-        self.write_make_line()
+        self.write_make_line(False, build_type)
         self._write_strip("\n")
         self._write_strip("\n".join(self.config.profile_payload))
         self._write_strip("\nmake clean\n")
@@ -856,7 +985,7 @@ class Specfile(object):
 
         self.write_license_files()
 
-        if self.config.config_opts['32bit']:
+        if self.config.config_opts["32bit"]:
             if self.config.install_macro_32:
                 self._write_strip("## install_macro_32 start")
                 self._write_strip("pushd ../build32/" + self.config.subdir)
@@ -880,7 +1009,7 @@ class Specfile(object):
                 self._write_strip("fi")
                 self._write_strip("popd")
 
-        if self.config.config_opts['use_avx512']:
+        if self.config.config_opts["use_avx512"]:
             if self.config.install_macro_512:
                 self._write_strip("## install_macro_512 start")
                 self._write_strip("pushd ../buildavx512/" + self.config.subdir)
@@ -892,7 +1021,7 @@ class Specfile(object):
                 self._write_strip("%make_install_avx512 {}\n".format(self.config.extra_make_install))
                 self._write_strip("popd")
 
-        if self.config.config_opts['use_avx2']:
+        if self.config.config_opts["use_avx2"]:
             if self.config.install_macro_avx2:
                 self._write_strip("## install_macro_avx2 start")
                 self._write_strip("pushd ../buildavx2/" + self.config.subdir)
@@ -904,7 +1033,7 @@ class Specfile(object):
                 self._write_strip("%make_install_avx2 {}\n".format(self.config.extra_make_install))
                 self._write_strip("popd")
 
-        if self.config.config_opts['openmpi']:
+        if self.config.config_opts["openmpi"]:
             if self.config.install_macro_openmpi:
                 self._write_strip("## install_macro_openmpi start")
                 self._write_strip("pushd ../build-openmpi/" + self.config.subdir)
@@ -916,16 +1045,32 @@ class Specfile(object):
                 self.write_install_openmpi()
                 self._write_strip("popd")
 
-        if self.config.config_opts['build_special']:
+        if self.config.config_opts["build_special"]:
             if self.config.install_macro_build_special:
+                self.write_install_prepend("special")
                 self._write_strip("## install_macro_build_special start")
                 self._write_strip("pushd ../build-special/" + self.config.subdir)
                 self._write_strip("{}\n".format(self.config.install_macro_build_special))
                 self._write_strip("popd")
                 self._write_strip("## install_macro_build_special end")
             else:
+                self.write_install_prepend("special")
                 self._write_strip("pushd ../build-special/" + self.config.subdir)
                 self._write_strip("%make_install_special {}\n".format(self.config.extra_make_install_special))
+                self._write_strip("popd")
+
+        if self.config.config_opts["build_special2"]:
+            if self.config.install_macro_build_special2:
+                self.write_install_prepend("special2")
+                self._write_strip("## install_macro_build_special2 start")
+                self._write_strip("pushd ../build-special2/" + self.config.subdir)
+                self._write_strip("{}\n".format(self.config.install_macro_build_special2))
+                self._write_strip("popd")
+                self._write_strip("## install_macro_build_special2 end")
+            else:
+                self.write_install_prepend("special2")
+                self._write_strip("pushd ../build-special2/" + self.config.subdir)
+                self._write_strip("%make_install_special2 {}\n".format(self.config.extra_make_install_special2))
                 self._write_strip("popd")
 
         if self.config.subdir:
@@ -953,7 +1098,8 @@ class Specfile(object):
             re.compile(r"repository.mapr.com/maven/([a-zA-Z\-\_/]+)/([a-zA-Z\-\_]+)/([a-zA-Z-\_\d.]+)/[a-zA-Z-\_\d.]*\.(?:pom|jar|xml|signature)"),
             re.compile(r"packages.confluent.io/maven/([a-zA-Z\-\_/]+)/([a-zA-Z\-\_]+)/([a-zA-Z-\_\d.]+)/[a-zA-Z-\_\d.]*\.(?:pom|jar|xml|signature)"),
             re.compile(r"gradle.org/gradle/libs-releases/([a-zA-Z-\_.\d/]+)/([a-zA-Z-\_.\d]*)/([a-zA-Z\d\.\_\-]+)/(?:[a-zA-Z-\_.\d]*)\.(?:pom|jar)"),
-            re.compile(r"gradle.org/m2/([a-zA-Z-\_.\d/]+)/([a-zA-Z-\_.\d]*)/([a-zA-Z\d\.\_\-]+)/(?:[a-zA-Z-\_.\d]*)\.(?:pom|jar)")]
+            re.compile(r"gradle.org/m2/([a-zA-Z-\_.\d/]+)/([a-zA-Z-\_.\d]*)/([a-zA-Z\d\.\_\-]+)/(?:[a-zA-Z-\_.\d]*)\.(?:pom|jar)"),
+        ]
         mvn_sources = [self.url] + sorted(self.config.sources["archive"])
         src_num = 0
 
@@ -1005,7 +1151,7 @@ class Specfile(object):
             # Copy all the jar files
             self._write_strip("for jarfile in ${ARTIFACT_ID}*.jar; do")
             self._write_strip('cp -p "${jarfile}" ${DEPLOY_PATH}/')
-            self._write_strip('done')
+            self._write_strip("done")
             # Except this one -- it's redundant with the source tarball
             self._write_strip("rm -f ${DEPLOY_PATH}/${ARTIFACT_ID}-${VERSION}-sources.jar")
 
@@ -1053,7 +1199,7 @@ class Specfile(object):
             self._write_strip("JARNAME=$(basename ${jarfile})")
             self._write_strip('REALJAR=$(find /usr/share/java/.m2/repository -type f -name "${JARNAME}")')
             self._write_strip("if ! [[ -z ${REALJAR} ]]; then")
-            self._write_strip(r'ln -sf ${REALJAR/#\/usr\/share\/java/..\/..}')
+            self._write_strip(r"ln -sf ${REALJAR/#\/usr\/share\/java/..\/..}")
             self._write_strip("fi")
             self._write_strip("done")
             self._write_strip("popd")
@@ -1104,18 +1250,23 @@ class Specfile(object):
                 self._write_strip("{}\n".format(line))
             self._write_strip("## build_append end")
 
-    def write_install_prepend(self):
+    def write_install_prepend(self, build_type=None):
         """Write out any custom supplied commands at the start of the %install section."""
-        if self.config.install_prepend:
+        if self.config.install_prepend and build_type is None:
             self._write_strip("## install_prepend content")
             for line in self.config.install_prepend:
                 self._write_strip("{}\n".format(line))
             self._write_strip("## install_prepend end")
-        if self.config.install_prepend_special and self.config.config_opts['build_special']:
+        if self.config.install_prepend_special and build_type == "special":
             self._write_strip("## install_prepend_special content")
             for line in self.config.install_prepend_special:
                 self._write_strip("{}\n".format(line))
             self._write_strip("## install_prepend_special end")
+        if self.config.install_prepend_special2 and build_type == "special2":
+            self._write_strip("## install_prepend_special2 content")
+            for line in self.config.install_prepend_special2:
+                self._write_strip("{}\n".format(line))
+            self._write_strip("## install_prepend_special2 end")
 
     def write_install_append(self):
         """Write out any custom supplied commands at the very end of the %install section."""
@@ -1124,11 +1275,16 @@ class Specfile(object):
             for line in self.config.install_append:
                 self._write_strip("{}\n".format(line))
             self._write_strip("## install_append end")
-        if self.config.install_append_special and self.config.config_opts['build_special']:
+        if self.config.install_append_special and self.config.config_opts["build_special"]:
             self._write_strip("## install_append_special content")
             for line in self.config.install_append_special:
                 self._write_strip("{}\n".format(line))
             self._write_strip("## install_append_special end")
+        if self.config.install_append_special2 and self.config.config_opts["build_special2"]:
+            self._write_strip("## install_append_special2 content")
+            for line in self.config.install_append_special2:
+                self._write_strip("{}\n".format(line))
+            self._write_strip("## install_append_special2 end")
 
     def write_exclude_deletes(self):
         """Write out deletes for excluded files."""
@@ -1153,16 +1309,13 @@ class Specfile(object):
         if len(self.config.sources["unit"]) != 0:
             self._write_strip("mkdir -p %{buildroot}/usr/lib/systemd/system")
             for unit in self.config.sources["unit"]:
-                self._write_strip("install -m 0644 %{{SOURCE{0}}} %{{buildroot}}/usr/lib/systemd/system/{1}"
-                                  .format(self.source_index[unit], unit))
+                self._write_strip("install -m 0644 %{{SOURCE{0}}} %{{buildroot}}/usr/lib/systemd/system/{1}".format(self.source_index[unit], unit))
         if len(self.config.sources["tmpfile"]) != 0:
             self._write_strip("mkdir -p %{buildroot}/usr/lib/tmpfiles.d")
-            self._write_strip("install -m 0644 %{{SOURCE{0}}} %{{buildroot}}/usr/lib/tmpfiles.d/{1}.conf"
-                              .format(self.source_index[self.config.sources["tmpfile"][0]], self.name))
+            self._write_strip("install -m 0644 %{{SOURCE{0}}} %{{buildroot}}/usr/lib/tmpfiles.d/{1}.conf".format(self.source_index[self.config.sources["tmpfile"][0]], self.name))
         if len(self.config.sources["sysuser"]) != 0:
             self._write_strip("mkdir -p %{buildroot}/usr/lib/sysusers.d")
-            self._write_strip("install -m 0644 %{{SOURCE{0}}} %{{buildroot}}/usr/lib/sysusers.d/{1}.conf"
-                              .format(self.source_index[self.config.sources["sysuser"][0]], self.name))
+            self._write_strip("install -m 0644 %{{SOURCE{0}}} %{{buildroot}}/usr/lib/sysusers.d/{1}.conf".format(self.source_index[self.config.sources["sysuser"][0]], self.name))
 
         for source in self.config.extra_sources:
             if len(source) == 1:
@@ -1172,13 +1325,12 @@ class Specfile(object):
             dest = None
             install_args = []
             for arg in source[1].split():
-                if dest is None and arg.startswith('/'):
+                if dest is None and arg.startswith("/"):
                     dest = arg
                 else:
                     install_args.append(arg)
             self._write_strip("mkdir -p %{{buildroot}}{0}".format(os.path.dirname(dest)))
-            self._write_strip("install {0} {1} %{{buildroot}}{2}"
-                              .format(" ".join(install_args), actual_source, dest))
+            self._write_strip("install {0} {1} %{{buildroot}}{2}".format(" ".join(install_args), actual_source, dest))
 
     def write_cmake_install(self):
         """Write install section to spec file for cmake builds."""
@@ -1193,7 +1345,7 @@ class Specfile(object):
         if self.config.subdir:
             self._write_strip("pushd " + self.config.subdir)
 
-        if self.config.config_opts['32bit']:
+        if self.config.config_opts["32bit"]:
             if self.config.install_macro_32:
                 self._write_strip("## install_macro_32 start")
                 self._write_strip("pushd clr-build32")
@@ -1208,8 +1360,7 @@ class Specfile(object):
                 self._write_strip("## install_macro_32 end")
             else:
                 self._write_strip("pushd clr-build32")
-                self._write_strip("%make_install32 {} {}".format(self.config.extra_make_install,
-                                                                 self.config.extra_make32_install))
+                self._write_strip("%make_install32 {} {}".format(self.config.extra_make_install, self.config.extra_make32_install))
                 self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
                 self._write_strip("then")
                 self._write_strip("    pushd %{buildroot}/usr/lib32/pkgconfig")
@@ -1218,7 +1369,7 @@ class Specfile(object):
                 self._write_strip("fi")
                 self._write_strip("popd")
 
-        if self.config.config_opts['use_avx512']:
+        if self.config.config_opts["use_avx512"]:
             if self.config.install_macro_512:
                 self._write_strip("## install_macro_512 start")
                 self._write_strip("pushd clr-build-avx512")
@@ -1230,7 +1381,7 @@ class Specfile(object):
                 self._write_strip("%make_install_avx512 {} || :\n".format(self.config.extra_make_install))
                 self._write_strip("popd")
 
-        if self.config.config_opts['use_avx2']:
+        if self.config.config_opts["use_avx2"]:
             if self.config.install_macro_avx2:
                 self._write_strip("## install_macro_avx2 start")
                 self._write_strip("pushd clr-build-avx2")
@@ -1242,7 +1393,7 @@ class Specfile(object):
                 self._write_strip("%make_install_avx2 {} || :\n".format(self.config.extra_make_install))
                 self._write_strip("popd")
 
-        if self.config.config_opts['openmpi']:
+        if self.config.config_opts["openmpi"]:
             if self.config.install_macro_openmpi:
                 self._write_strip("## install_macro_openmpi start")
                 self._write_strip("pushd clr-build-openmpi")
@@ -1254,7 +1405,7 @@ class Specfile(object):
                 self.write_install_openmpi()
                 self._write_strip("popd")
 
-        if self.config.config_opts['build_special']:
+        if self.config.config_opts["build_special"]:
             if self.config.install_macro_build_special:
                 self._write_strip("## install_macro_build_special start")
                 self._write_strip("pushd clr-build-special")
@@ -1295,11 +1446,13 @@ class Specfile(object):
         otherwise an empty string is returned.
         """
         if self.config.profile_payload and self.config.profile_payload[0]:
-            return 'export CFLAGS="${CFLAGS_GENERATE}"\n'     \
-                'export CXXFLAGS="${CXXFLAGS_GENERATE}"\n' \
-                'export FFLAGS="${FFLAGS_GENERATE}"\n'     \
-                'export FCFLAGS="${FCFLAGS_GENERATE}"\n'   \
+            return (
+                'export CFLAGS="${CFLAGS_GENERATE}"\n'
+                'export CXXFLAGS="${CXXFLAGS_GENERATE}"\n'
+                'export FFLAGS="${FFLAGS_GENERATE}"\n'
+                'export FCFLAGS="${FCFLAGS_GENERATE}"\n'
                 'export LDFLAGS="${LDFLAGS_GENERATE}"\n'
+            )
         return ""
 
     def get_profile_use_flags(self):
@@ -1315,11 +1468,7 @@ class Specfile(object):
         otherwise an empty string is returned.
         """
         if self.config.profile_payload and self.config.profile_payload[0]:
-            return 'export CFLAGS="${CFLAGS_USE}"\n'     \
-                'export CXXFLAGS="${CXXFLAGS_USE}"\n' \
-                'export FFLAGS="${FFLAGS_USE}"\n'     \
-                'export FCFLAGS="${FCFLAGS_USE}"\n'   \
-                'export LDFLAGS="${LDFLAGS_USE}"\n'
+            return 'export CFLAGS="${CFLAGS_USE}"\n' 'export CXXFLAGS="${CXXFLAGS_USE}"\n' 'export FFLAGS="${FFLAGS_USE}"\n' 'export FCFLAGS="${FCFLAGS_USE}"\n' 'export LDFLAGS="${LDFLAGS_USE}"\n'
         return ""
 
     def get_systemd_units(self):
@@ -1364,27 +1513,31 @@ class Specfile(object):
         else:
             if self.config.subdir:
                 self._write_strip("pushd {}".format(self.config.subdir))
-            self._write_strip("{0}%configure {1} {2}"
-                              .format(self.get_profile_use_flags(),
-                                      self.config.extra_configure,
-                                      self.config.extra_configure64))
+            self._write_strip("{0}%configure {1} {2}".format(self.get_profile_use_flags(), self.config.extra_configure, self.config.extra_configure64))
             self.write_make_line()
             if self.config.subdir:
                 self._write_strip("popd")
             self._write_strip("\n")
 
-        if self.config.config_opts['build_special']:
+        if self.config.config_opts["build_special"]:
             self._write_strip("pushd ../build-special/" + self.config.subdir)
             self.write_build_prepend()
             self.write_variables()
             self.write_profile_payload("configure", "special")
-            self._write_strip("{0}%configure {1}"
-                              .format(self.get_profile_use_flags(),
-                                      self.config.extra_configure_special))
-            self.write_make_line()
+            self._write_strip("{0}%configure {1}".format(self.get_profile_use_flags(), self.config.extra_configure_special))
+            self.write_make_line(False, "special")
             self._write_strip("popd")
 
-        if self.config.config_opts['32bit']:
+        if self.config.config_opts["build_special2"]:
+            self._write_strip("pushd ../build-special2/" + self.config.subdir)
+            self.write_build_prepend()
+            self.write_variables()
+            self.write_profile_payload("configure", "special2")
+            self._write_strip("{0}%configure {1}".format(self.get_profile_use_flags(), self.config.extra_configure_special2))
+            self.write_make_line(False, "special2")
+            self._write_strip("popd")
+
+        if self.config.config_opts["32bit"]:
             if self.config.configure_macro_32:
                 self._write_strip("pushd ../build32/" + self.config.subdir)
                 self.write_build_prepend()
@@ -1398,62 +1551,53 @@ class Specfile(object):
                 self.write_build_prepend()
                 self.write_32bit_exports()
                 self.write_build_append()
-                self._write_strip("%configure {0} {1}"
-                                  " --libdir=/usr/lib32 "
-                                  "--build=i686-generic-linux-gnu "
-                                  "--host=i686-generic-linux-gnu "
-                                  "--target=i686-clr-linux-gnu"
-                                  .format(self.config.extra_configure,
-                                          self.config.extra_configure32))
+                self._write_strip(
+                    "%configure {0} {1}"
+                    " --libdir=/usr/lib32 "
+                    "--build=i686-generic-linux-gnu "
+                    "--host=i686-generic-linux-gnu "
+                    "--target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32)
+                )
                 self.write_make_line(True)
                 self._write_strip("popd")
 
-        if self.config.config_opts['use_avx2']:
+        if self.config.config_opts["use_avx2"]:
             self._write_strip("unset PKG_CONFIG_PATH")
             self._write_strip("pushd ../buildavx2/" + self.config.subdir)
             self.write_build_prepend()
-            self._write_strip("export CFLAGS=\"$CFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export CXXFLAGS=\"$CXXFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export FFLAGS=\"$FFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export FCFLAGS=\"$FCFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export LDFLAGS=\"$LDFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("%configure {0} {1} {2} "
-                              .format(self.config.disable_static,
-                                      self.config.extra_configure,
-                                      self.config.extra_configure_avx2))
+            self._write_strip('export CFLAGS="$CFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export FFLAGS="$FFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export FCFLAGS="$FCFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export LDFLAGS="$LDFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip("%configure {0} {1} {2} ".format(self.config.disable_static, self.config.extra_configure, self.config.extra_configure_avx2))
             self.write_make_line()
             self._write_strip("popd")
 
-        if self.config.config_opts['use_avx512']:
+        if self.config.config_opts["use_avx512"]:
             self._write_strip("unset PKG_CONFIG_PATH")
             self._write_strip("pushd ../buildavx512/" + self.config.subdir)
             self.write_build_prepend()
-            self._write_strip("export CFLAGS=\"$CFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512\"")
-            self._write_strip("export CXXFLAGS=\"$CXXFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512\"")
-            self._write_strip("export FFLAGS=\"$FFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512\"")
-            self._write_strip("export FCFLAGS=\"$FCFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512\"")
-            self._write_strip("export LDFLAGS=\"$LDFLAGS -m64 -march=skylake-avx512\"")
-            self._write_strip("%configure {0} {1} {2} "
-                              .format(self.config.disable_static,
-                                      self.config.extra_configure,
-                                      self.config.extra_configure_avx512))
+            self._write_strip('export CFLAGS="$CFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
+            self._write_strip('export CXXFLAGS="$CXXFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
+            self._write_strip('export FFLAGS="$FFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
+            self._write_strip('export FCFLAGS="$FCFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
+            self._write_strip('export LDFLAGS="$LDFLAGS -m64 -march=skylake-avx512"')
+            self._write_strip("%configure {0} {1} {2} ".format(self.config.disable_static, self.config.extra_configure, self.config.extra_configure_avx512))
             self.write_make_line()
             self._write_strip("popd")
 
-        if self.config.config_opts['openmpi']:
+        if self.config.config_opts["openmpi"]:
             self._write_strip("pushd ../build-openmpi/" + self.config.subdir)
             self._write_strip(". /usr/share/defaults/etc/profile.d/modules.sh")
             self._write_strip("module load openmpi")
             self.write_build_prepend()
-            self._write_strip("export CFLAGS=\"$CFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export CXXFLAGS=\"$CXXFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export FCFLAGS=\"$FCFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export FFLAGS=\"$FFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export LDFLAGS=\"$LDFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("./configure {0} \\\n{1} {2}"
-                              .format(self.config.conf_args_openmpi,
-                                      self.config.disable_static,
-                                      self.config.extra_configure_openmpi))
+            self._write_strip('export CFLAGS="$CFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export FCFLAGS="$FCFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export FFLAGS="$FFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export LDFLAGS="$LDFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip("./configure {0} \\\n{1} {2}".format(self.config.conf_args_openmpi, self.config.disable_static, self.config.extra_configure_openmpi))
             self.write_make_line()
             self._write_strip("module unload openmpi")
             self._write_strip("popd")
@@ -1467,72 +1611,79 @@ class Specfile(object):
         self.write_lang_c(export_epoch=True)
         self.write_variables()
         self.write_profile_payload("configure_ac")
-        if self.config.subdir:
-            self._write_strip("pushd " + self.config.subdir)
-        self._write_strip("{0}%reconfigure {1} {2} "
-                          .format(self.get_profile_use_flags(),
-                                  self.config.extra_configure,
-                                  self.config.extra_configure64))
-        self.write_make_line()
-        if self.config.subdir:
-            self._write_strip("popd")
-        self._write_strip("\n")
+        if self.config.configure_macro:
+            if self.config.subdir:
+                self._write_strip("pushd " + self.config.subdir)
+            self._write_strip("{}{} ".format(self.get_profile_use_flags(), self.config.configure_macro))
+            self.write_make_line()
+            if self.config.subdir:
+                self._write_strip("popd")
+            self._write_strip("\n")
+        else:
+            if self.config.subdir:
+                self._write_strip("pushd " + self.config.subdir)
+            self._write_strip("{0}%reconfigure {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure, self.config.extra_configure64))
+            self.write_make_line()
+            if self.config.subdir:
+                self._write_strip("popd")
+            self._write_strip("\n")
 
-        if self.config.config_opts['build_special']:
+        if self.config.config_opts["build_special"]:
             self._write_strip("pushd ../build-special/" + self.config.subdir)
             self.write_build_prepend()
             self.write_variables()
             self.write_profile_payload("configure_ac", "special")
-            self._write_strip("{0}%reconfigure {1} "
-                              .format(self.get_profile_use_flags(),
-                                      self.config.extra_configure_special))
-            self.write_make_line()
+            self._write_strip("{0}%reconfigure {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special))
+            self.write_make_line(False, "special")
             self._write_strip("popd")
 
-        if self.config.config_opts['32bit']:
+        if self.config.config_opts["build_special2"]:
+            self._write_strip("pushd ../build-special2/" + self.config.subdir)
+            self.write_build_prepend()
+            self.write_variables()
+            self.write_profile_payload("configure_ac", "special2")
+            self._write_strip("{0}%reconfigure {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special2))
+            self.write_make_line(False, "special2")
+            self._write_strip("popd")
+
+        if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
             self.write_build_prepend()
             self.write_32bit_exports()
             self.write_build_append()
-            self._write_strip("%reconfigure {0} {1} "
-                              "--libdir=/usr/lib32 "
-                              "--build=i686-generic-linux-gnu "
-                              "--host=i686-generic-linux-gnu "
-                              "--target=i686-clr-linux-gnu"
-                              .format(self.config.extra_configure,
-                                      self.config.extra_configure32))
+            self._write_strip(
+                "%reconfigure {0} {1} "
+                "--libdir=/usr/lib32 "
+                "--build=i686-generic-linux-gnu "
+                "--host=i686-generic-linux-gnu "
+                "--target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32)
+            )
             self.write_make_line(True)
             self._write_strip("popd")
 
-        if self.config.config_opts['use_avx2']:
+        if self.config.config_opts["use_avx2"]:
             self._write_strip("unset PKG_CONFIG_PATH")
             self._write_strip("pushd ../buildavx2/" + self.config.subdir)
             self.write_build_prepend()
-            self._write_strip("export CFLAGS=\"$CFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export CXXFLAGS=\"$CXXFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export FFLAGS=\"$FFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export FCFLAGS=\"$FCFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export LDFLAGS=\"$LDFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("%reconfigure {0} {1} {2} "
-                              .format(self.config.disable_static,
-                                      self.config.extra_configure,
-                                      self.config.extra_configure_avx2))
+            self._write_strip('export CFLAGS="$CFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export FFLAGS="$FFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export FCFLAGS="$FCFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export LDFLAGS="$LDFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip("%reconfigure {0} {1} {2} ".format(self.config.disable_static, self.config.extra_configure, self.config.extra_configure_avx2))
             self.write_make_line()
             self._write_strip("popd")
 
-        if self.config.config_opts['use_avx512']:
+        if self.config.config_opts["use_avx512"]:
             self._write_strip("unset PKG_CONFIG_PATH")
             self._write_strip("pushd ../buildavx512/" + self.config.subdir)
             self.write_build_prepend()
-            self._write_strip("export CFLAGS=\"$CFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512\"")
-            self._write_strip("export CXXFLAGS=\"$CXXFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512\"")
-            self._write_strip("export FFLAGS=\"$FFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512\"")
-            self._write_strip("export FCFLAGS=\"$FCFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512\"")
-            self._write_strip("export LDFLAGS=\"$LDFLAGS -m64 -march=skylake-avx512\"")
-            self._write_strip("%reconfigure {0} {1} {2} "
-                              .format(self.config.disable_static,
-                                      self.config.extra_configure,
-                                      self.config.extra_configure_avx512))
+            self._write_strip('export CFLAGS="$CFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
+            self._write_strip('export CXXFLAGS="$CXXFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
+            self._write_strip('export FFLAGS="$FFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
+            self._write_strip('export FCFLAGS="$FCFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
+            self._write_strip('export LDFLAGS="$LDFLAGS -m64 -march=skylake-avx512"')
+            self._write_strip("%reconfigure {0} {1} {2} ".format(self.config.disable_static, self.config.extra_configure, self.config.extra_configure_avx512))
             self.write_make_line()
             self._write_strip("popd")
 
@@ -1552,38 +1703,45 @@ class Specfile(object):
         if self.config.subdir:
             self._write_strip("popd")
         self._write_strip("\n")
-        if self.config.config_opts['32bit']:
+        if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
             self.write_build_prepend()
             self.write_32bit_exports()
             self.write_build_append()
             self.write_make_line(True)
             self._write_strip("popd")
-        if self.config.config_opts['build_special']:
+        if self.config.config_opts["build_special"]:
             self._write_strip("pushd ../build-special/" + self.config.subdir)
             self.write_build_prepend()
             self.write_variables()
-            self.write_profile_payload("make")
-            self.write_make_line()
+            self.write_profile_payload("make", "special")
+            self.write_make_line(False, "special")
             self._write_strip("popd")
-        if self.config.config_opts['use_avx2']:
+        if self.config.config_opts["build_special2"]:
+            self._write_strip("pushd ../build-special2/" + self.config.subdir)
+            self.write_build_prepend()
+            self.write_variables()
+            self.write_profile_payload("make", "special2")
+            self.write_make_line(False, "special2")
+            self._write_strip("popd")
+        if self.config.config_opts["use_avx2"]:
             self._write_strip("pushd ../buildavx2" + self.config.subdir)
             self.write_build_prepend()
-            self._write_strip("export CFLAGS=\"$CFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export CXXFLAGS=\"$CXXFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export FFLAGS=\"$FFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export FCFLAGS=\"$FCFLAGS -m64 -march=native -mtune=native\"")
-            self._write_strip("export LDFLAGS=\"$LDFLAGS -m64 -march=native -mtune=native\"")
+            self._write_strip('export CFLAGS="$CFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export FFLAGS="$FFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export FCFLAGS="$FCFLAGS -m64 -march=native -mtune=native"')
+            self._write_strip('export LDFLAGS="$LDFLAGS -m64 -march=native -mtune=native"')
             self.write_make_line()
             self._write_strip("popd")
-        if self.config.config_opts['use_avx512']:
+        if self.config.config_opts["use_avx512"]:
             self._write_strip("pushd ../buildavx512" + self.config.subdir)
             self.write_build_prepend()
-            self._write_strip("export CFLAGS=\"$CFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512\"")
-            self._write_strip("export CXXFLAGS=\"$CXXFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512\"")
-            self._write_strip("export FFLAGS=\"$FFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512\"")
-            self._write_strip("export FCFLAGS=\"$FCFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512\"")
-            self._write_strip("export LDFLAGS=\"$LDFLAGS -m64 -march=skylake-avx512\"")
+            self._write_strip('export CFLAGS="$CFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
+            self._write_strip('export CXXFLAGS="$CXXFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
+            self._write_strip('export FFLAGS="$FFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
+            self._write_strip('export FCFLAGS="$FCFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
+            self._write_strip('export LDFLAGS="$LDFLAGS -m64 -march=skylake-avx512"')
             self.write_make_line()
             self._write_strip("popd")
 
@@ -1597,42 +1755,34 @@ class Specfile(object):
         self.write_lang_c(export_epoch=True)
         self.write_variables()
         self.write_profile_payload("autogen")
-        self._write_strip("{0}%autogen {1} {2} {3}"
-                          .format(self.get_profile_use_flags(),
-                                  self.config.disable_static,
-                                  self.config.extra_configure,
-                                  self.config.extra_configure64))
+        self._write_strip("{0}%autogen {1} {2} {3}".format(self.get_profile_use_flags(), self.config.disable_static, self.config.extra_configure, self.config.extra_configure64))
         self.write_make_line()
         self._write_strip("\n")
-        if self.config.config_opts['32bit']:
+        if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
             self.write_build_prepend()
             self.write_32bit_exports()
             self.write_build_append()
-            self._write_strip("%autogen {0} {1} {2} "
-                              "--libdir=/usr/lib32 "
-                              "--build=i686-generic-linux-gnu "
-                              "--host=i686-generic-linux-gnu "
-                              "--target=i686-clr-linux-gnu"
-                              .format(self.config.disable_static,
-                                      self.config.extra_configure,
-                                      self.config.extra_configure32))
+            self._write_strip(
+                "%autogen {0} {1} {2} "
+                "--libdir=/usr/lib32 "
+                "--build=i686-generic-linux-gnu "
+                "--host=i686-generic-linux-gnu "
+                "--target=i686-clr-linux-gnu".format(self.config.disable_static, self.config.extra_configure, self.config.extra_configure32)
+            )
             self.write_make_line(True)
             self._write_strip("popd")
 
-        if self.config.config_opts['build_special']:
+        if self.config.config_opts["build_special"]:
             self._write_strip("pushd ../build-special/" + self.config.subdir)
             self.write_build_prepend()
             self.write_variables()
             self.write_profile_payload("autogen", "special")
-            self._write_strip("{0}%autogen {1} {2} "
-                              .format(self.get_profile_use_flags(),
-                                      self.config.disable_static,
-                                      self.config.extra_configure_special))
+            self._write_strip("{0}%autogen {1} {2} ".format(self.get_profile_use_flags(), self.config.disable_static, self.config.extra_configure_special))
             self.write_make_line()
             self._write_strip("popd")
 
-        if self.config.config_opts['use_avx2']:
+        if self.config.config_opts["use_avx2"]:
             self._write_strip("pushd ../buildavx2/" + self.config.subdir)
             self.write_build_prepend()
             self._write_strip('export CFLAGS="$CFLAGS -m64 -march=native -mtune=native "')
@@ -1640,14 +1790,11 @@ class Specfile(object):
             self._write_strip('export FFLAGS="$FFLAGS -m64 -march=native -mtune=native "')
             self._write_strip('export FCFLAGS="$FCFLAGS -m64 -march=native -mtune=native "')
             self._write_strip('export LDFLAGS="$LDFLAGS -m64 -march=native -mtune=native "')
-            self._write_strip("%autogen {0} {1} {2} "
-                              .format(self.config.disable_static,
-                                      self.config.extra_configure,
-                                      self.config.extra_configure_avx2))
+            self._write_strip("%autogen {0} {1} {2} ".format(self.config.disable_static, self.config.extra_configure, self.config.extra_configure_avx2))
             self.write_make_line()
             self._write_strip("popd")
 
-        if self.config.config_opts['use_avx512']:
+        if self.config.config_opts["use_avx512"]:
             self._write_strip("pushd ../buildavx512/" + self.config.subdir)
             self.write_build_prepend()
             self._write_strip('export CFLAGS="$CFLAGS -m64 -march=skylake-avx512 "')
@@ -1655,10 +1802,7 @@ class Specfile(object):
             self._write_strip('export FFLAGS="$FFLAGS -m64 -march=skylake-avx512 "')
             self._write_strip('export FCFLAGS="$FCFLAGS -m64 -march=skylake-avx512 "')
             self._write_strip('export LDFLAGS="$LDFLAGS -m64 -march=skylake-avx512 "')
-            self._write_strip("%autogen {0} {1} {2} "
-                              .format(self.config.disable_static,
-                                      self.config.extra_configure,
-                                      self.config.extra_configure_avx512))
+            self._write_strip("%autogen {0} {1} {2} ".format(self.config.disable_static, self.config.extra_configure, self.config.extra_configure_avx512))
             self.write_make_line()
             self._write_strip("popd")
         self._write_strip("\n")
@@ -1675,7 +1819,7 @@ class Specfile(object):
             self._write_strip("pushd " + self.config.subdir)
         self._write_strip("python3 setup.py build  " + self.config.extra_configure)
         self._write_strip("\n")
-        if self.tests_config and not self.config.config_opts['skip_tests']:
+        if self.tests_config and not self.config.config_opts["skip_tests"]:
             self._write_strip("%check")
             # Prevent setuptools from hitting the internet
             self.write_proxy_exports()
@@ -1709,7 +1853,7 @@ class Specfile(object):
             self._write_strip("pushd " + self.config.subdir)
         self._write_strip("python3.6 setup.py build -b py3 " + self.config.extra_configure)
         self._write_strip("\n")
-        if self.tests_config and not self.config.config_opts['skip_tests']:
+        if self.tests_config and not self.config.config_opts["skip_tests"]:
             self._write_strip("%check")
             # Prevent setuptools from hitting the internet
             self.write_proxy_exports()
@@ -1758,40 +1902,27 @@ class Specfile(object):
         self._write_strip("mkdir -p ~/.R")
         self._write_strip("mkdir -p ~/.stash")
 
-        self._write_strip("echo \"CFLAGS = $CFLAGS -march=native -mtune=native -ftree-vectorize \" > ~/.R/Makevars")
-        self._write_strip("echo \"FFLAGS = $FFLAGS -march=native -mtune=native -ftree-vectorize \" >> ~/.R/Makevars")
-        self._write_strip("echo \"CXXFLAGS = $CXXFLAGS -march=native -mtune=native -ftree-vectorize \" >> ~/.R/Makevars")
+        self._write_strip('echo "CFLAGS = $CFLAGS -march=native -mtune=native -ftree-vectorize " > ~/.R/Makevars')
+        self._write_strip('echo "FFLAGS = $FFLAGS -march=native -mtune=native -ftree-vectorize " >> ~/.R/Makevars')
+        self._write_strip('echo "CXXFLAGS = $CXXFLAGS -march=native -mtune=native -ftree-vectorize " >> ~/.R/Makevars')
 
-        self._write_strip("R CMD INSTALL "
-                          "--install-tests "
-                          "--built-timestamp=${SOURCE_DATE_EPOCH} "
-                          "--build  -l "
-                          "%{buildroot}/usr/lib64/R/library " + self.content.rawname)
-        self._write_strip("for i in `find %{buildroot}/usr/lib64/R/ -name \"*.so\"`; do mv $i $i.avx2 ; mv $i.avx2 ~/.stash/; done\n")
+        self._write_strip("R CMD INSTALL " "--install-tests " "--built-timestamp=${SOURCE_DATE_EPOCH} " "--build  -l " "%{buildroot}/usr/lib64/R/library " + self.content.rawname)
+        self._write_strip('for i in `find %{buildroot}/usr/lib64/R/ -name "*.so"`; do mv $i $i.avx2 ; mv $i.avx2 ~/.stash/; done\n')
 
-        self._write_strip("echo \"CFLAGS = $CFLAGS -march=skylake-avx512 -ftree-vectorize \" > ~/.R/Makevars")
-        self._write_strip("echo \"FFLAGS = $FFLAGS -march=skylake-avx512 -ftree-vectorize \" >> ~/.R/Makevars")
-        self._write_strip("echo \"CXXFLAGS = $CXXFLAGS -march=skylake-avx512 -ftree-vectorize \" >> ~/.R/Makevars")
+        self._write_strip('echo "CFLAGS = $CFLAGS -march=skylake-avx512 -ftree-vectorize " > ~/.R/Makevars')
+        self._write_strip('echo "FFLAGS = $FFLAGS -march=skylake-avx512 -ftree-vectorize " >> ~/.R/Makevars')
+        self._write_strip('echo "CXXFLAGS = $CXXFLAGS -march=skylake-avx512 -ftree-vectorize " >> ~/.R/Makevars')
 
-        self._write_strip("R CMD INSTALL "
-                          "--preclean "
-                          "--install-tests "
-                          "--no-test-load "
-                          "--built-timestamp=${SOURCE_DATE_EPOCH} "
-                          "--build  -l "
-                          "%{buildroot}/usr/lib64/R/library " + self.content.rawname)
-        self._write_strip("for i in `find %{buildroot}/usr/lib64/R/ -name \"*.so\"`; do mv $i $i.avx512 ; mv $i.avx512 ~/.stash/; done\n")
+        self._write_strip(
+            "R CMD INSTALL " "--preclean " "--install-tests " "--no-test-load " "--built-timestamp=${SOURCE_DATE_EPOCH} " "--build  -l " "%{buildroot}/usr/lib64/R/library " + self.content.rawname
+        )
+        self._write_strip('for i in `find %{buildroot}/usr/lib64/R/ -name "*.so"`; do mv $i $i.avx512 ; mv $i.avx512 ~/.stash/; done\n')
 
-        self._write_strip("echo \"CFLAGS = $CFLAGS -ftree-vectorize \" > ~/.R/Makevars")
-        self._write_strip("echo \"FFLAGS = $FFLAGS -ftree-vectorize \" >> ~/.R/Makevars")
-        self._write_strip("echo \"CXXFLAGS = $CXXFLAGS -ftree-vectorize \" >> ~/.R/Makevars")
+        self._write_strip('echo "CFLAGS = $CFLAGS -ftree-vectorize " > ~/.R/Makevars')
+        self._write_strip('echo "FFLAGS = $FFLAGS -ftree-vectorize " >> ~/.R/Makevars')
+        self._write_strip('echo "CXXFLAGS = $CXXFLAGS -ftree-vectorize " >> ~/.R/Makevars')
 
-        self._write_strip("R CMD INSTALL "
-                          "--preclean "
-                          "--install-tests "
-                          "--built-timestamp=${SOURCE_DATE_EPOCH} "
-                          "--build  -l "
-                          "%{buildroot}/usr/lib64/R/library " + self.content.rawname)
+        self._write_strip("R CMD INSTALL " "--preclean " "--install-tests " "--built-timestamp=${SOURCE_DATE_EPOCH} " "--build  -l " "%{buildroot}/usr/lib64/R/library " + self.content.rawname)
         self._write_strip("cp ~/.stash/* %{buildroot}/usr/lib64/R/library/*/libs/ || :")
 
         self._write_strip("%{__rm} -rf %{buildroot}%{_datadir}/R/library/R.css")
@@ -1845,7 +1976,7 @@ class Specfile(object):
         self._write_strip("mkdir -p clr-build")
         self._write_strip("pushd clr-build")
 
-        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts['altflags_pgo'] and not self.config.config_opts['fsalt1']:
+        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
             self.write_variables()
             init = f"{self.get_profile_generate_flags()}"
             post = f"{self.get_profile_use_flags()}"
@@ -1868,8 +1999,8 @@ class Specfile(object):
             self.write_make_line()
             self._write_strip("popd")
 
-        if self.config.config_opts['build_special']:
-            if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts['altflags_pgo'] and not self.config.config_opts['fsalt1']:
+        if self.config.config_opts["build_special"]:
+            if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
                 self._write_strip("mkdir -p clr-build-special")
                 self._write_strip("pushd clr-build-special")
                 self.write_build_prepend()
@@ -1898,7 +2029,7 @@ class Specfile(object):
                 self.write_make_line()
                 self._write_strip("popd")
 
-        if self.config.config_opts['use_avx2']:
+        if self.config.config_opts["use_avx2"]:
             self._write_strip("mkdir -p clr-build-avx2")
             self._write_strip("pushd clr-build-avx2")
             saved_avx2flags = self.need_avx2_flags
@@ -1914,7 +2045,7 @@ class Specfile(object):
             self.write_make_line()
             self._write_strip("popd")
 
-        if self.config.config_opts['use_avx512']:
+        if self.config.config_opts["use_avx512"]:
             self._write_strip("mkdir -p clr-build-avx512")
             self._write_strip("pushd clr-build-avx512")
             saved_avx512flags = self.need_avx512_flags
@@ -1930,21 +2061,20 @@ class Specfile(object):
             self.write_make_line()
             self._write_strip("popd")
 
-        if self.config.config_opts['32bit']:
+        if self.config.config_opts["32bit"]:
             self._write_strip("mkdir -p clr-build32")
             self._write_strip("pushd clr-build32")
             self.write_build_prepend()
             self.write_32bit_exports()
             self.write_build_append()
-            self._write_strip("%cmake -DLIB_INSTALL_DIR:PATH=/usr/lib32 "
-                              "-DCMAKE_INSTALL_LIBDIR=/usr/lib32 "
-                              "-DLIB_SUFFIX=32 "
-                              "{} {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_32))
+            self._write_strip(
+                "%cmake -DLIB_INSTALL_DIR:PATH=/usr/lib32 " "-DCMAKE_INSTALL_LIBDIR=/usr/lib32 " "-DLIB_SUFFIX=32 " "{} {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_32)
+            )
             self.write_make_line()
             self._write_strip("unset PKG_CONFIG_PATH")
             self._write_strip("popd")
 
-        if self.config.config_opts['openmpi']:
+        if self.config.config_opts["openmpi"]:
             self._write_strip("mkdir -p clr-build-openmpi")
             self._write_strip("pushd clr-build-openmpi")
             self._write_strip(". /usr/share/defaults/etc/profile.d/modules.sh")
@@ -1974,9 +2104,9 @@ class Specfile(object):
     def write_qmake_pattern(self):
         """Write qmake build pattern to spec file."""
         extra_qmake_args = ""
-        if self.config.config_opts['use_clang']:
+        if self.config.config_opts["use_clang"]:
             extra_qmake_args = "-spec linux-clang "
-        if self.config.config_opts['use_lto']:
+        if self.config.config_opts["use_lto"]:
             extra_qmake_args += "-config ltcg "
 
         self.write_prep()
@@ -1996,7 +2126,7 @@ class Specfile(object):
         if self.config.subdir:
             self._write_strip("popd")
 
-        if self.config.config_opts['build_special']:
+        if self.config.config_opts["build_special"]:
             self._write_strip("pushd ../build-special/" + self.config.subdir)
             self.write_variables()
             self._write("%qmake 'QT_CPU_FEATURES.x86_64 += avx avx2 bmi bmi2 f16c fma lzcnt popcnt'\\\n")
@@ -2005,7 +2135,7 @@ class Specfile(object):
             self.write_make_line()
             self._write_strip("popd")
 
-        if self.config.config_opts['use_avx2']:
+        if self.config.config_opts["use_avx2"]:
             self._write_strip("pushd ../buildavx2/" + self.config.subdir)
             self._write("%qmake 'QT_CPU_FEATURES.x86_64 += avx avx2 bmi bmi2 f16c fma lzcnt popcnt'\\\n")
             self._write("    QMAKE_CFLAGS+=-march=native QMAKE_CFLAGS+=-mtune=native QMAKE_CXXFLAGS+=-march=native QMAKE_CXXFLAGS+=-mtune=native \\\n")
@@ -2019,7 +2149,7 @@ class Specfile(object):
 
     def write_cargo_pattern(self):
         """Write cargo build pattern to spec file."""
-        if self.config.config_opts['altcargo1']:
+        if self.config.config_opts["altcargo1"]:
             self.write_prep()
             src_dir = "/usr/share/rust/src/{0}".format(self.name)
             self._write_strip("%build")
@@ -2117,7 +2247,7 @@ class Specfile(object):
         self.write_proxy_exports()
         self._write_strip("export LANG=C.UTF-8")
         if self.config.set_gopath:
-            self._write_strip("export GOPATH=\"$PWD\"")
+            self._write_strip('export GOPATH="$PWD"')
             self._write_strip("go build {}".format(self.config.extra_make))
         else:
             self._write_strip("export GOPROXY=file:///usr/share/goproxy")
@@ -2138,8 +2268,7 @@ class Specfile(object):
         self.write_install_prepend()
         self._write_strip("rm -fr %{buildroot}")
         # Remove golang default proxy prefix and filename to get proxy path for the install
-        proxy_path = os.path.join("%{buildroot}/usr/share/goproxy",
-                                  os.path.dirname(self.url[len("https://proxy.golang.org/"):]))
+        proxy_path = os.path.join("%{buildroot}/usr/share/goproxy", os.path.dirname(self.url[len("https://proxy.golang.org/") :]))
         self._write_strip(f"mkdir -p {proxy_path}")
         list_file = os.path.join(proxy_path, "list")
         self._write_strip("# Create list file using packaged versions")
@@ -2247,12 +2376,12 @@ class Specfile(object):
         if self.config.subdir:
             self._write_strip("pushd " + self.config.subdir)
 
-        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts['altflags_pgo'] and not self.config.config_opts['fsalt1']:
+        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
             init = f"{self.get_profile_generate_flags()}"
             post = f"{self.get_profile_use_flags()}"
             if init:
                 self._write_strip(init)
-            self._write_strip('meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+            self._write_strip("meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure64))
             self.write_make_prepend()
             self._write_strip("ninja -v -C builddir")
             self._write_strip("\n")
@@ -2260,39 +2389,41 @@ class Specfile(object):
             self._write_strip("\nfind builddir/ -type f -not -name '*.gcno' -delete -print\n")
             if post:
                 self._write_strip(post)
-            self._write_strip('meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+            self._write_strip("meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure64))
             self.write_make_prepend()
             self._write_strip("ninja -v -C builddir")
             if self.config.subdir:
                 self._write_strip("popd")
         else:
-            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir'
-                              .format(self.config.extra_configure, self.config.extra_configure64))
+            self._write_strip(
+                'CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir'.format(
+                    self.config.extra_configure, self.config.extra_configure64
+                )
+            )
             self.write_make_prepend()
             self._write_strip("ninja -v -C builddir")
             if self.config.subdir:
                 self._write_strip("popd")
 
-        if self.config.config_opts['use_avx2']:
-            self._write_strip('CFLAGS="$CFLAGS -m64 -march=native -mtune=native" CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native " LDFLAGS="$LDFLAGS -m64 -march=native -mtune=native" '
-                              'meson --libdir=lib64/haswell --prefix=/usr --buildtype=plain {0} '
-                              '{1} builddiravx2'.format(self.config.extra_configure, self.config.extra_configure64))
+        if self.config.config_opts["use_avx2"]:
+            self._write_strip(
+                'CFLAGS="$CFLAGS -m64 -march=native -mtune=native" CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native " LDFLAGS="$LDFLAGS -m64 -march=native -mtune=native" '
+                "meson --libdir=lib64/haswell --prefix=/usr --buildtype=plain {0} "
+                "{1} builddiravx2".format(self.config.extra_configure, self.config.extra_configure64)
+            )
             self.write_make_prepend()
-            self._write_strip('ninja -v -C builddiravx2')
+            self._write_strip("ninja -v -C builddiravx2")
         if self.config.subdir:
             self._write_strip("popd")
-        if self.config.config_opts['32bit']:
+        if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
             self.write_build_prepend()
             self.write_32bit_exports()
             self.write_build_append()
-            self._write_strip('meson '
-                              '--libdir=lib32 --prefix=/usr --buildtype=plain {0} {1} builddir'
-                              .format(self.config.extra_configure,
-                                      self.config.extra_configure32))
+            self._write_strip("meson " "--libdir=lib32 --prefix=/usr --buildtype=plain {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure32))
             self.write_make_prepend()
-            self._write_strip('ninja -v -C builddir')
-            self._write_strip('popd')
+            self._write_strip("ninja -v -C builddir")
+            self._write_strip("popd")
 
         self.write_build_append()
         self._write_strip("\n")
@@ -2300,9 +2431,9 @@ class Specfile(object):
         self._write_strip("%install")
         self.write_install_prepend()
         self.write_license_files()
-        if self.config.config_opts['32bit']:
-            self._write_strip('pushd ../build32/' + self.config.subdir)
-            self._write_strip('DESTDIR=%{buildroot} ninja -C builddir install')
+        if self.config.config_opts["32bit"]:
+            self._write_strip("pushd ../build32/" + self.config.subdir)
+            self._write_strip("DESTDIR=%{buildroot} ninja -C builddir install")
             self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
             self._write_strip("then")
             self._write_strip("    pushd %{buildroot}/usr/lib32/pkgconfig")
@@ -2312,8 +2443,8 @@ class Specfile(object):
             self._write_strip("popd")
         if self.config.subdir:
             self._write_strip("pushd " + self.config.subdir)
-        if self.config.config_opts['use_avx2']:
-            self._write_strip('DESTDIR=%{buildroot} ninja -C builddiravx2 install')
+        if self.config.config_opts["use_avx2"]:
+            self._write_strip("DESTDIR=%{buildroot} ninja -C builddiravx2 install")
 
         self._write_strip("DESTDIR=%{buildroot} ninja -C builddir install")
         if self.config.subdir:
@@ -2395,7 +2526,7 @@ class Specfile(object):
         # meaning in specfiles
         special_chars = set(" \t")
         # Build up the output as a string
-        quoted = ''
+        quoted = ""
         # Capture any directive prefix separately from actual filename
         #                          (1                   )(3 )
         directive_re = re.compile(r"(%\w+(\([^\)]*\))?\s+)(.*)")

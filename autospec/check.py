@@ -99,6 +99,11 @@ def scan_for_tests(src_dir, config, requirements, content):
     if config.config_opts.get('build_special'):
         testsuites["makecheck"] += "\ncd ../build-special;\n" + make_check + " || :"
         testsuites["cmake"] += "\ncd ../clr-build-special;\n" + cmake_check + " || :"
+        testsuites["meson"] += "\ncd ../build-special;\n" + meson_check + " || :"
+    if config.config_opts.get('build_special2'):
+        testsuites["makecheck"] += "\ncd ../build-special2;\n" + make_check + " || :"
+        testsuites["cmake"] += "\ncd ../clr-build-special2;\n" + cmake_check + " || :"
+        testsuites["meson"] += "\ncd ../build-special2;\n" + meson_check + " || :"
     if config.config_opts.get('use_avx2'):
         testsuites["makecheck"] += "\ncd ../buildavx2;\n" + make_check + " || :"
         testsuites["cmake"] += "\ncd ../clr-build-avx2;\n" + cmake_check + " || :"

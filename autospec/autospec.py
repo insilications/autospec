@@ -184,22 +184,13 @@ def main():
         "-b", "--skip-bump", dest="bump", action="store_false", default=True, help="Don't bump release number",
     )
     parser.add_argument(
-        "-c",
-        "--config",
-        dest="config",
-        action="store",
-        default="/usr/share/defaults/autospec/autospec.conf",
-        help="Set configuration file to use",
+        "-c", "--config", dest="config", action="store", default="/usr/share/defaults/autospec/autospec.conf", help="Set configuration file to use",
     )
     parser.add_argument(
         "-t", "--target", dest="target", action="store", required=True, help="Target location to create or reuse",
     )
     parser.add_argument(
-        "-i",
-        "--integrity",
-        action="store_true",
-        default=False,
-        help="Search for package signature from source URL and " "attempt to verify package",
+        "-i", "--integrity", action="store_true", default=False, help="Search for package signature from source URL and " "attempt to verify package",
     )
     parser.add_argument(
         "-p", "--prep-only", action="store_true", default=False, help="Only perform preparatory work on package",
@@ -208,19 +199,10 @@ def main():
         "--non_interactive", action="store_true", default=False, help="Disable interactive mode for package verification",
     )
     parser.add_argument(
-        "-C",
-        "--cleanup",
-        dest="cleanup",
-        action="store_true",
-        default=False,
-        help="Clean up mock chroot after building the package",
+        "-C", "--cleanup", dest="cleanup", action="store_true", default=False, help="Clean up mock chroot after building the package",
     )
     parser.add_argument(
-        "-m",
-        "--mock-config",
-        action="store",
-        default="clear",
-        help="Value to pass with Mock's -r option. Defaults to " '"clear", meaning that Mock will use ' "/etc/mock/clear.cfg.",
+        "-m", "--mock-config", action="store", default="clear", help="Value to pass with Mock's -r option. Defaults to " '"clear", meaning that Mock will use ' "/etc/mock/clear.cfg.",
     )
     parser.add_argument(
         "-o", "--mock-opts", action="store", default="", help="Arbitrary options to pass down to mock when " "building a package.",
@@ -229,20 +211,10 @@ def main():
         "-dg", "--download_from_git", action="store", dest="download_from_git", default=None, help="Download source from git",
     )
     parser.add_argument(
-        "-rdg",
-        "--redownload_from_git",
-        action="store_true",
-        dest="redownload_from_git",
-        default=False,
-        help="Redownload source from git",
+        "-rdg", "--redownload_from_git", action="store_true", dest="redownload_from_git", default=False, help="Redownload source from git",
     )
     parser.add_argument(
-        "-fb",
-        "--from_branch",
-        action="store",
-        dest="branch",
-        default=None,
-        help="Define the git branch to download the source from",
+        "-fb", "--from_branch", action="store", dest="branch", default=None, help="Define the git branch to download the source from",
     )
     parser.add_argument(
         "-ag",
@@ -261,12 +233,7 @@ def main():
         "-rag", "--redownload_archive", action="store_true", dest="redownload_archive", default=False, help="Redownload archives",
     )
     parser.add_argument(
-        "-dsub",
-        "--disable_submodule",
-        action="store",
-        dest="force_module",
-        default=None,
-        help="Disable download submodules from git",
+        "-dsub", "--disable_submodule", action="store", dest="force_module", default=None, help="Disable download submodules from git",
     )
 
     args = parser.parse_args()
@@ -336,65 +303,27 @@ def main():
         parser.error(argparse.ArgumentTypeError("the url argument or options.conf['package']['url'] is required"))
 
     if len(archives) % 2 != 0:
-        parser.error(
-            argparse.ArgumentTypeError(
-                "-a/--archives or options.conf['package']['archives'] requires an " "even number of arguments"
-            )
-        )
+        parser.error(argparse.ArgumentTypeError("-a/--archives or options.conf['package']['archives'] requires an " "even number of arguments"))
 
     if len(archives_from_git) % 3 != 0:
-        parser.error(
-            argparse.ArgumentTypeError(
-                "-ag/--archives_from_git or options.conf['package']['archives_from_git'] requires an " "uneven number of arguments"
-            )
-        )
+        parser.error(argparse.ArgumentTypeError("-ag/--archives_from_git or options.conf['package']['archives_from_git'] requires an " "uneven number of arguments"))
 
     print("Teste url 0: " + url)
 
     if args.prep_only:
         os.makedirs("workingdir", exists_ok=True)
         package(
-            args,
-            url,
-            name,
-            archives,
-            archives_from_git,
-            "./workingdir",
-            download_from_git,
-            branch,
-            redownload_from_git,
-            redownload_archive,
-            force_module,
+            args, url, name, archives, archives_from_git, "./workingdir", download_from_git, branch, redownload_from_git, redownload_archive, force_module,
         )
     else:
         with tempfile.TemporaryDirectory() as workingdir:
             package(
-                args,
-                url,
-                name,
-                archives,
-                archives_from_git,
-                workingdir,
-                download_from_git,
-                branch,
-                redownload_from_git,
-                redownload_archive,
-                force_module,
+                args, url, name, archives, archives_from_git, workingdir, download_from_git, branch, redownload_from_git, redownload_archive, force_module,
             )
 
 
 def package(
-    args,
-    url,
-    name,
-    archives,
-    archives_from_git,
-    workingdir,
-    download_from_git,
-    branch,
-    redownload_from_git,
-    redownload_archive,
-    force_module,
+    args, url, name, archives, archives_from_git, workingdir, download_from_git, branch, redownload_from_git, redownload_archive, force_module,
 ):
     """Entry point for building a package with autospec."""
     print("Teste url 1: " + url)
@@ -493,9 +422,7 @@ def package(
                     print("Index: {}".format(index))
                     print("Destination: {} - Branch: {}".format(arch_destination[index], arch_branch[index]))
                     print("Fazer download archive 1: {} - {}".format(arch_name, new_arch_url))
-                    download_file_full_path = git.clone_and_git_archive_all(
-                        package_path, arch_name, new_arch_url, arch_branch[index], force_module,
-                    )
+                    download_file_full_path = git.clone_and_git_archive_all(package_path, arch_name, new_arch_url, arch_branch[index], force_module,)
                 print("Teste archive download_file_full_path 1: " + download_file_full_path)
                 if download_file_full_path in archives or arch_destination[index] in archives:
                     print("\nalready in archives: {}".format(archives))
@@ -523,9 +450,7 @@ def package(
                     print("Index: {}".format(index))
                     print("Destination: {} - Branch: {}".format(arch_destination[index], arch_branch[index]))
                     print("Fazer download archive 2: {} - {}".format(arch_name, new_arch_url))
-                    download_file_full_path = git.clone_and_git_archive_all(
-                        package_path, arch_name, new_arch_url, arch_branch[index], force_module,
-                    )
+                    download_file_full_path = git.clone_and_git_archive_all(package_path, arch_name, new_arch_url, arch_branch[index], force_module,)
                 print("Teste archive download_file_full_path 2: " + download_file_full_path)
                 if download_file_full_path in archives or arch_destination[index] in archives:
                     print("\nalready in archives: {}".format(archives))
@@ -549,9 +474,7 @@ def package(
     #
     filemanager = files.FileManager(conf, package)
     print("Teste url 4: " + url)
-    content = tarball.Content(
-        url, name, args.version, archives, conf, workingdir, giturl, download_from_git, branch, new_archives_from_git, force_module,
-    )
+    content = tarball.Content(url, name, args.version, archives, conf, workingdir, giturl, download_from_git, branch, new_archives_from_git, force_module,)
     content.process(filemanager)
     conf.create_versions(content.multi_version)
     conf.content = content  # hack to avoid recursive dependency on init
@@ -614,9 +537,7 @@ def package(
         filemanager.load_specfile(specfile)
         specfile.write_spec()
         filemanager.newfiles_printed = 0
-        mock_chroot = "/var/lib/mock/clear-{}/root/builddir/build/BUILDROOT/" "{}-{}-{}.x86_64".format(
-            package.uniqueext, content.name, content.version, content.release,
-        )
+        mock_chroot = "/var/lib/mock/clear-{}/root/builddir/build/BUILDROOT/" "{}-{}-{}.x86_64".format(package.uniqueext, content.name, content.version, content.release,)
         if filemanager.clean_directories(mock_chroot):
             # directories added to the blacklist, need to re-run
             package.must_restart += 1

@@ -73,6 +73,7 @@ class Config(object):
         self.extra_configure32 = ""
         self.extra_configure64 = ""
         self.extra_configure_special = ""
+        self.extra_configure_special2 = ""
         self.extra_configure_avx2 = ""
         self.extra_configure_avx512 = ""
         self.config_files = set()
@@ -82,13 +83,16 @@ class Config(object):
         self.extra32_make = ""
         self.extra64_make = ""
         self.extra_make_special = ""
+        self.extra_make_special2 = ""
         self.extra_make_install = ""
         self.extra_make_install_special = ""
+        self.extra_make_install_special2 = ""
         self.extra_make32_install = ""
         self.extra_cmake = ""
         self.extra_cmake_64 = ""
         self.extra_cmake_32 = ""
         self.extra_cmake_special = ""
+        self.extra_cmake_special2 = ""
         self.extra_cmake_openmpi = ""
         self.cmake_srcdir = ".."
         self.subdir = ""
@@ -100,6 +104,7 @@ class Config(object):
         self.install_macro_avx2 = ""
         self.install_macro_openmpi = ""
         self.install_macro_build_special = ""
+        self.install_macro_build_special2 = ""
         self.disable_static = "--disable-static"
         self.altflags1 = []
         self.altflags_pgo = []
@@ -109,8 +114,10 @@ class Config(object):
         self.make_prepend = []
         self.install_prepend = []
         self.install_prepend_special = []
+        self.install_prepend_special2 = []
         self.install_append = []
         self.install_append_special = []
+        self.install_append_special2 = []
         self.service_restart = []
         self.patches = []
         self.verpatches = OrderedDict()
@@ -147,10 +154,12 @@ class Config(object):
         self.pattern_strength = 0
         self.sources = {"unit": [], "gcov": [], "tmpfile": [], "sysuser": [], "archive": [], "destination": [], "godep": [], "version": []}
         self.archive_details = {}
-        self.conf_args_openmpi = '--program-prefix=  --exec-prefix=$MPI_ROOT \\\n' \
-            '--libdir=$MPI_LIB --bindir=$MPI_BIN --sbindir=$MPI_BIN --includedir=$MPI_INCLUDE \\\n' \
-            '--datarootdir=$MPI_ROOT/share --mandir=$MPI_MAN -exec-prefix=$MPI_ROOT --sysconfdir=$MPI_SYSCONFIG \\\n' \
-            '--build=x86_64-generic-linux-gnu --host=x86_64-generic-linux-gnu --target=x86_64-clr-linux-gnu '
+        self.conf_args_openmpi = (
+            "--program-prefix=  --exec-prefix=$MPI_ROOT \\\n"
+            "--libdir=$MPI_LIB --bindir=$MPI_BIN --sbindir=$MPI_BIN --includedir=$MPI_INCLUDE \\\n"
+            "--datarootdir=$MPI_ROOT/share --mandir=$MPI_MAN -exec-prefix=$MPI_ROOT --sysconfdir=$MPI_SYSCONFIG \\\n"
+            "--build=x86_64-generic-linux-gnu --host=x86_64-generic-linux-gnu --target=x86_64-clr-linux-gnu "
+        )
         # Keep track of the package versions
         self.versions = OrderedDict()
         # Only parse the versions file once, and save the result for later
@@ -158,15 +167,15 @@ class Config(object):
         # defines which files to rename and copy to autospec directory,
         # used in commitmessage.py
         self.transforms = {
-            'changes': 'ChangeLog',
-            'changelog.txt': 'ChangeLog',
-            'changelog': 'ChangeLog',
-            'change.log': 'ChangeLog',
-            'ChangeLog.md': 'ChangeLog',
-            'changes.rst': 'ChangeLog',
-            'changes.txt': 'ChangeLog',
-            'news': 'NEWS',
-            'meson_options.txt': 'meson_options.txt'
+            "changes": "ChangeLog",
+            "changelog.txt": "ChangeLog",
+            "changelog": "ChangeLog",
+            "change.log": "ChangeLog",
+            "ChangeLog.md": "ChangeLog",
+            "changes.rst": "ChangeLog",
+            "changes.txt": "ChangeLog",
+            "news": "NEWS",
+            "meson_options.txt": "meson_options.txt",
         }
         self.config_opts = {}
         self.config_options = {
@@ -203,7 +212,8 @@ class Config(object):
             "noautoreq": "disable automatic requeriments processing",
             "noautoprov": "disable automatic provides processing",
             "altcargo1": "alternative cargo pattern",
-            "build_special": "configure build with special options"
+            "build_special": "configure build with special options",
+            "build_special2": "configure build with special options 2",
         }
         # simple_pattern_pkgconfig patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -214,7 +224,7 @@ class Config(object):
             (r"checking for UDEV\.\.\. no", "libudev"),
             (r"XMLLINT not set and xmllint not found in path", "libxml-2.0"),
             (r"error\: xml2-config not found", "libxml-2.0"),
-            (r"error: must install xorg-macros", "xorg-macros")
+            (r"error: must install xorg-macros", "xorg-macros"),
         ]
         # simple_pattern patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -256,75 +266,74 @@ class Config(object):
             (r"C library 'efivar' not found", "efivar-dev"),
             (r"Has header \"efi.h\": NO", "gnu-efi-dev"),
             (r"ERROR: Could not execute Vala compiler", "vala"),
-            (r".*: error: HAVE_INTROSPECTION does not appear in AM_CONDITIONAL", 'gobject-introspection-dev')
+            (r".*: error: HAVE_INTROSPECTION does not appear in AM_CONDITIONAL", "gobject-introspection-dev"),
         ]
         # failed_pattern patterns
         # contains patterns for parsing build.log for missing dependencies
         self.failed_pats = [
-            (r"    !  ([a-zA-Z:]+) is not installed", 0, 'perl'),
+            (r"    !  ([a-zA-Z:]+) is not installed", 0, "perl"),
             (r"    ([a-zA-Z]+\:\:[a-zA-Z]+) not installed", 1, None),
             (r"(?:-- )?(?:Could|Did) (?:NOT|not) find ([a-zA-Z0-9_-]+)", 0, None),
             (r" ([a-zA-Z0-9\-]*\.m4) not found", 0, None),
             (r" exec: ([a-zA-Z0-9\-]+): not found", 0, None),
             (r"([a-zA-Z0-9\-\_\.]*)\: command not found", 1, None),
             (r"([a-zA-Z\-]*) (?:validation )?tool not found or not executable", 0, None),
-            (r"([a-zA-Z\-]+) [0-9\.]+ is required to configure this module; "
-             r"please install it or upgrade your CPAN\/CPANPLUS shell.", 0, None),
+            (r"([a-zA-Z\-]+) [0-9\.]+ is required to configure this module; " r"please install it or upgrade your CPAN\/CPANPLUS shell.", 0, None),
             (r"-- (.*) not found.", 1, None),
             (r".* /usr/bin/([a-zA-Z0-9-_]*).*not found", 0, None),
-            (r".*\.go:.*cannot find package \"(.*)\" in any of:", 0, 'go'),
+            (r".*\.go:.*cannot find package \"(.*)\" in any of:", 0, "go"),
             (r"/usr/bin/env\: (.*)\: No such file or directory", 0, None),
             (r"/usr/bin/python.*\: No module named (.*)", 0, None),
-            (r":in `require': cannot load such file -- ([a-zA-Z0-9\-\_:\/]+)", 0, 'ruby table'),
-            (r":in `require': cannot load such file -- ([a-zA-Z0-9\-\_:]+) ", 0, 'ruby'),
+            (r":in `require': cannot load such file -- ([a-zA-Z0-9\-\_:\/]+)", 0, "ruby table"),
+            (r":in `require': cannot load such file -- ([a-zA-Z0-9\-\_:]+) ", 0, "ruby"),
             (r"Add the installation prefix of \"(.*)\" to CMAKE_PREFIX_PATH", 0, None),
             (r"By not providing \"([a-zA-Z0-9]+).cmake\" in CMAKE_MODULE_PATH this project", 0, None),
             (r"C library '(.*)' not found", 0, None),
             (r"CMake Error at cmake\/modules\/([a-zA-Z0-9]+).cmake", 0, None),
-            (r"Can't locate [a-zA-Z0-9_\-\/\.]+ in @INC " r"\(you may need to install the ([a-zA-Z0-9_\-:]+) module\)", 0, 'perl'),
+            (r"Can't locate [a-zA-Z0-9_\-\/\.]+ in @INC " r"\(you may need to install the ([a-zA-Z0-9_\-:]+) module\)", 0, "perl"),
             (r"Cannot find ([a-zA-Z0-9\-_\.]*)", 1, None),
             (r"Checking for (.*?)\.\.\.no", 0, None),
             (r"Checking for (.*?)\s*: not found", 0, None),
             (r"Checking for (.*?)\s>=.*\s*: not found", 0, None),
-            (r"Could not find '([a-zA-Z0-9\-\_]*)' \([~<>=]+ ([0-9.]+).*\) among [0-9]+ total gem", 0, 'ruby'),
-            (r"Could not find gem '([a-zA-Z0-9\-\_]+) \([~<>=0-9\.\, ]+\) ruby'", 0, 'ruby'),
+            (r"Could not find '([a-zA-Z0-9\-\_]*)' \([~<>=]+ ([0-9.]+).*\) among [0-9]+ total gem", 0, "ruby"),
+            (r"Could not find gem '([a-zA-Z0-9\-\_]+) \([~<>=0-9\.\, ]+\) ruby'", 0, "ruby"),
             (r"Could not find suitable distribution for Requirement.parse\('([a-zA-Z\-\.]*)", 0, None),
-            (r"Download error on https://pypi.python.org/simple/([a-zA-Z0-9\-\._:]+)/", 0, 'pypi'),
+            (r"Download error on https://pypi.python.org/simple/([a-zA-Z0-9\-\._:]+)/", 0, "pypi"),
             (r"Downloading https?://.*\.python\.org/packages/.*/.?/([A-Za-z]*)/.*", 0, None),
-            (r"ERROR:  Could not find a valid gem '([a-zA-Z0-9\-\_\:]*)' \([>=]+ ([0-9.]+).*\)", 0, 'ruby'),
-            (r"ERROR: dependencies ['‘]([a-zA-Z0-9\-\.]*)['’].* are not available for package ['‘].*['’]", 0, 'R'),
-            (r"ERROR: dependencies ['‘].*['’], ['‘]([a-zA-Z0-9\-\.]*)['’],.* are not available for package ['‘].*['’]", 0, 'R'),
-            (r"ERROR: dependencies.*['‘]([a-zA-Z0-9\-\.]*)['’] are not available for package ['‘].*['’]", 0, 'R'),
-            (r"ERROR: dependency ['‘]([a-zA-Z0-9\-\.]*)['’] is not available for package ['‘].*['’]", 0, 'R'),
+            (r"ERROR:  Could not find a valid gem '([a-zA-Z0-9\-\_\:]*)' \([>=]+ ([0-9.]+).*\)", 0, "ruby"),
+            (r"ERROR: dependencies ['‘]([a-zA-Z0-9\-\.]*)['’].* are not available for package ['‘].*['’]", 0, "R"),
+            (r"ERROR: dependencies ['‘].*['’], ['‘]([a-zA-Z0-9\-\.]*)['’],.* are not available for package ['‘].*['’]", 0, "R"),
+            (r"ERROR: dependencies.*['‘]([a-zA-Z0-9\-\.]*)['’] are not available for package ['‘].*['’]", 0, "R"),
+            (r"ERROR: dependency ['‘]([a-zA-Z0-9\-\.]*)['’] is not available for package ['‘].*['’]", 0, "R"),
             (r"Error: Unable to find (.*)", 0, None),
-            (r"Error: package ['‘]([a-zA-Z0-9\-\.]*)['’] required by", 0, 'R'),
-            (r"Gem::LoadError: Could not find '([a-zA-Z0-9\-\_]*)'", 0, 'ruby'),
-            (r"ImportError:.* No module named '?([a-zA-Z0-9\-\._]+)'?", 0, 'pypi'),
+            (r"Error: package ['‘]([a-zA-Z0-9\-\.]*)['’] required by", 0, "R"),
+            (r"Gem::LoadError: Could not find '([a-zA-Z0-9\-\_]*)'", 0, "ruby"),
+            (r"ImportError:.* No module named '?([a-zA-Z0-9\-\._]+)'?", 0, "pypi"),
             (r"ImportError\: ([a-zA-Z]+) module missing", 0, None),
             (r"ImportError\: (?:No module|cannot import) named? (.*)", 0, None),
-            (r"LoadError: cannot load such file -- ([a-zA-Z0-9\-:\/\_]+)", 0, 'ruby table'),
-            (r"LoadError: cannot load such file -- ([a-zA-Z0-9\-:]+)/.*", 0, 'ruby'),
+            (r"LoadError: cannot load such file -- ([a-zA-Z0-9\-:\/\_]+)", 0, "ruby table"),
+            (r"LoadError: cannot load such file -- ([a-zA-Z0-9\-:]+)/.*", 0, "ruby"),
             (r"ModuleNotFoundError.*No module named (.*)", 0, None),
             (r"Native dependency '(.*)' not found", 0, "pkgconfig"),
             (r"No library found for -l([a-zA-Z\-])", 0, None),
-            (r"No (?:matching distribution|local packages or working download links) found for ([a-zA-Z0-9\-\.\_]+)", 0, 'pypi'),
-            (r"No package '([a-zA-Z0-9\-:]*)' found", 0, 'pkgconfig'),
+            (r"No (?:matching distribution|local packages or working download links) found for ([a-zA-Z0-9\-\.\_]+)", 0, "pypi"),
+            (r"No package '([a-zA-Z0-9\-:]*)' found", 0, "pkgconfig"),
             (r"No rule to make target `(.*)',", 0, None),
-            (r"Package (.*) was not found in the pkg-config search path.", 0, 'pkgconfig'),
-            (r"Package '([a-zA-Z0-9\-:]*)', required by '.*', not found", 0, 'pkgconfig'),
-            (r"Package which this enhances but not available for checking: ['‘]([a-zA-Z0-9\-]*)['’]", 0, 'R'),
-            (r"Perhaps you should add the directory containing `([a-zA-Z0-9\-:]*)\.pc'", 0, 'pkgconfig'),
+            (r"Package (.*) was not found in the pkg-config search path.", 0, "pkgconfig"),
+            (r"Package '([a-zA-Z0-9\-:]*)', required by '.*', not found", 0, "pkgconfig"),
+            (r"Package which this enhances but not available for checking: ['‘]([a-zA-Z0-9\-]*)['’]", 0, "R"),
+            (r"Perhaps you should add the directory containing `([a-zA-Z0-9\-:]*)\.pc'", 0, "pkgconfig"),
             (r"Program (.*) found: NO", 0, None),
             (r"Target '[a-zA-Z0-9\-]' can't be generated as '(.*)' could not be found", 0, None),
             (r"Unable to `import (.*)`", 0, None),
             (r"Unable to find '(.*)'", 0, None),
-            (r"WARNING:  [a-zA-Z\-\_]+ dependency on ([a-zA-Z0-9\-\_:]*) \([<>=~]+ ([0-9.]+).*\) .*", 0, 'ruby'),
-            (r"Warning: prerequisite ([a-zA-Z:]+) [0-9\.]+ not found.", 0, 'perl'),
+            (r"WARNING:  [a-zA-Z\-\_]+ dependency on ([a-zA-Z0-9\-\_:]*) \([<>=~]+ ([0-9.]+).*\) .*", 0, "ruby"),
+            (r"Warning: prerequisite ([a-zA-Z:]+) [0-9\.]+ not found.", 0, "perl"),
             (r"Warning\: no usable ([a-zA-Z0-9]+) found", 0, None),
             (r"You need ([a-zA-Z0-9\-\_]*) to build this program.", 1, None),
-            (r"[Dd]ependency (.*) found: NO \(tried pkgconfig(?: and cmake)?\)", 0, 'pkgconfig'),
+            (r"[Dd]ependency (.*) found: NO \(tried pkgconfig(?: and cmake)?\)", 0, "pkgconfig"),
             (r"[Dd]ependency (.*) found: NO", 0, None),
-            (r"[a-zA-Z0-9\-:]* is not installed: cannot load such file -- rdoc/([a-zA-Z0-9\-:]*)", 0, 'ruby'),
+            (r"[a-zA-Z0-9\-:]* is not installed: cannot load such file -- rdoc/([a-zA-Z0-9\-:]*)", 0, "ruby"),
             (r"\/bin\/ld: cannot find (-l[a-zA-Z0-9\_]+)", 0, None),
             (r"^.*By not providing \"Find(.*).cmake\" in CMAKE_MODULE_PATH this.*$", 0, None),
             (r"^.*Could not find a package configuration file provided by \"(.*)\".*$", 0, None),
@@ -336,18 +345,18 @@ class Config(object):
             (r"checking for (.*?)\.\.\. no", 0, None),
             (r"checking for [a-zA-Z0-9\_\-]+ in (.*?)\.\.\. no", 0, None),
             (r"checking for library containing (.*)... no", 0, None),
-            (r"checking for perl module ([a-zA-Z:]+) [0-9\.]+... no", 0, 'perl'),
+            (r"checking for perl module ([a-zA-Z:]+) [0-9\.]+... no", 0, "perl"),
             (r"configure: error: (?:pkg-config missing|Unable to locate) (.*)", 0, None),
             (r"configure: error: ([a-zA-Z0-9]+) (?:is required to build|not found)", 0, None),
             (r"configure: error: Cannot find (.*)\. Make sure", 0, None),
             (r"fatal error\: (.*)\: No such file or directory", 0, None),
             (r"make: ([a-zA-Z0-9].+): (?:Command not found|No such file or directory)", 0, None),
             (r"meson\.build\:[\d]+\:[\d]+\: ERROR: C library \'(.*)\' not found", 0, None),
-            (r"there is no package called ['‘]([a-zA-Z0-9\-\.]*)['’]", 0, 'R'),
+            (r"there is no package called ['‘]([a-zA-Z0-9\-\.]*)['’]", 0, "R"),
             (r"unable to execute '([a-zA-Z\-]*)': No such file or directory", 0, None),
             (r"warning: failed to load external entity " r"\"(/usr/share/sgml/docbook/xsl-stylesheets)/.*\"", 0, None),
             (r"which\: no ([a-zA-Z\-]*) in \(", 0, None),
-            (r"you may need to install the ([a-zA-Z0-9_\-:\.]*) module", 0, 'perl'),
+            (r"you may need to install the ([a-zA-Z0-9_\-:\.]*) module", 0, "perl"),
         ]
 
     def set_build_pattern(self, pattern, strength):
@@ -404,15 +413,11 @@ class Config(object):
         # directories which usually reside in directories such as
         # /run or /tmp.
         #
-        if os.path.exists(os.path.normpath(
-                self.download_path + "/{0}.tmpfiles".format(content.name))):
-            self.sources["tmpfile"].append(
-                "{}.tmpfiles".format(content.name))
+        if os.path.exists(os.path.normpath(self.download_path + "/{0}.tmpfiles".format(content.name))):
+            self.sources["tmpfile"].append("{}.tmpfiles".format(content.name))
         # ditto sysusers
-        if os.path.exists(os.path.normpath(
-                self.download_path + "/{0}.sysusers".format(content.name))):
-            self.sources["sysuser"].append(
-                "{}.sysusers".format(content.name))
+        if os.path.exists(os.path.normpath(self.download_path + "/{0}.sysusers".format(content.name))):
+            self.sources["sysuser"].append("{}.sysusers".format(content.name))
 
         if content.gcov_file:
             self.sources["gcov"].append(content.gcov_file)
@@ -423,56 +428,56 @@ class Config(object):
 
     def write_config(self, config_f):
         """Write the config_f to configfile."""
-        with open(os.path.join(self.download_path, 'options.conf'), 'w') as configfile:
+        with open(os.path.join(self.download_path, "options.conf"), "w") as configfile:
             config_f.write(configfile)
 
     def get_metadata_conf(self):
         """Gather package metadata from the content."""
         metadata = {}
-        metadata['name'] = self.content.name
+        metadata["name"] = self.content.name
         if self.urlban:
-            metadata['url'] = re.sub(self.urlban, "localhost", self.content.url)
-            metadata['archives'] = re.sub(self.urlban, "localhost", " ".join(self.content.archives))
+            metadata["url"] = re.sub(self.urlban, "localhost", self.content.url)
+            metadata["archives"] = re.sub(self.urlban, "localhost", " ".join(self.content.archives))
         else:
-            metadata['url'] = self.content.url
-            metadata['archives'] = " ".join(self.content.archives)
+            metadata["url"] = self.content.url
+            metadata["archives"] = " ".join(self.content.archives)
 
-        metadata['giturl'] = self.content.giturl
-        metadata['domain'] = self.content.domain
+        metadata["giturl"] = self.content.giturl
+        metadata["domain"] = self.content.domain
 
-        metadata['url'] = self.content.url
+        metadata["url"] = self.content.url
 
         if self.content.download_from_git:
-            metadata['download_from_git'] = self.content.download_from_git
+            metadata["download_from_git"] = self.content.download_from_git
         else:
-            metadata['download_from_git'] = ""
+            metadata["download_from_git"] = ""
 
         if self.content.branch:
-            metadata['branch'] = self.content.branch
+            metadata["branch"] = self.content.branch
         else:
-            metadata['branch'] = ""
+            metadata["branch"] = ""
 
         if self.content.force_module:
-            metadata['force_module'] = self.content.force_module
+            metadata["force_module"] = self.content.force_module
         else:
-            metadata['force_module'] = ""
+            metadata["force_module"] = ""
 
         if self.content.archives_from_git:
-            metadata['archives_from_git'] = " ".join(self.content.archives_from_git)
+            metadata["archives_from_git"] = " ".join(self.content.archives_from_git)
         else:
-            metadata['archives_from_git'] = ""
+            metadata["archives_from_git"] = ""
 
         if self.alias:
-            metadata['alias'] = self.alias
+            metadata["alias"] = self.alias
         else:
-            metadata['alias'] = ""
+            metadata["alias"] = ""
         return metadata
 
     def rewrite_config_opts(self):
         """Rewrite options.conf file when an option has changed (verify_required for example)."""
         config_f = configparser.ConfigParser(interpolation=None, allow_no_value=True)
-        config_f['package'] = self.get_metadata_conf()
-        config_f['autospec'] = {}
+        config_f["package"] = self.get_metadata_conf()
+        config_f["autospec"] = {}
 
         # Populate missing configuration options
         # (in case of a user-created options.conf)
@@ -481,8 +486,8 @@ class Config(object):
             self.config_opts[option] = False
 
         for fname, comment in sorted(self.config_options.items()):
-            config_f.set('autospec', '# {}'.format(comment))
-            config_f['autospec'][fname] = 'true' if self.config_opts[fname] else 'false'
+            config_f.set("autospec", "# {}".format(comment))
+            config_f["autospec"][fname] = "true" if self.config_opts[fname] else "false"
         self.write_config(config_f)
 
     def create_conf(self):
@@ -490,55 +495,58 @@ class Config(object):
         config_f = configparser.ConfigParser(interpolation=None, allow_no_value=True)
 
         # first the metadata
-        config_f['package'] = self.get_metadata_conf()
+        config_f["package"] = self.get_metadata_conf()
 
         # next the options
-        config_f['autospec'] = {}
+        config_f["autospec"] = {}
         for fname, comment in sorted(self.config_options.items()):
-            config_f.set('autospec', '# {}'.format(comment))
+            config_f.set("autospec", "# {}".format(comment))
             if os.path.exists(fname):
-                config_f['autospec'][fname] = 'true'
+                config_f["autospec"][fname] = "true"
                 os.remove(fname)
             else:
-                config_f['autospec'][fname] = 'false'
+                config_f["autospec"][fname] = "false"
 
         # default lto to true for new things
-        config_f['autospec']['use_lto'] = 'false'
+        config_f["autospec"]["use_lto"] = "false"
 
         # default alternative flags for new things
-        config_f['autospec']['fsalt1'] = 'true'
+        config_f["autospec"]["fsalt1"] = "true"
 
         # default alternative pgo flags for new things
-        config_f['autospec']['altflags_pgo'] = 'false'
+        config_f["autospec"]["altflags_pgo"] = "false"
 
         # default 32bits for new things
-        config_f['autospec']['32bit'] = 'false'
+        config_f["autospec"]["32bit"] = "false"
 
         # default ignore missing build ids
-        config_f['autospec']['nomissingbuildids'] = 'false'
+        config_f["autospec"]["nomissingbuildids"] = "false"
 
         # default disable automatic requeriments processing
-        config_f['autospec']['noautoreq'] = 'false'
+        config_f["autospec"]["noautoreq"] = "false"
 
         # default disable automatic provides processing
-        config_f['autospec']['noautoprov'] = 'false'
+        config_f["autospec"]["noautoprov"] = "false"
 
         # default alternative cargo patterns
-        config_f['autospec']['altcargo1'] = 'false'
+        config_f["autospec"]["altcargo1"] = "false"
 
-        # default alternative build special
-        config_f['autospec']['build_special'] = 'false'
+        # default configure build with special options
+        config_f["autospec"]["build_special"] = "false"
+
+        # default configure build with special options 2
+        config_f["autospec"]["build_special2"] = "false"
 
         # new defaults
-        config_f['autospec']['asneeded'] = 'false'
-        config_f['autospec']['allow_test_failures'] = 'false'
-        config_f['autospec']['verify_required'] = 'false'
-        config_f['autospec']['keepstatic'] = 'true'
-        config_f['autospec']['nostrip'] = 'true'
+        config_f["autospec"]["asneeded"] = "false"
+        config_f["autospec"]["allow_test_failures"] = "false"
+        config_f["autospec"]["verify_required"] = "false"
+        config_f["autospec"]["keepstatic"] = "true"
+        config_f["autospec"]["nostrip"] = "true"
 
         # renamed options need special care
         if os.path.exists("skip_test_suite"):
-            config_f['autospec']['skip_tests'] = 'true'
+            config_f["autospec"]["skip_tests"] = "true"
             os.remove("skip_test_suite")
         self.write_config(config_f)
 
@@ -557,23 +565,23 @@ class Config(object):
             pkgs = sorted(buildreqs_cache)
         else:
             pkgs = sorted(set(content[1:]).union(buildreqs_cache))
-        with open(os.path.join(self.download_path, 'buildreq_cache'), "w") as cachefile:
+        with open(os.path.join(self.download_path, "buildreq_cache"), "w") as cachefile:
             cachefile.write("\n".join([version] + pkgs))
-        self.config_files.add('buildreq_cache')
+        self.config_files.add("buildreq_cache")
 
     def create_versions(self, versions):
         """Make versions file."""
-        with open(os.path.join(self.download_path, "versions"), 'w') as vfile:
+        with open(os.path.join(self.download_path, "versions"), "w") as vfile:
             for version in versions:
                 vfile.write(version)
                 if versions[version]:
-                    vfile.write('\t' + versions[version])
-                vfile.write('\n')
+                    vfile.write("\t" + versions[version])
+                vfile.write("\n")
         self.config_files.add("versions")
 
     def read_config_opts(self):
         """Read config options from path/options.conf."""
-        opts_path = os.path.join(self.download_path, 'options.conf')
+        opts_path = os.path.join(self.download_path, "options.conf")
         if not os.path.exists(opts_path):
             self.create_conf()
 
@@ -583,11 +591,11 @@ class Config(object):
             print("Missing autospec section in options.conf")
             sys.exit(1)
 
-        if 'package' in config_f.sections() and config_f['package'].get('alias'):
-            self.alias = config_f['package']['alias']
+        if "package" in config_f.sections() and config_f["package"].get("alias"):
+            self.alias = config_f["package"]["alias"]
 
-        for key in config_f['autospec']:
-            self.config_opts[key] = config_f['autospec'].getboolean(key)
+        for key in config_f["autospec"]:
+            self.config_opts[key] = config_f["autospec"].getboolean(key)
 
         # Rewrite the configuration file in case of formatting changes since a
         # configuration file may exist without any comments (either due to an older
@@ -596,7 +604,7 @@ class Config(object):
 
         # Don't use the ChangeLog files if the giturl is set
         # ChangeLog is just extra noise when we can already see the gitlog
-        if "package" in config_f.sections() and config_f['package'].get('giturl'):
+        if "package" in config_f.sections() and config_f["package"].get("giturl"):
             keys = []
             for k, v in self.transforms.items():
                 if v == "ChangeLog":
@@ -630,10 +638,10 @@ class Config(object):
     def process_extras_file(self, fname, name, filemanager):
         """Process extras type subpackages configuration."""
         content = {}
-        content['files'] = self.read_conf_file(os.path.join(self.download_path, fname))
-        req_file = os.path.join(self.download_path, f'{fname}_requires')
+        content["files"] = self.read_conf_file(os.path.join(self.download_path, fname))
+        req_file = os.path.join(self.download_path, f"{fname}_requires")
         if os.path.isfile(req_file):
-            content['requires'] = self.read_conf_file(req_file)
+            content["requires"] = self.read_conf_file(req_file)
 
         filemanager.file_maps[name] = content
 
@@ -641,7 +649,7 @@ class Config(object):
         """Process manual subpackage requirements file."""
         content = self.read_conf_file(os.path.join(self.download_path, fname))
         for pkg in content:
-            if req_type == 'add':
+            if req_type == "add":
                 requirements.add_requires(pkg, self.os_packages, override=True, subpkg=subpkg)
             else:
                 requirements.ban_requires(pkg, subpkg=subpkg)
@@ -655,7 +663,7 @@ class Config(object):
         in the package git repo, specify 'track=False'.
         """
         lines = self.read_file(path, track=track)
-        if len(lines) > 0 and (lines[0].startswith('#!') or lines[0].startswith('# -*- ')):
+        if len(lines) > 0 and (lines[0].startswith("#!") or lines[0].startswith("# -*- ")):
             lines = lines[1:]
         # Remove any trailing whitespace and newlines. The newlines are later
         # restored by writer functions.
@@ -710,7 +718,7 @@ class Config(object):
             for line in inp.readlines():
                 line = line.strip().replace("\r", "").replace("\n", "")
                 if "Source0 file verified with key" in line:
-                    keyidx = line.find('0x') + 2
+                    keyidx = line.find("0x") + 2
                     self.old_keyid = line[keyidx:].split()[0] if keyidx > 2 else self.old_keyid
                 # As a fallback, read the Version and Patch* header fields from the
                 # working copy of the spec, in case a git repo does not exist.
@@ -743,15 +751,12 @@ class Config(object):
                 # Catch and report duplicate URLs in the versions file. Don't stop,
                 # but assume only the first one is valid and drop the rest.
                 if version in self.parsed_versions and url != self.parsed_versions[version]:
-                    print_warning("Already have a URL defined for {}: {}"
-                                  .format(version, self.parsed_versions[version]))
-                    print_warning("Dropping {}, but you should check my work"
-                                  .format(url))
+                    print_warning("Already have a URL defined for {}: {}".format(version, self.parsed_versions[version]))
+                    print_warning("Dropping {}, but you should check my work".format(url))
                 else:
                     self.parsed_versions[version] = url
                 if len(fields):
-                    print_warning("Extra fields detected in `versions` file entry:\n{}"
-                                  .format(line))
+                    print_warning("Extra fields detected in `versions` file entry:\n{}".format(line))
                     print_warning("I'll delete them, but you should check my work")
 
         # We'll combine what we just parsed from the versions file with any other
@@ -784,12 +789,12 @@ class Config(object):
                 print("Missing autospec section..")
                 sys.exit(1)
 
-            self.git_uri = config['autospec'].get('git', None)
-            self.license_fetch = config['autospec'].get('license_fetch', None)
-            self.license_show = config['autospec'].get('license_show', None)
-            packages_file = config['autospec'].get('packages_file', None)
-            self.yum_conf = config['autospec'].get('yum_conf', None)
-            self.failed_pattern_dir = config['autospec'].get('failed_pattern_dir', None)
+            self.git_uri = config["autospec"].get("git", None)
+            self.license_fetch = config["autospec"].get("license_fetch", None)
+            self.license_show = config["autospec"].get("license_show", None)
+            packages_file = config["autospec"].get("packages_file", None)
+            self.yum_conf = config["autospec"].get("yum_conf", None)
+            self.failed_pattern_dir = config["autospec"].get("failed_pattern_dir", None)
 
             # support reading the local files relative to config_file
             if packages_file and not os.path.isabs(packages_file):
@@ -800,11 +805,10 @@ class Config(object):
                 self.failed_pattern_dir = os.path.join(os.path.dirname(self.config_file), self.failed_pattern_dir)
 
             if not packages_file:
-                print("Warning: Set [autospec][packages_file] path to package list file for "
-                      "requires validation")
+                print("Warning: Set [autospec][packages_file] path to package list file for " "requires validation")
                 packages_file = os.path.join(os.path.dirname(self.config_file), "packages")
 
-            self.urlban = config['autospec'].get('urlban', None)
+            self.urlban = config["autospec"].get("urlban", None)
 
         # Read values from options.conf (and deprecated files) and rewrite as necessary
         self.read_config_opts()
@@ -828,27 +832,15 @@ class Config(object):
         wrapper.initial_indent = "# "
         wrapper.subsequent_indent = "# "
 
-        self.write_default_conf_file("buildreq_ban", wrapper,
-                                     "This file contains build requirements that get picked up but are "
-                                     "undesirable. One entry per line, no whitespace.")
-        self.write_default_conf_file("pkgconfig_ban", wrapper,
-                                     "This file contains pkgconfig build requirements that get picked up but"
-                                     " are undesirable. One entry per line, no whitespace.")
-        self.write_default_conf_file("requires_ban", wrapper,
-                                     "This file contains runtime requirements that get picked up but are "
-                                     "undesirable. One entry per line, no whitespace.")
-        self.write_default_conf_file("buildreq_add", wrapper,
-                                     "This file contains additional build requirements that did not get "
-                                     "picked up automatically. One name per line, no whitespace.")
-        self.write_default_conf_file("pkgconfig_add", wrapper,
-                                     "This file contains additional pkgconfig build requirements that did "
-                                     "not get picked up automatically. One name per line, no whitespace.")
-        self.write_default_conf_file("requires_add", wrapper,
-                                     "This file contains additional runtime requirements that did not get "
-                                     "picked up automatically. One name per line, no whitespace.")
-        self.write_default_conf_file("excludes", wrapper,
-                                     "This file contains the output files that need %exclude. Full path "
-                                     "names, one per line.")
+        self.write_default_conf_file("buildreq_ban", wrapper, "This file contains build requirements that get picked up but are " "undesirable. One entry per line, no whitespace.")
+        self.write_default_conf_file("pkgconfig_ban", wrapper, "This file contains pkgconfig build requirements that get picked up but" " are undesirable. One entry per line, no whitespace.")
+        self.write_default_conf_file("requires_ban", wrapper, "This file contains runtime requirements that get picked up but are " "undesirable. One entry per line, no whitespace.")
+        self.write_default_conf_file("buildreq_add", wrapper, "This file contains additional build requirements that did not get " "picked up automatically. One name per line, no whitespace.")
+        self.write_default_conf_file(
+            "pkgconfig_add", wrapper, "This file contains additional pkgconfig build requirements that did " "not get picked up automatically. One name per line, no whitespace."
+        )
+        self.write_default_conf_file("requires_add", wrapper, "This file contains additional runtime requirements that did not get " "picked up automatically. One name per line, no whitespace.")
+        self.write_default_conf_file("excludes", wrapper, "This file contains the output files that need %exclude. Full path " "names, one per line.")
 
         content = self.read_conf_file(os.path.join(self.download_path, "release"))
         if content and content[0]:
@@ -907,23 +899,23 @@ class Config(object):
 
         # Handle dynamic configuration files (per subpackage)
         for fname in os.listdir(self.download_path):
-            if re.search(r'.+_requires_add$', fname):
-                subpkg = fname[:-len("_requires_add")]
-                self.process_requires_file(fname, requirements, 'add', subpkg)
-            elif re.search(r'.+_requires_ban$', fname):
-                subpkg = fname[:-len("_requires_ban")]
-                self.process_requires_file(fname, requirements, 'ban', subpkg)
-            elif fname == 'requires_add':
-                self.process_requires_file(fname, requirements, 'add')
-            elif fname == 'requires_ban':
-                self.process_requires_file(fname, requirements, 'ban')
-            elif re.search(r'.+_extras$', fname):
+            if re.search(r".+_requires_add$", fname):
+                subpkg = fname[: -len("_requires_add")]
+                self.process_requires_file(fname, requirements, "add", subpkg)
+            elif re.search(r".+_requires_ban$", fname):
+                subpkg = fname[: -len("_requires_ban")]
+                self.process_requires_file(fname, requirements, "ban", subpkg)
+            elif fname == "requires_add":
+                self.process_requires_file(fname, requirements, "add")
+            elif fname == "requires_ban":
+                self.process_requires_file(fname, requirements, "ban")
+            elif re.search(r".+_extras$", fname):
                 # Prefix all but blessed names with extras-
-                name = fname[:-len("_extras")]
-                if name not in ('dev', 'tests'):
-                    name = f'extras-{name}'
+                name = fname[: -len("_extras")]
+                if name not in ("dev", "tests"):
+                    name = f"extras-{name}"
                 self.process_extras_file(fname, name, filemanager)
-            elif fname == 'extras':
+            elif fname == "extras":
                 self.process_extras_file(fname, fname, filemanager)
 
         content = self.read_conf_file(os.path.join(self.download_path, "excludes"))
@@ -940,31 +932,27 @@ class Config(object):
         for line in content:
             attr = line.split()
             filename = attr.pop()
-            print("%attr({0},{1},{2}) for: {3}".format(
-                attr[0], attr[1], attr[2], filename))
+            print("%attr({0},{1},{2}) for: {3}".format(attr[0], attr[1], attr[2], filename))
             filemanager.attrs[filename] = attr
 
         self.patches += self.read_conf_file(os.path.join(self.download_path, "series"))
         pfiles = [("%s/%s" % (self.download_path, x.split(" ")[0])) for x in self.patches]
-        cmd = "egrep \"(\+\+\+|\-\-\-).*((Makefile.am)|(aclocal.m4)|(configure.ac|configure.in))\" %s" % " ".join(pfiles)  # noqa: W605
-        if self.patches and call(cmd,
-                                 check=False,
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL) == 0:
+        cmd = 'egrep "(\+\+\+|\-\-\-).*((Makefile.am)|(aclocal.m4)|(configure.ac|configure.in))" %s' % " ".join(pfiles)  # noqa: W605
+        if self.patches and call(cmd, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0:
             self.autoreconf = True
 
         # Parse the version-specific patch lists
         update_security_sensitive = False
         for version in self.versions:
-            self.verpatches[version] = self.read_conf_file(os.path.join(self.download_path, '.'.join(['series', version])))
-            if any(p.lower().startswith('cve-') for p in self.verpatches[version]):
+            self.verpatches[version] = self.read_conf_file(os.path.join(self.download_path, ".".join(["series", version])))
+            if any(p.lower().startswith("cve-") for p in self.verpatches[version]):
                 update_security_sensitive = True
 
-        if any(p.lower().startswith('cve-') for p in self.patches):
+        if any(p.lower().startswith("cve-") for p in self.patches):
             update_security_sensitive = True
 
         if update_security_sensitive:
-            self.config_opts['security_sensitive'] = True
+            self.config_opts["security_sensitive"] = True
             self.rewrite_config_opts()
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure"))
@@ -979,6 +967,9 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "configure_special"))
         self.extra_configure_special = " \\\n".join(content)
 
+        content = self.read_conf_file(os.path.join(self.download_path, "configure_special2"))
+        self.extra_configure_special2 = " \\\n".join(content)
+
         content = self.read_conf_file(os.path.join(self.download_path, "configure_avx2"))
         self.extra_configure_avx2 = " \\\n".join(content)
 
@@ -990,7 +981,7 @@ class Config(object):
 
         if self.config_opts["keepstatic"]:
             self.disable_static = ""
-        if self.config_opts['broken_parallel_build']:
+        if self.config_opts["broken_parallel_build"]:
             self.parallel_build = ""
 
         content = self.read_conf_file(os.path.join(self.download_path, "make_args"))
@@ -1000,6 +991,10 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "make_args_special"))
         if content:
             self.extra_make_special = " \\\n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "make_args_special2"))
+        if content:
+            self.extra_make_special2 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make32_args"))
         if content:
@@ -1016,6 +1011,10 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "make_install_args_special"))
         if content:
             self.extra_make_install_special = " \\\n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "make_install_args_special2"))
+        if content:
+            self.extra_make_install_special2 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make32_install_args"))
         if content:
@@ -1053,6 +1052,10 @@ class Config(object):
         if content and content[0]:
             self.install_macro_build_special = " \n".join(content)
 
+        content = self.read_conf_file(os.path.join(self.download_path, "install_macro_build_special2"))
+        if content and content[0]:
+            self.install_macro_build_special2 = " \n".join(content)
+
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args"))
         if content:
             self.extra_cmake = " \\\n".join(content)
@@ -1068,6 +1071,10 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_special"))
         if content:
             self.extra_cmake_special = " \\\n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_special2"))
+        if content:
+            self.extra_cmake_special2 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_openmpi"))
         if content:
@@ -1088,7 +1095,7 @@ class Config(object):
 
         content = self.read_script_file(os.path.join(self.download_path, "make_check_command"))
         if content:
-            check.tests_config = '\n'.join(content)
+            check.tests_config = "\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, self.content.name + ".license"))
         if content and content[0]:
@@ -1103,18 +1110,18 @@ class Config(object):
             self.content.golibpath = content[0]
             print("golibpath   : {}".format(self.content.golibpath))
 
-        if self.config_opts['use_clang']:
-            self.config_opts['funroll-loops'] = False
+        if self.config_opts["use_clang"]:
+            self.config_opts["funroll-loops"] = False
             requirements.add_buildreq("llvm")
 
-        if self.config_opts['32bit']:
+        if self.config_opts["32bit"]:
             requirements.add_buildreq("glibc-libc32")
             requirements.add_buildreq("glibc-dev32")
             requirements.add_buildreq("gcc-dev32")
             requirements.add_buildreq("gcc-libgcc32")
             requirements.add_buildreq("gcc-libstdc++32")
 
-        if self.config_opts['openmpi']:
+        if self.config_opts["openmpi"]:
             requirements.add_buildreq("openmpi-dev")
             requirements.add_buildreq("modules")
             # MPI testsuites generally require "openssh"
@@ -1130,18 +1137,22 @@ class Config(object):
         self.build_append = self.read_script_file(os.path.join(self.download_path, "build_append"))
         self.install_prepend = self.read_script_file(os.path.join(self.download_path, "install_prepend"))
         self.install_prepend_special = self.read_script_file(os.path.join(self.download_path, "install_prepend_special"))
+        self.install_prepend_special2 = self.read_script_file(os.path.join(self.download_path, "install_prepend_special2"))
         if os.path.isfile(os.path.join(self.download_path, "make_install_append")):
             os.rename(os.path.join(self.download_path, "make_install_append"), os.path.join(self.download_path, "install_append"))
         if os.path.isfile(os.path.join(self.download_path, "make_install_append_special")):
             os.rename(os.path.join(self.download_path, "make_install_append_special"), os.path.join(self.download_path, "install_append_special"))
+        if os.path.isfile(os.path.join(self.download_path, "make_install_append_special2")):
+            os.rename(os.path.join(self.download_path, "make_install_append_special2"), os.path.join(self.download_path, "install_append_special2"))
         self.install_append = self.read_script_file(os.path.join(self.download_path, "install_append"))
         self.install_append_special = self.read_script_file(os.path.join(self.download_path, "install_append_special"))
+        self.install_append_special2 = self.read_script_file(os.path.join(self.download_path, "install_append_special2"))
         self.service_restart = self.read_conf_file(os.path.join(self.download_path, "service_restart"))
 
-        if self.config_opts['pgo']:
+        if self.config_opts["pgo"]:
             self.profile_payload = self.read_script_file(os.path.join(self.download_path, "profile_payload"))
 
-        if self.config_opts['altflags_pgo']:
+        if self.config_opts["altflags_pgo"]:
             self.profile_payload = self.read_script_file(os.path.join(self.download_path, "profile_payload"))
 
         self.custom_desc = self.read_conf_file(os.path.join(self.download_path, "description"))
