@@ -98,6 +98,8 @@ class Config(object):
         self.subdir = ""
         self.configure_macro = ""
         self.configure_macro_32 = ""
+        self.make_macro = ""
+        self.make_macro_32 = ""
         self.install_macro = ""
         self.install_macro_32 = ""
         self.install_macro_512 = ""
@@ -1027,6 +1029,14 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "configure_macro_32"))
         if content and content[0]:
             self.configure_macro_32 = " \n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "make_macro"))
+        if content and content[0]:
+            self.make_macro = " \n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "make_macro_32"))
+        if content and content[0]:
+            self.make_macro_32 = " \n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "install_macro"))
         if content and content[0]:

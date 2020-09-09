@@ -327,6 +327,9 @@ class FileManager(object):
             (r"^/(usr/|usr.*)lib/.*/[a-zA-Z0-9._+-]*\.so", "lib"),
             (r"^/(usr/|usr.*)lib64/.*/[a-zA-Z0-9._+-]*\.so", "lib"),
             (r"^/(usr/|usr.*)lib32/.*/[a-zA-Z0-9._+-]*\.so", "lib32"),
+            (r"^/(usr/|usr.*)lib64/[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*$", "dev"),
+            (r"^/(usr/|usr.*)lib/[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*$", "dev"),
+            (r"^/(usr/|usr.*)lib32/[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*$", "dev32"),
             # locale data gets picked up via file_is_locale
             (r"^/(usr/|usr.*)share/locale/", "ignore")]
 

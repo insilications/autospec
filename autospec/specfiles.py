@@ -407,13 +407,25 @@ class Specfile(object):
                 self._write_strip("{}\n".format(line))
             self._write_strip("## make_prepend end")
         if build32 is True and build_type is None:
-            self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra32_make))
+            if not self.config.make_macro_32:
+                self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra32_make))
+            else:
+                self._write_strip("{}".format(self.config.make_macro_32))
         elif build32 is False and build_type is None:
-            self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+            if not self.config.make_macro:
+                self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+            else:
+                self._write_strip("{}".format(self.config.make_macro))
         elif build32 is False and build_type == "special":
-            self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special))
+            if not self.config.make_macro:
+                self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special))
+            else:
+                self._write_strip("{}".format(self.config.make_macro))
         elif build32 is False and build_type == "special2":
-            self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special2))
+            if not self.config.make_macro:
+                self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special2))
+            else:
+                self._write_strip("{}".format(self.config.make_macro))
 
     def write_install_openmpi(self):
         """Write make install line (openmpi) to spec file."""
