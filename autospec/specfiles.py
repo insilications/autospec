@@ -398,6 +398,7 @@ class Specfile(object):
         self._write_strip("unset http_proxy")
         self._write_strip("unset https_proxy")
         self._write_strip("unset no_proxy")
+        self._write_strip("export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt")
 
     def write_make_line(self, build32=False, build_type=None):
         """Write make line to spec file."""
@@ -2168,6 +2169,7 @@ class Specfile(object):
             self.write_build_prepend()
             self.write_proxy_exports()
             self._write_strip('RUSTFLAGS="-C target-cpu=native"')
+            self._write_strip("export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt")
             self._write_strip("cargo update --verbose")
             # self._write_strip('RUSTFLAGS="-C target-cpu=native"')
             # self._write_strip("cargo build --no-track --all-features --release")
@@ -2177,6 +2179,7 @@ class Specfile(object):
             self.write_install_prepend()
             if self.requirements.cargo_bin:
                 self._write_strip('RUSTFLAGS="-C target-cpu=native"')
+                self._write_strip("export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt")
                 self._write_strip('RUSTFLAGS="-C target-cpu=native" cargo install --verbose --no-track --path . --root %{{buildroot}}/usr/ {}'.format(self.config.extra_configure))
         else:
             self.write_prep()
