@@ -2003,7 +2003,7 @@ class Specfile(object):
             self.write_make_line()
             self._write_strip("\n")
             self._write_strip("\n".join(self.config.profile_payload))
-            self._write_strip("\nfind . -type f -not -name '*.gcno' -delete -print\n")
+            self._write_strip("\nfind . -type f,l -not -name '*.gcno' -delete -print\n")
             if post:
                 self._write_strip(post)
             if self.config.cmake_macro:
@@ -2036,7 +2036,7 @@ class Specfile(object):
                 self.write_make_line()
                 self._write_strip("\n")
                 self._write_strip("\n".join(self.config.profile_payload))
-                self._write_strip("\nfind . -type f -not -name '*.gcno' -delete -print\n")
+                self._write_strip("\nfind . -type f,l -not -name '*.gcno' -delete -print\n")
                 if post:
                     self._write_strip(post)
                 self._write_strip("%cmake {} {}".format(self.config.cmake_srcdir, self.extra_cmake_special))
@@ -2411,7 +2411,7 @@ class Specfile(object):
             self._write_strip("ninja -v -C builddir")
             self._write_strip("\n")
             self._write_strip("\n".join(self.config.profile_payload))
-            self._write_strip("\nfind builddir/ -type f -not -name '*.gcno' -delete -print\n")
+            self._write_strip("\nfind builddir/ -type f,l -not -name '*.gcno' -delete -print\n")
             if post:
                 self._write_strip(post)
             self._write_strip("meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure64))
