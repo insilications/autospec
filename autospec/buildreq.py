@@ -772,6 +772,9 @@ class Requirements(object):
             self.extra_cmake_special2.add("-DCMAKE_PREFIX_PATH=/usr")
             self.extra_cmake_special2.add("-DCATKIN_BUILD_BINARY_PACKAGE=ON")
             self.extra_cmake_special2.add("-DSETUPTOOLS_DEB_LAYOUT=OFF")
+            self.cmake_macro.add("-DCMAKE_PREFIX_PATH=/usr")
+            self.cmake_macro.add("-DCATKIN_BUILD_BINARY_PACKAGE=ON")
+            self.cmake_macro.add("-DSETUPTOOLS_DEB_LAYOUT=OFF")
 
     def scan_for_configure(self, dirn, tname, config):
         """Scan the package directory for build files to determine build pattern."""

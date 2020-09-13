@@ -93,6 +93,7 @@ class Config(object):
         self.extra_cmake_32 = ""
         self.extra_cmake_special = ""
         self.extra_cmake_special2 = ""
+        self.cmake_macro = ""
         self.extra_cmake_openmpi = ""
         self.cmake_srcdir = ".."
         self.subdir = ""
@@ -1085,6 +1086,10 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_special2"))
         if content:
             self.extra_cmake_special2 = " \\\n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "cmake_macro"))
+        if content and content[0]:
+            self.cmake_macro = " \n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_openmpi"))
         if content:

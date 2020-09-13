@@ -47,7 +47,7 @@ def clone_and_git_archive_all(path, name, url, branch, force_module, is_fatal=Tr
         if force_module is True:
             call(f"git clone --depth 1 --branch={cmd_args}", cwd=path)
         else:
-            call(f"git clone --depth 1 --recurse-submodules --remote-submodules --branch={cmd_args}", cwd=path)
+            call(f"git clone --depth 1 --shallow-submodules --recurse-submodules --remote-submodules --branch={cmd_args}", cwd=path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
             remove_clone_archive(path, clone_path, is_fatal)
@@ -55,8 +55,10 @@ def clone_and_git_archive_all(path, name, url, branch, force_module, is_fatal=Tr
             sys.exit(1)
 
     try:
+        git_tag_version_cmd = f"git ls-remote --tags --sort=committerdate {url} | grep -oP '(?<=refs\/tags\/)(\d+)(\.\d+)+' | sort -r | head -1 || git log -1 --date=format:%y.%m.%d --pretty=format:%cd"
+        # print("Teste: git_tag_version_cmd {}".format(git_tag_version_cmd))
         process = subprocess.run(
-            "git describe --abbrev=0 --tags || git log -1 --date=format:%y.%m.%d --pretty=format:%cd",
+            git_tag_version_cmd,
             check=True,
             shell=True,
             stdout=subprocess.PIPE,

@@ -64,6 +64,7 @@ class Specfile(object):
         self.extra_cmake_64 = config.extra_cmake_64 + " " + " ".join(requirements.extra_cmake)
         self.extra_cmake_special = config.extra_cmake_special + " " + " ".join(requirements.extra_cmake)
         self.extra_cmake_special2 = config.extra_cmake_special2 + " " + " ".join(requirements.extra_cmake)
+        self.cmake_macro = config.cmake_macro + " " + " ".join(requirements.extra_cmake)
         self.extra_cmake_openmpi = config.extra_cmake_openmpi + " " + " ".join(requirements.extra_cmake_openmpi)
 
     def write_spec(self):
@@ -1430,12 +1431,12 @@ class Specfile(object):
                 self._write_strip("%make_install_special {} || :\n".format(self.config.extra_make_install_special))
                 self._write_strip("popd")
 
-        if self.config.install_macro_build_special:
-            self._write_strip("## install_macro_build_special start")
+        if self.config.install_macro:
+            self._write_strip("## install_macro start")
             self._write_strip("pushd clr-build")
-            self._write_strip("{}\n".format(self.config.install_macro_build_special))
+            self._write_strip("{}\n".format(self.config.install_macro))
             self._write_strip("popd")
-            self._write_strip("## install_macro_build_special end")
+            self._write_strip("## install_macro end")
         else:
             self._write_strip("pushd clr-build")
             self._write_strip("%make_install {}\n".format(self.config.extra_make_install))
@@ -1995,19 +1996,28 @@ class Specfile(object):
             post = f"{self.get_profile_use_flags()}"
             if init:
                 self._write_strip(init)
-            self._write_strip("%cmake {} {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_64))
+            if self.config.cmake_macro:
+                self._write_strip("{}".format(self.config.cmake_macro))
+            else:
+                self._write_strip("%cmake {} {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_64))
             self.write_make_line()
             self._write_strip("\n")
             self._write_strip("\n".join(self.config.profile_payload))
             self._write_strip("\nfind . -type f -not -name '*.gcno' -delete -print\n")
             if post:
                 self._write_strip(post)
-            self._write_strip("%cmake {} {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_64))
+            if self.config.cmake_macro:
+                self._write_strip("{}".format(self.config.cmake_macro))
+            else:
+                self._write_strip("%cmake {} {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_64))
             self.write_make_line()
             self._write_strip("popd")
         else:
             self.write_variables()
-            self._write_strip("%cmake {} {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_64))
+            if self.config.cmake_macro:
+                self._write_strip("{}".format(self.config.cmake_macro))
+            else:
+                self._write_strip("%cmake {} {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_64))
             self.write_profile_payload("cmake")
             self.write_make_line()
             self._write_strip("popd")
