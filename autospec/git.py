@@ -39,15 +39,15 @@ def remove_clone_archive(path, clone_path, is_fatal):
 def clone_and_git_archive_all(path, name, url, branch, force_module, is_fatal=True):
     cmd_args = f"{branch} {url} {name}"
     clone_path = f"{path}{name}"
-    print("Teste: " + "git clone --branch " + cmd_args + "\n")
+    print("Teste: " + "git clone --depth 1 --branch " + cmd_args + "\n")
     print("Teste: cwd=path " + path + "\n")
     print("Teste: force_module " + str(force_module) + "\n")
 
     try:
         if force_module is True:
-            call(f"git clone --branch={cmd_args}", cwd=path)
+            call(f"git clone --depth 1 --branch={cmd_args}", cwd=path)
         else:
-            call(f"git clone --recurse-submodules --remote-submodules --branch={cmd_args}", cwd=path)
+            call(f"git clone --depth 1 --recurse-submodules --remote-submodules --branch={cmd_args}", cwd=path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
             remove_clone_archive(path, clone_path, is_fatal)
