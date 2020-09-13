@@ -36,7 +36,7 @@ def remove_clone_archive(path, clone_path, is_fatal):
             print_fatal("Unable to remove {}: {}".format(clone_path, err))
 
 
-def clone_and_git_archive_all(path, name, url, branch, force_module, is_fatal=True):
+def clone_and_git_archive_all(path, name, url, branch, force_module, force_fullclone, is_fatal=True):
     cmd_args = f"{branch} {url} {name}"
     clone_path = f"{path}{name}"
     print("Teste: " + "git clone --depth 1 --branch " + cmd_args + "\n")
@@ -45,9 +45,15 @@ def clone_and_git_archive_all(path, name, url, branch, force_module, is_fatal=Tr
 
     try:
         if force_module is True:
-            call(f"git clone --depth 1 --branch={cmd_args}", cwd=path)
+            if force_fullclone is True:
+                call(f"git clone --branch={cmd_args}", cwd=path)
+            else:
+                call(f"git clone --depth 1 --branch={cmd_args}", cwd=path)
         else:
-            call(f"git clone --depth 1 --shallow-submodules --recurse-submodules --remote-submodules --branch={cmd_args}", cwd=path)
+            if force_fullclone is True:
+                call(f"git clone --recurse-submodules --remote-submodules --branch={cmd_args}", cwd=path)
+            else:
+                call(f"git clone --depth 1 --shallow-submodules --recurse-submodules --remote-submodules --branch={cmd_args}", cwd=path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
             remove_clone_archive(path, clone_path, is_fatal)
@@ -55,7 +61,11 @@ def clone_and_git_archive_all(path, name, url, branch, force_module, is_fatal=Tr
             sys.exit(1)
 
     try:
-        git_tag_version_cmd = f"git ls-remote --tags --sort=committerdate {url} | grep -oP '(?<=refs\/tags\/)(\d+)(\.\d+)+' | sort -r | head -1 || git log -1 --date=format:%y.%m.%d --pretty=format:%cd"
+        git_tag_version_cmd = ""
+        if force_fullclone is True:
+            git_tag_version_cmd = "git describe --abbrev=0 --tags || git log -1 --date=format:%y.%m.%d --pretty=format:%cd"
+        else:
+            git_tag_version_cmd = f"git ls-remote --tags --sort=committerdate {url} | grep -oP '(?<=refs\/tags\/)(\d+)(\.\d+)+' | sort -r | head -1 || git log -1 --date=format:%y.%m.%d --pretty=format:%cd"
         # print("Teste: git_tag_version_cmd {}".format(git_tag_version_cmd))
         process = subprocess.run(
             git_tag_version_cmd,

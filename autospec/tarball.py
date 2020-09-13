@@ -166,7 +166,7 @@ def convert_version(ver_str, name):
 class Content(object):
     """Detect static information about the project."""
 
-    def __init__(self, url, name, version, archives, config, base_path, giturl, download_from_git, branch, new_archives_from_git, force_module):
+    def __init__(self, url, name, version, archives, config, base_path, giturl, download_from_git, branch, new_archives_from_git, force_module, force_fullclone):
         """Initialize Default content settings."""
         self.name = name
         self.rawname = ""
@@ -187,6 +187,7 @@ class Content(object):
         self.download_from_git = download_from_git
         self.branch = branch
         self.force_module = force_module
+        self.force_fullclone = force_fullclone      
         self.archives_from_git = new_archives_from_git
         self.gem_subdir = ""
 

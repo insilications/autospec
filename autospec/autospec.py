@@ -108,6 +108,7 @@ def read_old_metadata():
         config_f["package"].get("download_from_git"),
         config_f["package"].get("branch"),
         config_f["package"].get("force_module"),
+        config_f["package"].get("force_fullclone"),
         archives,
         archives_from_git,
     )
@@ -235,10 +236,13 @@ def main():
     parser.add_argument(
         "-dsub", "--disable_submodule", action="store", dest="force_module", default=None, help="Disable download submodules from git",
     )
+    parser.add_argument(
+        "-ffc", "--force_fullclone", action="store", dest="force_fullclone", default=None, help="Force full clone from git",
+    )
 
     args = parser.parse_args()
 
-    a_name, a_url, a_download_from_git, a_branch, a_force_module, a_archives, a_archives_from_git = read_old_metadata()
+    a_name, a_url, a_download_from_git, a_branch, a_force_module, a_force_fullclone, a_archives, a_archives_from_git = read_old_metadata()
     name = args.name or a_name
     url = args.url or a_url
     archives = args.archives or a_archives
@@ -263,6 +267,16 @@ def main():
         force_module = str_to_bool(a_force_module)
         print("Teste args.force_module: {}".format(str(str_to_bool(args.force_module))))
         print("Teste force_module: {}".format(str(force_module)))
+
+    print("Teste a_force_fullclone: {}".format(str(str_to_bool(a_force_fullclone))))
+    if args.force_fullclone is not None:
+        force_fullclone = str_to_bool(args.force_fullclone)
+        print("Teste args.force_fullclone: {}".format(str(str_to_bool(args.force_fullclone))))
+        print("Teste force_fullclone: {}".format(str(force_fullclone)))
+    else:
+        force_fullclone = str_to_bool(a_force_fullclone)
+        print("Teste args.force_fullclone: {}".format(str(str_to_bool(args.force_fullclone))))
+        print("Teste force_fullclone: {}".format(str(force_fullclone)))
 
     redownload_from_git = args.redownload_from_git
     redownload_archive = args.redownload_archive
@@ -313,17 +327,17 @@ def main():
     if args.prep_only:
         os.makedirs("workingdir", exists_ok=True)
         package(
-            args, url, name, archives, archives_from_git, "./workingdir", download_from_git, branch, redownload_from_git, redownload_archive, force_module,
+            args, url, name, archives, archives_from_git, "./workingdir", download_from_git, branch, redownload_from_git, redownload_archive, force_module, force_fullclone,
         )
     else:
         with tempfile.TemporaryDirectory() as workingdir:
             package(
-                args, url, name, archives, archives_from_git, workingdir, download_from_git, branch, redownload_from_git, redownload_archive, force_module,
+                args, url, name, archives, archives_from_git, workingdir, download_from_git, branch, redownload_from_git, redownload_archive, force_module, force_fullclone,
             )
 
 
 def package(
-    args, url, name, archives, archives_from_git, workingdir, download_from_git, branch, redownload_from_git, redownload_archive, force_module,
+    args, url, name, archives, archives_from_git, workingdir, download_from_git, branch, redownload_from_git, redownload_archive, force_module, force_fullclone,
 ):
     """Entry point for building a package with autospec."""
     print("Teste url 1: " + url)
@@ -350,7 +364,7 @@ def package(
                     print("Teste found old package_path 21: " + download_file_full_path)
                     break
             if not found_file or redownload_from_git is True:
-                download_file_full_path = git.clone_and_git_archive_all(package_path, name, url, branch, force_module)
+                download_file_full_path = git.clone_and_git_archive_all(package_path, name, url, branch, force_module, force_fullclone)
             print("Teste download_file_full_path 11: " + download_file_full_path)
             url = download_file_full_path
             print("Teste giturl 11: " + giturl)
@@ -366,7 +380,7 @@ def package(
                     print("Teste found old package_path 22: " + download_file_full_path)
                     break
             if not found_file or redownload_from_git is True:
-                download_file_full_path = git.clone_and_git_archive_all(package_path, name, url, branch, force_module)
+                download_file_full_path = git.clone_and_git_archive_all(package_path, name, url, branch, force_module, force_fullclone)
             print("Teste download_file_full_path 12: " + download_file_full_path)
             url = download_file_full_path
             print("Teste giturl 12: " + giturl)
@@ -422,7 +436,7 @@ def package(
                     print("Index: {}".format(index))
                     print("Destination: {} - Branch: {}".format(arch_destination[index], arch_branch[index]))
                     print("Fazer download archive 1: {} - {}".format(arch_name, new_arch_url))
-                    download_file_full_path = git.clone_and_git_archive_all(package_path, arch_name, new_arch_url, arch_branch[index], force_module,)
+                    download_file_full_path = git.clone_and_git_archive_all(package_path, arch_name, new_arch_url, arch_branch[index], force_module, force_fullclone)
                 print("Teste archive download_file_full_path 1: " + download_file_full_path)
                 if download_file_full_path in archives or arch_destination[index] in archives:
                     print("\nalready in archives: {}".format(archives))
@@ -450,7 +464,7 @@ def package(
                     print("Index: {}".format(index))
                     print("Destination: {} - Branch: {}".format(arch_destination[index], arch_branch[index]))
                     print("Fazer download archive 2: {} - {}".format(arch_name, new_arch_url))
-                    download_file_full_path = git.clone_and_git_archive_all(package_path, arch_name, new_arch_url, arch_branch[index], force_module,)
+                    download_file_full_path = git.clone_and_git_archive_all(package_path, arch_name, new_arch_url, arch_branch[index], force_module, force_fullclone)
                 print("Teste archive download_file_full_path 2: " + download_file_full_path)
                 if download_file_full_path in archives or arch_destination[index] in archives:
                     print("\nalready in archives: {}".format(archives))
@@ -474,7 +488,7 @@ def package(
     #
     filemanager = files.FileManager(conf, package)
     print("Teste url 4: " + url)
-    content = tarball.Content(url, name, args.version, archives, conf, workingdir, giturl, download_from_git, branch, new_archives_from_git, force_module,)
+    content = tarball.Content(url, name, args.version, archives, conf, workingdir, giturl, download_from_git, branch, new_archives_from_git, force_module, force_fullclone)
     content.process(filemanager)
     conf.create_versions(content.multi_version)
     conf.content = content  # hack to avoid recursive dependency on init

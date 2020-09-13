@@ -465,6 +465,11 @@ class Config(object):
         else:
             metadata["force_module"] = ""
 
+        if self.content.force_fullclone:
+            metadata["force_fullclone"] = self.content.force_fullclone
+        else:
+            metadata["force_fullclone"] = ""
+
         if self.content.archives_from_git:
             metadata["archives_from_git"] = " ".join(self.content.archives_from_git)
         else:
