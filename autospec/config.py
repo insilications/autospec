@@ -94,6 +94,7 @@ class Config(object):
         self.extra_cmake_special = ""
         self.extra_cmake_special2 = ""
         self.cmake_macro = ""
+        self.cmake_macro_special = ""
         self.extra_cmake_openmpi = ""
         self.cmake_srcdir = ".."
         self.subdir = ""
@@ -101,6 +102,8 @@ class Config(object):
         self.configure_macro_32 = ""
         self.make_macro = ""
         self.make_macro_32 = ""
+        self.make_macro_special = ""
+        self.make_macro_special2 = ""
         self.install_macro = ""
         self.install_macro_32 = ""
         self.install_macro_512 = ""
@@ -1044,6 +1047,14 @@ class Config(object):
         if content and content[0]:
             self.make_macro_32 = " \n".join(content)
 
+        content = self.read_conf_file(os.path.join(self.download_path, "make_macro_special"))
+        if content and content[0]:
+            self.make_macro_special = " \n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "make_macro_special2"))
+        if content and content[0]:
+            self.make_macro_special2 = " \n".join(content)
+
         content = self.read_conf_file(os.path.join(self.download_path, "install_macro"))
         if content and content[0]:
             self.install_macro = " \n".join(content)
@@ -1095,6 +1106,10 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_macro"))
         if content and content[0]:
             self.cmake_macro = " \n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "cmake_macro_special"))
+        if content and content[0]:
+            self.cmake_macro_special = " \n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_openmpi"))
         if content:
