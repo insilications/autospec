@@ -227,6 +227,7 @@ class FileManager(object):
             # Patterns for matching files, format is a tuple as follows:
             # (<raw pattern>, <package>, <optional replacement>, <optional prefix>)
             # order matters, first match wins!
+            (r"^/usr/lib/rpm[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*$", "main"),
             (r"^/(usr/|usr.*)share/package-licenses/.{1,}/.{1,}", "license"),
             (r"^/(usr/|usr.*)share/man/man2", "dev"),
             (r"^/(usr/|usr.*)share/man/man3", "dev"),
