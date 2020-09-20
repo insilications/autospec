@@ -65,7 +65,7 @@ def clone_and_git_archive_all(path, name, url, branch, force_module, force_fullc
         if force_fullclone is True:
             git_tag_version_cmd = "git describe --abbrev=0 --tags || git log -1 --date=format:%y.%m.%d --pretty=format:%cd"
         else:
-            git_tag_version_cmd = f"git ls-remote --tags {url} | grep -oP '((?<=refs\/tags\/).*|(?<=refs\/tags\/))(v((\d+)(\.\d+))*)|((\d+)(\.\d+)*)$' | sort -rV | head -1 || git log -1 --date=format:%y.%m.%d --pretty=format:%cd"
+            git_tag_version_cmd = f"git ls-remote --tags {url} | grep -oP '((?<=refs\/tags\/).*|(?<=refs\/tags\/))(v((\d+)(\.\d+))*)$|((\d+)(\.\d+)*)$' | sort -rV | head -1 || git log -1 --date=format:%y.%m.%d --pretty=format:%cd"
             # print("Teste: git_tag_version_cmd {}".format(git_tag_version_cmd))
         process = subprocess.run(
             git_tag_version_cmd,
