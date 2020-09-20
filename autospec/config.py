@@ -111,6 +111,7 @@ class Config(object):
         self.install_macro_openmpi = ""
         self.install_macro_build_special = ""
         self.install_macro_build_special2 = ""
+        self.custom_clean_pgo = ""
         self.disable_static = "--disable-static"
         self.altflags1 = []
         self.altflags_pgo = []
@@ -1110,6 +1111,10 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_macro_special"))
         if content and content[0]:
             self.cmake_macro_special = " \n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "custom_clean_pgo"))
+        if content and content[0]:
+            self.custom_clean_pgo = " \n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_openmpi"))
         if content:
