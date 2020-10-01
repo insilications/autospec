@@ -44,6 +44,7 @@ sys.path.append(os.path.dirname(__file__))
 
 
 def str_to_bool(s):
+    """Create helper function to convert srt to true Bool."""
     if s == "True" or s == "true" or s == 1 or s == "1":
         return True
     elif s == "False" or s == "false" or s == 0 or s == "0":

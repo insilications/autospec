@@ -187,7 +187,7 @@ class Content(object):
         self.download_from_git = download_from_git
         self.branch = branch
         self.force_module = force_module
-        self.force_fullclone = force_fullclone      
+        self.force_fullclone = force_fullclone
         self.archives_from_git = new_archives_from_git
         self.gem_subdir = ""
 

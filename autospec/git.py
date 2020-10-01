@@ -29,6 +29,7 @@ from util import call, write_out, print_fatal
 
 
 def remove_clone_archive(path, clone_path, is_fatal):
+    """Remove temporary clone_archive git folder."""
     try:
         call(f"rm -rf {clone_path}", cwd=path)
     except subprocess.CalledProcessError as err:
@@ -37,6 +38,7 @@ def remove_clone_archive(path, clone_path, is_fatal):
 
 
 def clone_and_git_archive_all(path, name, url, branch, force_module, force_fullclone, is_fatal=True):
+    """Clone package directly from a git repository."""
     cmd_args = f"{branch} {url} {name}"
     clone_path = f"{path}{name}"
     print("Teste: " + "git clone --depth 1 --branch " + cmd_args + "\n")

@@ -563,7 +563,6 @@ class Specfile(object):
 
     def write_32bit_exports(self):
         """Write 32bit only env exports."""
-
         # self._write_strip('export CFLAGS="-g -O3 -march=native -mtune=native -Wall -Wl,--as-needed -Wl,--build-id=sha1 '
         #                  '-Wl,--enable-new-dtags -Wl,--hash-style=gnu -Wl,-O2 -Wl,-z,now -Wl,-z,relro -falign-functions=32 '
         #                  '-fasynchronous-unwind-tables -fdevirtualize-at-ltrans -floop-nest-optimize -fno-math-errno '
@@ -984,7 +983,7 @@ class Specfile(object):
         self.write_make_line(False, build_type)
         self._write_strip("\n")
         self._write_strip("\n".join(self.config.profile_payload))
-        
+
         if self.config.custom_clean_pgo:
             self._write_strip("{}\n".format(self.config.custom_clean_pgo))
         else:
