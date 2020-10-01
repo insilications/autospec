@@ -331,6 +331,12 @@ class FileManager(object):
             (r"^/(usr/|usr.*)lib64/[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*$", "dev"),
             (r"^/(usr/|usr.*)lib/[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*$", "dev"),
             (r"^/(usr/|usr.*)lib32/[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*$", "dev32"),
+            (r"^/(usr/|usr.*)/[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*.txt$", "dev"),
+            (r"^/(usr/|usr.*)/[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*.so$", "dev"),
+            (r"^/(usr/|usr.*)/[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*.c$", "dev"),
+            (r"^/(usr/|usr.*)/[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*.h$", "dev"),
+            (r"^/(usr/|usr.*)/[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*.cpp$", "dev"),
+            (r"^/(usr/|usr.*)/[a-zA-Z0-9._+-\/]*/[a-zA-Z0-9._+-\/]*.hpp$", "dev"),
             # locale data gets picked up via file_is_locale
             (r"^/(usr/|usr.*)share/locale/", "ignore")]
 
