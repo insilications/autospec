@@ -323,6 +323,9 @@ class Specfile(object):
             for req in sorted(self.requirements.requires.get(pkg, [])):
                 self._write(f"Requires: {req}\n")
 
+            self.write_disable_autoreq()
+            self.write_disable_autoprov()
+
             self._write("\n%description {}\n".format(pkg))
             self._write("{} components for the {} package.\n".format(pkg, self.name))
             self._write("\n")
