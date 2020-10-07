@@ -2464,8 +2464,8 @@ class Specfile(object):
             )
             self.write_make_prepend()
             self._write_strip("ninja -v -C builddiravx2")
-        if self.config.subdir:
-            self._write_strip("popd")
+            if self.config.subdir:
+                self._write_strip("popd")
         if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
             self.write_build_prepend()
