@@ -726,7 +726,7 @@ class Specfile(object):
             self._write_strip('export CXXFLAGS_USE="$CXXFLAGS {0} "\n'.format(" ".join(useflags)))
             self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
             self._write_strip("##")
-            self._write_strip("%define _lto_cflags 1")
+            self._write_strip("%global _lto_cflags 1")
             self._write_strip("##")
 
         if self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"]:
@@ -736,7 +736,7 @@ class Specfile(object):
                     self._write_strip("{}\n".format(line))
                 self._write_strip("## altflags1 end")
                 self._write_strip("##")
-                self._write_strip("%define _lto_cflags 1")
+                self._write_strip("%global _lto_cflags 1")
                 self._write_strip("##")
             else:
                 flagsalt1c.extend(
@@ -890,7 +890,7 @@ class Specfile(object):
                 # close the open quote from CXXFLAGS export and add newline
                 self._write('"\n')
                 self._write_strip("##")
-                self._write_strip("%define _lto_cflags 1")
+                self._write_strip("%global _lto_cflags 1")
                 self._write_strip("##")
         if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"]:
             genflags = []
@@ -905,7 +905,7 @@ class Specfile(object):
                     self._write_strip("{}\n".format(line))
                 self._write_strip("## altflags_pgo end")
                 self._write_strip("##")
-                self._write_strip("%define _lto_cflags 1")
+                self._write_strip("%global _lto_cflags 1")
                 self._write_strip("##")
             else:
                 self._write_strip("## altflags_pgo content")
@@ -923,7 +923,7 @@ class Specfile(object):
                 self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
                 self._write_strip("## altflags_pgo end")
                 self._write_strip("##")
-                self._write_strip("%define _lto_cflags 1")
+                self._write_strip("%global _lto_cflags 1")
                 self._write_strip("##")
 
     def write_check(self):
