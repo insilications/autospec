@@ -2429,7 +2429,7 @@ class Specfile(object):
             post = f"{self.get_profile_use_flags()}"
             if init:
                 self._write_strip(init)
-            self._write_strip("meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure64))
+            self._write_strip("meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure64))
             self.write_make_prepend()
             self._write_strip("ninja -v -C builddir")
             self._write_strip("\n")
@@ -2440,14 +2440,14 @@ class Specfile(object):
                 self._write_strip("\nfind builddir/ -type f,l -not -name '*.gcno' -delete -print\n")
             if post:
                 self._write_strip(post)
-            self._write_strip("meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure64))
+            self._write_strip("meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure64))
             self.write_make_prepend()
             self._write_strip("ninja -v -C builddir")
             if self.config.subdir:
                 self._write_strip("popd")
         else:
             self._write_strip(
-                'CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain {0} {1} builddir'.format(
+                'CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(
                     self.config.extra_configure, self.config.extra_configure64
                 )
             )
@@ -2459,7 +2459,7 @@ class Specfile(object):
         if self.config.config_opts["use_avx2"]:
             self._write_strip(
                 'CFLAGS="$CFLAGS -m64 -march=native -mtune=native" CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native " LDFLAGS="$LDFLAGS -m64 -march=native -mtune=native" '
-                "meson --libdir=lib64/haswell --prefix=/usr --buildtype=plain {0} "
+                "meson --libdir=lib64/haswell --prefix=/usr --buildtype=plain -Ddefault_library=both {0} "
                 "{1} builddiravx2".format(self.config.extra_configure, self.config.extra_configure64)
             )
             self.write_make_prepend()
@@ -2471,7 +2471,7 @@ class Specfile(object):
             self.write_build_prepend()
             self.write_32bit_exports()
             self.write_build_append()
-            self._write_strip("meson " "--libdir=lib32 --prefix=/usr --buildtype=plain {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure32))
+            self._write_strip("meson " "--libdir=lib32 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure32))
             self.write_make_prepend()
             self._write_strip("ninja -v -C builddir")
             self._write_strip("popd")
