@@ -221,6 +221,7 @@ class Config(object):
             "altcargo1": "alternative cargo pattern",
             "build_special": "configure build with special options",
             "build_special2": "configure build with special options 2",
+            "disable_maintainer": "disable maintainer mode for autotools",
         }
         # simple_pattern_pkgconfig patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -548,6 +549,9 @@ class Config(object):
 
         # default configure build with special options 2
         config_f["autospec"]["build_special2"] = "false"
+
+        # default disable maintainer mode for autotools
+        config_f["autospec"]["disable_maintainer"] = "true"
 
         # new defaults
         config_f["autospec"]["asneeded"] = "false"

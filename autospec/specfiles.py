@@ -1632,6 +1632,8 @@ class Specfile(object):
         self.write_prep()
         self.write_lang_c(export_epoch=True)
         self.write_variables()
+        if self.config.config_opts["disable_maintainer"]:
+            self._write_strip("sed -i '/^AC_INIT.*/a AM_MAINTAINER_MODE([disable])' configure.ac\n")
         self.write_profile_payload("configure_ac")
         if self.config.configure_macro:
             if self.config.subdir:
@@ -1654,6 +1656,8 @@ class Specfile(object):
             self._write_strip("pushd ../build-special/" + self.config.subdir)
             self.write_build_prepend()
             self.write_variables()
+            if self.config.config_opts["disable_maintainer"]:
+                self._write_strip("sed -i '/^AC_INIT.*/a AM_MAINTAINER_MODE([disable])' configure.ac\n")
             self.write_profile_payload("configure_ac", "special")
             self._write_strip("{0}%reconfigure {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special))
             self.write_make_line(False, "special")
@@ -1663,6 +1667,8 @@ class Specfile(object):
             self._write_strip("pushd ../build-special2/" + self.config.subdir)
             self.write_build_prepend()
             self.write_variables()
+            if self.config.config_opts["disable_maintainer"]:
+                self._write_strip("sed -i '/^AC_INIT.*/a AM_MAINTAINER_MODE([disable])' configure.ac\n")
             self.write_profile_payload("configure_ac", "special2")
             self._write_strip("{0}%reconfigure {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special2))
             self.write_make_line(False, "special2")
@@ -1673,6 +1679,8 @@ class Specfile(object):
             self.write_build_prepend()
             self.write_32bit_exports()
             self.write_build_append()
+            if self.config.config_opts["disable_maintainer"]:
+                self._write_strip("sed -i '/^AC_INIT.*/a AM_MAINTAINER_MODE([disable])' configure.ac\n")
             self._write_strip(
                 "%reconfigure {0} {1} "
                 "--libdir=/usr/lib32 "
@@ -1687,6 +1695,8 @@ class Specfile(object):
             self._write_strip("unset PKG_CONFIG_PATH")
             self._write_strip("pushd ../buildavx2/" + self.config.subdir)
             self.write_build_prepend()
+            if self.config.config_opts["disable_maintainer"]:
+                self._write_strip("sed -i '/^AC_INIT.*/a AM_MAINTAINER_MODE([disable])' configure.ac\n")
             self._write_strip('export CFLAGS="$CFLAGS -m64 -march=native -mtune=native"')
             self._write_strip('export CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native"')
             self._write_strip('export FFLAGS="$FFLAGS -m64 -march=native -mtune=native"')
@@ -1700,6 +1710,8 @@ class Specfile(object):
             self._write_strip("unset PKG_CONFIG_PATH")
             self._write_strip("pushd ../buildavx512/" + self.config.subdir)
             self.write_build_prepend()
+            if self.config.config_opts["disable_maintainer"]:
+                self._write_strip("sed -i '/^AC_INIT.*/a AM_MAINTAINER_MODE([disable])' configure.ac\n")
             self._write_strip('export CFLAGS="$CFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
             self._write_strip('export CXXFLAGS="$CXXFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
             self._write_strip('export FFLAGS="$FFLAGS -m64 -march=skylake-avx512 -mprefer-vector-width=512"')
@@ -1776,6 +1788,8 @@ class Specfile(object):
         self.write_prep()
         self.write_lang_c(export_epoch=True)
         self.write_variables()
+        if self.config.config_opts["disable_maintainer"]:
+            self._write_strip("sed -i '/^AC_INIT.*/a AM_MAINTAINER_MODE([disable])' configure.ac\n")
         self.write_profile_payload("autogen")
         self._write_strip("{0}%autogen {1} {2} {3}".format(self.get_profile_use_flags(), self.config.disable_static, self.config.extra_configure, self.config.extra_configure64))
         self.write_make_line()
@@ -1799,6 +1813,8 @@ class Specfile(object):
             self._write_strip("pushd ../build-special/" + self.config.subdir)
             self.write_build_prepend()
             self.write_variables()
+            if self.config.config_opts["disable_maintainer"]:
+                self._write_strip("sed -i '/^AC_INIT.*/a AM_MAINTAINER_MODE([disable])' configure.ac\n")
             self.write_profile_payload("autogen", "special")
             self._write_strip("{0}%autogen {1} {2} ".format(self.get_profile_use_flags(), self.config.disable_static, self.config.extra_configure_special))
             self.write_make_line()
@@ -1807,6 +1823,8 @@ class Specfile(object):
         if self.config.config_opts["use_avx2"]:
             self._write_strip("pushd ../buildavx2/" + self.config.subdir)
             self.write_build_prepend()
+            if self.config.config_opts["disable_maintainer"]:
+                self._write_strip("sed -i '/^AC_INIT.*/a AM_MAINTAINER_MODE([disable])' configure.ac\n")
             self._write_strip('export CFLAGS="$CFLAGS -m64 -march=native -mtune=native "')
             self._write_strip('export CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native "')
             self._write_strip('export FFLAGS="$FFLAGS -m64 -march=native -mtune=native "')
@@ -1819,6 +1837,8 @@ class Specfile(object):
         if self.config.config_opts["use_avx512"]:
             self._write_strip("pushd ../buildavx512/" + self.config.subdir)
             self.write_build_prepend()
+            if self.config.config_opts["disable_maintainer"]:
+                self._write_strip("sed -i '/^AC_INIT.*/a AM_MAINTAINER_MODE([disable])' configure.ac\n")
             self._write_strip('export CFLAGS="$CFLAGS -m64 -march=skylake-avx512 "')
             self._write_strip('export CXXFLAGS="$CXXFLAGS -m64 -march=skylake-avx512 "')
             self._write_strip('export FFLAGS="$FFLAGS -m64 -march=skylake-avx512 "')
