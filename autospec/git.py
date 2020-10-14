@@ -41,20 +41,24 @@ def clone_and_git_archive_all(path, name, url, branch, force_module, force_fullc
     """Clone package directly from a git repository."""
     cmd_args = f"{branch} {url} {name}"
     clone_path = f"{path}{name}"
-    print("Teste: " + "git clone --depth 1 --branch " + cmd_args + "\n")
     print("Teste: cwd=path " + path + "\n")
     print("Teste: force_module " + str(force_module) + "\n")
+    print("Teste: force_fullclone " + str(force_fullclone) + "\n")
 
     try:
         if force_module is True:
             if force_fullclone is True:
+                print("Teste: git clone --branch={}".format(cmd_args))
                 call(f"git clone --branch={cmd_args}", cwd=path)
             else:
+                print("Teste: git clone --depth 1 --branch={}".format(cmd_args))
                 call(f"git clone --depth 1 --branch={cmd_args}", cwd=path)
         else:
             if force_fullclone is True:
+                print("Teste: git clone --recurse-submodules --remote-submodules --branch={}".format(cmd_args))
                 call(f"git clone --recurse-submodules --remote-submodules --branch={cmd_args}", cwd=path)
             else:
+                print("Teste: git clone --depth 1 --shallow-submodules --recurse-submodules --remote-submodules --branch={}".format(cmd_args))
                 call(f"git clone --depth 1 --shallow-submodules --recurse-submodules --remote-submodules --branch={cmd_args}", cwd=path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
