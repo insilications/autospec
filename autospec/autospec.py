@@ -248,6 +248,7 @@ def main():
     url = args.url or a_url
     archives = args.archives or a_archives
     archives_from_git = args.archives_from_git or a_archives_from_git
+    args.integrity = False
 
     print("\nTeste a_download_from_git: {}".format(str(str_to_bool(a_download_from_git))))
     if args.download_from_git is not None:
