@@ -1256,6 +1256,14 @@ class Specfile(object):
                 self._write_strip("{}\n".format(line))
             self._write_strip("## build_prepend end")
 
+    def write_build_prepend32(self):
+        """Write out any custom supplied commands at the start of the %build section."""
+        if self.config.build_prepend32:
+            self._write_strip("## build_prepend32 content")
+            for line in self.config.build_prepend32:
+                self._write_strip("{}\n".format(line))
+            self._write_strip("## build_prepend32 end")
+
     def write_make_prepend(self):
         """Write out any custom supplied commands at the start of the meson/scons make section."""
         if self.config.make_prepend:
@@ -1562,7 +1570,7 @@ class Specfile(object):
         if self.config.config_opts["32bit"]:
             if self.config.configure_macro_32:
                 self._write_strip("pushd ../build32/" + self.config.subdir)
-                self.write_build_prepend()
+                self.write_build_prepend32()
                 self.write_32bit_exports()
                 self.write_build_append()
                 self._write_strip("{} ".format(self.config.configure_macro_32))
@@ -1676,7 +1684,7 @@ class Specfile(object):
 
         if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
-            self.write_build_prepend()
+            self.write_build_prepend32()
             self.write_32bit_exports()
             self.write_build_append()
             if self.config.config_opts["disable_maintainer"]:
@@ -1739,7 +1747,7 @@ class Specfile(object):
         self._write_strip("\n")
         if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
-            self.write_build_prepend()
+            self.write_build_prepend32()
             self.write_32bit_exports()
             self.write_build_append()
             self.write_make_line(True)
@@ -1796,7 +1804,7 @@ class Specfile(object):
         self._write_strip("\n")
         if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
-            self.write_build_prepend()
+            self.write_build_prepend32()
             self.write_32bit_exports()
             self.write_build_append()
             self._write_strip(
@@ -2130,7 +2138,7 @@ class Specfile(object):
         if self.config.config_opts["32bit"]:
             self._write_strip("mkdir -p clr-build32")
             self._write_strip("pushd clr-build32")
-            self.write_build_prepend()
+            self.write_build_prepend32()
             self.write_32bit_exports()
             self.write_build_append()
             self._write_strip(
@@ -2488,7 +2496,7 @@ class Specfile(object):
                 self._write_strip("popd")
         if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
-            self.write_build_prepend()
+            self.write_build_prepend32()
             self.write_32bit_exports()
             self.write_build_append()
             self._write_strip("meson " "--libdir=lib32 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure32))

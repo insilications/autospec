@@ -173,6 +173,7 @@ def commit_to_git(config, name, success):
     call("git add prep_prepend", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add pypi.json", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add build_prepend", check=False, stderr=subprocess.DEVNULL, cwd=path)
+    call("git add build_prepend32", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add make_prepend", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add install_prepend", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add install_append", check=False, stderr=subprocess.DEVNULL, cwd=path)
