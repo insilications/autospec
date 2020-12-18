@@ -584,18 +584,29 @@ class Specfile(object):
         #                  '-fno-stack-protector -fno-trapping-math -ftree-loop-distribute-patterns -ftree-loop-vectorize '
         #                  '-ftree-vectorize -funroll-loops -fuse-ld=bfd -fuse-linker-plugin -malign-data=cacheline '
         #                  '-feliminate-unused-debug-types -mtls-dialect=gnu2 -Wl,-sort-common -Wno-error -Wp,-D_REENTRANT -pipe"')
-        self._write_strip('export CFLAGS="-g -O2 -fuse-linker-plugin -pipe"')
-        self._write_strip('export CXXFLAGS="-g -O2 -fuse-linker-plugin -fvisibility-inlines-hidden -pipe"')
-        self._write_strip('export LDFLAGS="-g -O2 -fuse-linker-plugin -pipe"')
-        self._write_strip("export AR=gcc-ar")
-        self._write_strip("export RANLIB=gcc-ranlib")
-        self._write_strip("export NM=gcc-nm")
-        self._write_strip("unset LD_LIBRARY_PATH")
-        self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"')
-        self._write_strip('export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"')
-        self._write_strip('export CFLAGS="${CFLAGS}${CFLAGS:+ }-m32 -mstackrealign"')
-        self._write_strip('export CXXFLAGS="${CXXFLAGS}${CXXFLAGS:+ }-m32 -mstackrealign"')
-        self._write_strip('export LDFLAGS="${LDFLAGS}${LDFLAGS:+ }-m32 -mstackrealign"')
+        if self.config.config_opts["use_clang"]:
+            self._write_strip("export CC=clang")
+            self._write_strip("export CXX=clang++")
+            self._write_strip("export LD=ld.gold")
+            self._write_strip("unset LD_LIBRARY_PATH")
+            self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"')
+            self._write_strip('export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"')
+            self._write_strip('export CFLAGS="${CFLAGS}${CFLAGS:+ }-m32 -mstackrealign"')
+            self._write_strip('export CXXFLAGS="${CXXFLAGS}${CXXFLAGS:+ }-m32 -mstackrealign"')
+            self._write_strip('export LDFLAGS="${LDFLAGS}${LDFLAGS:+ }-m32 -mstackrealign"')
+        else:
+            self._write_strip('export CFLAGS="-g -O2 -fuse-linker-plugin -pipe"')
+            self._write_strip('export CXXFLAGS="-g -O2 -fuse-linker-plugin -fvisibility-inlines-hidden -pipe"')
+            self._write_strip('export LDFLAGS="-g -O2 -fuse-linker-plugin -pipe"')
+            self._write_strip("export AR=gcc-ar")
+            self._write_strip("export RANLIB=gcc-ranlib")
+            self._write_strip("export NM=gcc-nm")
+            self._write_strip("unset LD_LIBRARY_PATH")
+            self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"')
+            self._write_strip('export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"')
+            self._write_strip('export CFLAGS="${CFLAGS}${CFLAGS:+ }-m32 -mstackrealign"')
+            self._write_strip('export CXXFLAGS="${CXXFLAGS}${CXXFLAGS:+ }-m32 -mstackrealign"')
+            self._write_strip('export LDFLAGS="${LDFLAGS}${LDFLAGS:+ }-m32 -mstackrealign"')
 
     def write_variables(self):
         """Write variable exports to spec file."""
@@ -615,8 +626,8 @@ class Specfile(object):
             self._write_strip("export CC=clang\n")
             self._write_strip("export CXX=clang++\n")
             self._write_strip("export LD=ld.gold\n")
-            self._write_strip("CFLAGS=${CFLAGS/ -Wa,/ -fno-integrated-as -Wa,}")
-            self._write_strip("CXXFLAGS=${CXXFLAGS/ -Wa,/ -fno-integrated-as -Wa,}")
+            # self._write_strip("CFLAGS=${CFLAGS/ -Wa,/ -fno-integrated-as -Wa,}")
+            # self._write_strip("CXXFLAGS=${CXXFLAGS/ -Wa,/ -fno-integrated-as -Wa,}")
             lto = "-flto"
         else:
             lto = "-flto=4"
