@@ -223,6 +223,7 @@ class Config(object):
             "build_special": "configure build with special options",
             "build_special2": "configure build with special options 2",
             "disable_maintainer": "disable maintainer mode for autotools",
+            "use_ninja": "use ninja instead of makefiles",
         }
         # simple_pattern_pkgconfig patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -526,6 +527,9 @@ class Config(object):
 
         # default alternative flags for new things
         config_f["autospec"]["fsalt1"] = "true"
+
+        # don't use ninja by default
+        config_f["autospec"]["use_ninja"] = "false"
 
         # default alternative pgo flags for new things
         config_f["autospec"]["altflags_pgo"] = "false"

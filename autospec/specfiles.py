@@ -414,30 +414,46 @@ class Specfile(object):
             self._write_strip("## make_prepend end")
         if build32 is True and build_type is None:
             if not self.config.make_macro_32:
-                self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra32_make))
+                if self.config.config_opts["use_ninja"]:
+                    self._write_strip("ninja {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra32_make))
+                else:
+                    self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra32_make))
             else:
                 self._write_strip("{}".format(self.config.make_macro_32))
         elif build32 is False and build_type is None:
             if not self.config.make_macro:
-                self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+                if self.config.config_opts["use_ninja"]:
+                    self._write_strip("ninja {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+                else:
+                    self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
             else:
                 self._write_strip("{}".format(self.config.make_macro))
         elif build32 is False and build_type == "special":
             if not self.config.make_macro_special:
-                self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special))
+                if self.config.config_opts["use_ninja"]:
+                    self._write_strip("ninja {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special))
+                else:
+                    self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special))
             else:
                 self._write_strip("{}".format(self.config.make_macro_special))
         elif build32 is False and build_type == "special2":
             if not self.config.make_macro_special2:
-                self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special2))
+                if self.config.config_opts["use_ninja"]:
+                    self._write_strip("ninja {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special2))
+                else:
+                    self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special2))
             else:
                 self._write_strip("{}".format(self.config.make_macro_special2))
 
     def write_install_openmpi(self):
         """Write make install line (openmpi) to spec file."""
         self._write_strip("module load openmpi")
-        make_string = "%make_install_openmpi"
-        self._write_strip("{} {}".format(make_string, self.config.extra_make_install))
+        if self.config.config_opts["use_ninja"]:
+            make_string = "%ninja_install_openmpi"
+            self._write_strip("{} {}".format(make_string, self.config.extra_make_install))
+        else:
+            make_string = "%make_install_openmpi"
+            self._write_strip("{} {}".format(make_string, self.config.extra_make_install))
         self._write_strip("module unload openmpi")
 
     def write_cmake_line_openmpi(self):
@@ -1398,7 +1414,10 @@ class Specfile(object):
                 self._write_strip("## install_macro_32 end")
             else:
                 self._write_strip("pushd clr-build32")
-                self._write_strip("%make_install32 {} {}".format(self.config.extra_make_install, self.config.extra_make32_install))
+                if self.config.config_opts["use_ninja"]:
+                    self._write_strip("%ninja_install32 {} {}".format(self.config.extra_make_install, self.config.extra_make32_install))
+                else:
+                    self._write_strip("%make_install32 {} {}".format(self.config.extra_make_install, self.config.extra_make32_install))
                 self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
                 self._write_strip("then")
                 self._write_strip("    pushd %{buildroot}/usr/lib32/pkgconfig")
@@ -1416,7 +1435,10 @@ class Specfile(object):
                 self._write_strip("## install_macro_512 end")
             else:
                 self._write_strip("pushd clr-build-avx512")
-                self._write_strip("%make_install_avx512 {} || :\n".format(self.config.extra_make_install))
+                if self.config.config_opts["use_ninja"]:
+                    self._write_strip("%ninja_install_avx512 {} || :\n".format(self.config.extra_make_install))
+                else:
+                    self._write_strip("%make_install_avx512 {} || :\n".format(self.config.extra_make_install))
                 self._write_strip("popd")
 
         if self.config.config_opts["use_avx2"]:
@@ -1428,7 +1450,10 @@ class Specfile(object):
                 self._write_strip("## install_macro_avx2 end")
             else:
                 self._write_strip("pushd clr-build-avx2")
-                self._write_strip("%make_install_avx2 {} || :\n".format(self.config.extra_make_install))
+                if self.config.config_opts["use_ninja"]:
+                    self._write_strip("%ninja_install_avx2 {} || :\n".format(self.config.extra_make_install))
+                else:
+                    self._write_strip("%make_install_avx2 {} || :\n".format(self.config.extra_make_install))
                 self._write_strip("popd")
 
         if self.config.config_opts["openmpi"]:
@@ -1452,7 +1477,10 @@ class Specfile(object):
                 self._write_strip("## install_macro_build_special end")
             else:
                 self._write_strip("pushd clr-build-special")
-                self._write_strip("%make_install_special {} || :\n".format(self.config.extra_make_install_special))
+                if self.config.config_opts["use_ninja"]:
+                    self._write_strip("%ninja_install_special {} || :\n".format(self.config.extra_make_install_special))
+                else:
+                    self._write_strip("%make_install_special {} || :\n".format(self.config.extra_make_install_special))
                 self._write_strip("popd")
 
         if self.config.install_macro:
@@ -1463,7 +1491,10 @@ class Specfile(object):
             self._write_strip("## install_macro end")
         else:
             self._write_strip("pushd clr-build")
-            self._write_strip("%make_install {}\n".format(self.config.extra_make_install))
+            if self.config.config_opts["use_ninja"]:
+                self._write_strip("%ninja_install {}\n".format(self.config.extra_make_install))
+            else:
+                self._write_strip("%make_install {}\n".format(self.config.extra_make_install))
             self._write_strip("popd")
 
         if self.config.subdir:
