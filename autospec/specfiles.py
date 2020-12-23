@@ -603,7 +603,6 @@ class Specfile(object):
         if self.config.config_opts["use_clang"]:
             self._write_strip("export CC=clang")
             self._write_strip("export CXX=clang++")
-            self._write_strip("export LD=ld.gold")
             self._write_strip("unset LD_LIBRARY_PATH")
             self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"')
             self._write_strip('export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"')
@@ -641,12 +640,8 @@ class Specfile(object):
         if self.config.config_opts["use_clang"]:
             self._write_strip("export CC=clang\n")
             self._write_strip("export CXX=clang++\n")
-            self._write_strip("export LD=ld.gold\n")
             # self._write_strip("CFLAGS=${CFLAGS/ -Wa,/ -fno-integrated-as -Wa,}")
             # self._write_strip("CXXFLAGS=${CXXFLAGS/ -Wa,/ -fno-integrated-as -Wa,}")
-            lto = "-flto"
-        else:
-            lto = "-flto=4"
 
         if not self.config.set_gopath:
             self._write_strip("export GOPROXY=file:///usr/share/goproxy")
