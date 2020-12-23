@@ -746,9 +746,6 @@ class Specfile(object):
                 for line in self.config.altflags1:
                     self._write_strip("{}\n".format(line))
                 self._write_strip("## altflags1 end")
-                self._write_strip("##")
-                self._write_strip("%global _lto_cflags 1")
-                self._write_strip("##")
             else:
                 flagsalt1c.extend(
                     [
