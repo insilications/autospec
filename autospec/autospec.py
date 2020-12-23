@@ -538,8 +538,6 @@ def package(
     filemanager.load_specfile(specfile)
     load_specfile(conf, specfile)
 
-    print("\n")
-
     if args.integrity:
         interactive_mode = not args.non_interactive
         pkg_integrity.check(url, conf, interactive=interactive_mode)

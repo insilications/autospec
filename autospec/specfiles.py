@@ -641,7 +641,10 @@ class Specfile(object):
             self._write_strip("export CC=clang\n")
             self._write_strip("export CXX=clang++\n")
             # self._write_strip("CFLAGS=${CFLAGS/ -Wa,/ -fno-integrated-as -Wa,}")
-            # self._write_strip("CXXFLAGS=${CXXFLAGS/ -Wa,/ -fno-integrated-as -Wa,}")
+            # self._write_strip
+            lto = "-flto"
+        else:
+            lto = "-flto=16"
 
         if not self.config.set_gopath:
             self._write_strip("export GOPROXY=file:///usr/share/goproxy")
