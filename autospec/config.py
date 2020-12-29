@@ -977,28 +977,28 @@ class Config(object):
             self.rewrite_config_opts()
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure"))
-        self.extra_configure = "\\\n".join(content)
+        self.extra_configure = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure32"))
-        self.extra_configure32 = "\\\n".join(content)
+        self.extra_configure32 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure64"))
-        self.extra_configure64 = "\\\n".join(content)
+        self.extra_configure64 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure_special"))
-        self.extra_configure_special = "\\\n".join(content)
+        self.extra_configure_special = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure_special2"))
-        self.extra_configure_special2 = "\\\n".join(content)
+        self.extra_configure_special2 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure_avx2"))
-        self.extra_configure_avx2 = "\\\n".join(content)
+        self.extra_configure_avx2 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure_avx512"))
-        self.extra_configure_avx512 = "\\\n".join(content)
+        self.extra_configure_avx512 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure_openmpi"))
-        self.extra_configure_openmpi = "\\\n".join(content)
+        self.extra_configure_openmpi = " \\\n".join(content)
 
         if self.config_opts["keepstatic"]:
             self.disable_static = ""
@@ -1007,39 +1007,39 @@ class Config(object):
 
         content = self.read_conf_file(os.path.join(self.download_path, "make_args"))
         if content:
-            self.extra_make = "\\\n".join(content)
+            self.extra_make = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make_args_special"))
         if content:
-            self.extra_make_special = "\\\n".join(content)
+            self.extra_make_special = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make_args_special2"))
         if content:
-            self.extra_make_special2 = "\\\n".join(content)
+            self.extra_make_special2 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make32_args"))
         if content:
-            self.extra32_make = "\\\n".join(content)
+            self.extra32_make = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make64_args"))
         if content:
-            self.extra64_make = "\\\n".join(content)
+            self.extra64_make = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make_install_args"))
         if content:
-            self.extra_make_install = "\\\n".join(content)
+            self.extra_make_install = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make_install_args_special"))
         if content:
-            self.extra_make_install_special = "\\\n".join(content)
+            self.extra_make_install_special = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make_install_args_special2"))
         if content:
-            self.extra_make_install_special2 = "\\\n".join(content)
+            self.extra_make_install_special2 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "make32_install_args"))
         if content:
-            self.extra_make32_install = "\\\n".join(content)
+            self.extra_make32_install = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure_macro"))
         if content and content[0]:
@@ -1095,23 +1095,23 @@ class Config(object):
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args"))
         if content:
-            self.extra_cmake = "\\\n".join(content)
+            self.extra_cmake = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_64"))
         if content:
-            self.extra_cmake_64 = "\\\n".join(content)
+            self.extra_cmake_64 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_32"))
         if content:
-            self.extra_cmake_32 = "\\\n".join(content)
+            self.extra_cmake_32 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_special"))
         if content:
-            self.extra_cmake_special = "\\\n".join(content)
+            self.extra_cmake_special = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_special2"))
         if content:
-            self.extra_cmake_special2 = "\\\n".join(content)
+            self.extra_cmake_special2 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_macro"))
         if content and content[0]:
@@ -1127,7 +1127,7 @@ class Config(object):
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args_openmpi"))
         if content:
-            self.extra_cmake_openmpi = "\\\n".join(content)
+            self.extra_cmake_openmpi = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_srcdir"))
         if content and content[0]:
@@ -1144,7 +1144,7 @@ class Config(object):
 
         content = self.read_script_file(os.path.join(self.download_path, "make_check_command"))
         if content:
-            check.tests_config = "\n".join(content)
+            check.tests_config = " \n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, self.content.name + ".license"))
         if content and content[0]:
