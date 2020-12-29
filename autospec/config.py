@@ -120,6 +120,7 @@ class Config(object):
         self.build_prepend32 = []
         self.build_append = []
         self.make_prepend = []
+        self.make_append = []
         self.install_prepend = []
         self.install_prepend_special = []
         self.install_prepend_special2 = []
@@ -214,6 +215,7 @@ class Config(object):
             "compat": "this package is a library compatibility package and only ships versioned library files",
             "nodebug": "do not generate debuginfo for this package",
             "openmpi": "configure build also for openmpi",
+            "ccstats": "show ccache stats after compile",
             "fsalt1": "alternative flags",
             "altflags_pgo": "alternative pgo flags",
             "nomissingbuildids": "ignore missing build ids",
@@ -527,6 +529,9 @@ class Config(object):
 
         # default alternative flags for new things
         config_f["autospec"]["fsalt1"] = "true"
+        
+        # default alternative flags for show ccache stats after compile
+        config_f["autospec"]["ccstats"] = "true"
 
         # don't use ninja by default
         config_f["autospec"]["use_ninja"] = "false"
@@ -1182,6 +1187,7 @@ class Config(object):
         if os.path.isfile(os.path.join(self.download_path, "prep_append")):
             os.rename(os.path.join(self.download_path, "prep_append"), os.path.join(self.download_path, "build_prepend"))
         self.make_prepend = self.read_script_file(os.path.join(self.download_path, "make_prepend"))
+        self.make_append = self.read_script_file(os.path.join(self.download_path, "make_append"))
         self.build_prepend = self.read_script_file(os.path.join(self.download_path, "build_prepend"))
         self.build_prepend32 = self.read_script_file(os.path.join(self.download_path, "build_prepend32"))
         self.build_append = self.read_script_file(os.path.join(self.download_path, "build_append"))

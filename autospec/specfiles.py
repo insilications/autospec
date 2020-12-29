@@ -444,6 +444,15 @@ class Specfile(object):
                     self._write_strip("make {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special2))
             else:
                 self._write_strip("{}".format(self.config.make_macro_special2))
+        if self.config.make_append:
+            self._write_strip("## make_append content")
+            for line in self.config.make_append:
+                self._write_strip("{}\n".format(line))
+            self._write_strip("## make_append end")
+        if self.config.config_opts["ccstats"]:
+            self._write_strip("## ccache stats")
+            self._write_strip("ccache -s\n")
+            self._write_strip("## ccache stats")
 
     def write_install_openmpi(self):
         """Write make install line (openmpi) to spec file."""
