@@ -619,9 +619,9 @@ class Specfile(object):
             self._write_strip('export CXXFLAGS="${CXXFLAGS}${CXXFLAGS:+ }-m32 -mstackrealign"')
             self._write_strip('export LDFLAGS="${LDFLAGS}${LDFLAGS:+ }-m32 -mstackrealign"')
         else:
-            self._write_strip('export CFLAGS="-g -O2 -fuse-linker-plugin -pipe"')
-            self._write_strip('export CXXFLAGS="-g -O2 -fuse-linker-plugin -fvisibility-inlines-hidden -pipe"')
-            self._write_strip('export LDFLAGS="-g -O2 -fuse-linker-plugin -pipe"')
+            self._write_strip('export CFLAGS="-g -O2 -ffat-lto-objects -fuse-linker-plugin -pipe"')
+            self._write_strip('export CXXFLAGS="-g -O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe"')
+            self._write_strip('export LDFLAGS="-g -O2 -ffat-lto-objects -fuse-linker-plugin -pipe"')
             self._write_strip("export AR=gcc-ar")
             self._write_strip("export RANLIB=gcc-ranlib")
             self._write_strip("export NM=gcc-nm")
