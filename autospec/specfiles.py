@@ -407,6 +407,11 @@ class Specfile(object):
 
     def write_make_line(self, build32=False, build_type=None):
         """Write make line to spec file."""
+        if self.config.trystatic:
+            self._write_strip("## trystatic content")
+            for line in self.config.trystatic:
+                self._write_strip("{}\n".format(line))
+            self._write_strip("## trystatic end")
         if self.config.make_prepend:
             self._write_strip("## make_prepend content")
             for line in self.config.make_prepend:
@@ -1294,6 +1299,14 @@ class Specfile(object):
             for line in self.config.build_prepend32:
                 self._write_strip("{}\n".format(line))
             self._write_strip("## build_prepend32 end")
+
+    def write_trystatic(self):
+        """Write out trystatic command line."""
+        if self.config.trystatic:
+            self._write_strip("## trystatic content")
+            for line in self.config.trystatic:
+                self._write_strip("{}\n".format(line))
+            self._write_strip("## trystatic end")
 
     def write_make_prepend(self):
         """Write out any custom supplied commands at the start of the meson/scons make section."""
@@ -2352,6 +2365,7 @@ class Specfile(object):
         self.write_proxy_exports()
         self._write_strip("export LANG=C.UTF-8")
         self.write_variables()
+        self.write_trystatic()
         self.write_make_prepend()
         self._write_strip("scons{} {}".format(self.config.parallel_build, self.config.extra_configure))
         self.write_build_append()
@@ -2504,6 +2518,7 @@ class Specfile(object):
             if init:
                 self._write_strip(init)
             self._write_strip("meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure64))
+            self.write_trystatic()
             self.write_make_prepend()
             self._write_strip("ninja -v -C builddir")
             self._write_strip("\n")
@@ -2515,6 +2530,7 @@ class Specfile(object):
             if post:
                 self._write_strip(post)
             self._write_strip("meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure64))
+            self.write_trystatic()
             self.write_make_prepend()
             self._write_strip("ninja -v -C builddir")
             if self.config.subdir:
@@ -2536,6 +2552,7 @@ class Specfile(object):
                 "meson --libdir=lib64/haswell --prefix=/usr --buildtype=plain -Ddefault_library=both {0} "
                 "{1} builddiravx2".format(self.config.extra_configure, self.config.extra_configure64)
             )
+            self.write_trystatic()
             self.write_make_prepend()
             self._write_strip("ninja -v -C builddiravx2")
             if self.config.subdir:
@@ -2546,6 +2563,7 @@ class Specfile(object):
             self.write_32bit_exports()
             self.write_build_append()
             self._write_strip("meson " "--libdir=lib32 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure32))
+            self.write_trystatic()
             self.write_make_prepend()
             self._write_strip("ninja -v -C builddir")
             self._write_strip("popd")
