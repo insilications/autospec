@@ -23,10 +23,13 @@ import os
 import re
 import time
 import types
+import subprocess
+import sys
 from collections import OrderedDict
 
 from util import _file_write
 from util import open_auto
+from util import call, write_out, print_fatal
 
 
 class Specfile(object):
@@ -1033,6 +1036,173 @@ class Specfile(object):
         if post:
             self._write_strip(post)
 
+    def write_make_install_buildtcl_script(self):
+        """Write install section to spec file for buildtcl script builds."""
+        #try:
+            #auto_path_cmd = "tclsh auto_path.tcl"
+            #process = subprocess.run(
+                #auto_path_cmd,
+                #check=True,
+                #shell=True,
+                #stdout=subprocess.PIPE,
+                #text=True,
+                #universal_newlines=True,
+                #cwd=os.getcwd(),
+            #)
+        #except subprocess.CalledProcessError as err:
+            #print_fatal("Unable to get version tclsh auto_path.tcl in {0}: {1}".format(os.getcwd(), err))
+            #sys.exit(1)
+        #outputVersion = process.stdout.rstrip("\n")
+        #prefix_cmd = r"tclsh build.tcl install %{buildroot}"
+        #self._write_strip("{0}{1}\n".format(prefix_cmd, outputVersion))
+        self._write_strip("%install")
+        # time.time() returns a float, but we only need second-precision
+        self._write_strip("export SOURCE_DATE_EPOCH={}".format(int(time.time())))
+        self._write_strip("rm -rf %{buildroot}")
+        self.write_install_prepend()
+        self.write_license_files()
+
+        if self.config.config_opts["32bit"]:
+            if self.config.install_macro_32:
+                self._write_strip("## install_macro_32 start")
+                self._write_strip("pushd ../build32/" + self.config.subdir)
+                self._write_strip("{}\n".format(self.config.install_macro_32))
+                self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
+                self._write_strip("then")
+                self._write_strip("    pushd %{buildroot}/usr/lib32/pkgconfig")
+                self._write_strip("    for i in *.pc ; do ln -s $i 32$i ; done")
+                self._write_strip("    popd")
+                self._write_strip("fi")
+                self._write_strip("popd")
+                self._write_strip("## install_macro_32 end")
+            else:
+                self._write_strip("pushd ../build32/" + self.config.subdir)
+                self._write_strip("%buildtcl_script_install {} {}".format(self.config.extra_make_install, self.config.extra_make32_install))
+                self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
+                self._write_strip("then")
+                self._write_strip("    pushd %{buildroot}/usr/lib32/pkgconfig")
+                self._write_strip("    for i in *.pc ; do ln -s $i 32$i ; done")
+                self._write_strip("    popd")
+                self._write_strip("fi")
+                self._write_strip("popd")
+
+        if self.config.config_opts["build_special"]:
+            if self.config.install_macro_build_special:
+                self.write_install_prepend("special")
+                self._write_strip("## install_macro_build_special start")
+                self._write_strip("pushd ../build-special/" + self.config.subdir)
+                self._write_strip("{}\n".format(self.config.install_macro_build_special))
+                self._write_strip("popd")
+                self._write_strip("## install_macro_build_special end")
+            else:
+                self.write_install_prepend("special")
+                self._write_strip("pushd ../build-special/" + self.config.subdir)
+                self._write_strip("%buildtcl_script_install {}\n".format(self.config.extra_make_install_special))
+                self._write_strip("popd")
+
+        if self.config.config_opts["build_special2"]:
+            if self.config.install_macro_build_special2:
+                self.write_install_prepend("special2")
+                self._write_strip("## install_macro_build_special2 start")
+                self._write_strip("pushd ../build-special2/" + self.config.subdir)
+                self._write_strip("{}\n".format(self.config.install_macro_build_special2))
+                self._write_strip("popd")
+                self._write_strip("## install_macro_build_special2 end")
+            else:
+                self.write_install_prepend("special2")
+                self._write_strip("pushd ../build-special2/" + self.config.subdir)
+                self._write_strip("%buildtcl_script_install {}\n".format(self.config.extra_make_install_special2))
+                self._write_strip("popd")
+
+        if self.config.subdir:
+            self._write_strip("pushd " + self.config.subdir)
+        if self.config.install_macro:
+            self._write_strip("## install_macro start")
+            self._write_strip("{}\n".format(self.config.install_macro))
+            self._write_strip("## install_macro end")
+        else:
+            self._write_strip("%buildtcl_script_install {}\n".format(self.config.extra_make_install))
+
+        if self.config.subdir:
+            self._write_strip("popd")
+        self.write_find_lang()
+
+
+    def write_make_install_buildtcl_configure(self):
+        """Write install section to spec file for buildtcl configure builds."""
+        self._write_strip("%install")
+        # time.time() returns a float, but we only need second-precision
+        self._write_strip("export SOURCE_DATE_EPOCH={}".format(int(time.time())))
+        self._write_strip("rm -rf %{buildroot}")
+        self.write_install_prepend()
+        self.write_license_files()
+
+        if self.config.config_opts["32bit"]:
+            if self.config.install_macro_32:
+                self._write_strip("## install_macro_32 start")
+                self._write_strip("pushd ../build32/" + self.config.subdir)
+                self._write_strip("{}\n".format(self.config.install_macro_32))
+                self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
+                self._write_strip("then")
+                self._write_strip("    pushd %{buildroot}/usr/lib32/pkgconfig")
+                self._write_strip("    for i in *.pc ; do ln -s $i 32$i ; done")
+                self._write_strip("    popd")
+                self._write_strip("fi")
+                self._write_strip("popd")
+                self._write_strip("## install_macro_32 end")
+            else:
+                self._write_strip("pushd ../build32/" + self.config.subdir)
+                self._write_strip("%buildtcl_configure_install {} {}".format(self.config.extra_make_install, self.config.extra_make32_install))
+                self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
+                self._write_strip("then")
+                self._write_strip("    pushd %{buildroot}/usr/lib32/pkgconfig")
+                self._write_strip("    for i in *.pc ; do ln -s $i 32$i ; done")
+                self._write_strip("    popd")
+                self._write_strip("fi")
+                self._write_strip("popd")
+
+        if self.config.config_opts["build_special"]:
+            if self.config.install_macro_build_special:
+                self.write_install_prepend("special")
+                self._write_strip("## install_macro_build_special start")
+                self._write_strip("pushd ../build-special/" + self.config.subdir)
+                self._write_strip("{}\n".format(self.config.install_macro_build_special))
+                self._write_strip("popd")
+                self._write_strip("## install_macro_build_special end")
+            else:
+                self.write_install_prepend("special")
+                self._write_strip("pushd ../build-special/" + self.config.subdir)
+                self._write_strip("%buildtcl_configure_install {}\n".format(self.config.extra_make_install_special))
+                self._write_strip("popd")
+
+        if self.config.config_opts["build_special2"]:
+            if self.config.install_macro_build_special2:
+                self.write_install_prepend("special2")
+                self._write_strip("## install_macro_build_special2 start")
+                self._write_strip("pushd ../build-special2/" + self.config.subdir)
+                self._write_strip("{}\n".format(self.config.install_macro_build_special2))
+                self._write_strip("popd")
+                self._write_strip("## install_macro_build_special2 end")
+            else:
+                self.write_install_prepend("special2")
+                self._write_strip("pushd ../build-special2/" + self.config.subdir)
+                self._write_strip("%buildtcl_configure_install {}\n".format(self.config.extra_make_install_special2))
+                self._write_strip("popd")
+
+        if self.config.subdir:
+            self._write_strip("pushd " + self.config.subdir)
+        if self.config.install_macro:
+            self._write_strip("## install_macro start")
+            self._write_strip("{}\n".format(self.config.install_macro))
+            self._write_strip("## install_macro end")
+        else:
+            self._write_strip("%buildtcl_configure_install {}\n".format(self.config.extra_make_install))
+
+        if self.config.subdir:
+            self._write_strip("popd")
+        self.write_find_lang()
+
+
     def write_make_install(self):
         """Write install section to spec file for make builds."""
         self._write_strip("%install")
@@ -1040,7 +1210,6 @@ class Specfile(object):
         self._write_strip("export SOURCE_DATE_EPOCH={}".format(int(time.time())))
         self._write_strip("rm -rf %{buildroot}")
         self.write_install_prepend()
-
         self.write_license_files()
 
         if self.config.config_opts["32bit"]:
@@ -1142,7 +1311,6 @@ class Specfile(object):
 
         if self.config.subdir:
             self._write_strip("popd")
-
         self.write_find_lang()
 
     def write_mvnbin_install(self):
@@ -1580,6 +1748,127 @@ class Specfile(object):
         units = self.get_systemd_units()
         for unit in units:
             self._write("systemctl --root=%{{buildroot}} enable {0}\n".format(os.path.basename(unit)))
+
+    def write_buildtcl_script_pattern(self):
+        """Write tcl build pattern to spec file."""
+        self.write_prep()
+        self.write_lang_c(export_epoch=True)
+        self.write_variables()
+        if self.config.configure_macro:
+            if self.config.subdir:
+                self._write_strip("pushd {}".format(self.config.subdir))
+            self._write_strip("{} ".format(self.config.configure_macro))
+            self.write_make_line()
+            if self.config.subdir:
+                self._write_strip("popd")
+            self._write_strip("\n")
+        else:
+            if self.config.subdir:
+                self._write_strip("pushd {}".format(self.config.subdir))
+            self._write_strip("tclsh build.tcl {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
+            self.write_make_line()
+            if self.config.subdir:
+                self._write_strip("popd")
+            self._write_strip("\n")
+
+        if self.config.config_opts["build_special"]:
+            self._write_strip("pushd ../build-special/" + self.config.subdir)
+            self.write_build_prepend()
+            self.write_variables()
+            self._write_strip("tclsh build.tcl {0}".format(self.config.extra_configure_special))
+            self.write_make_line(False, "special")
+            self._write_strip("popd")
+
+        if self.config.config_opts["build_special2"]:
+            self._write_strip("pushd ../build-special2/" + self.config.subdir)
+            self.write_build_prepend()
+            self.write_variables()
+            self.write_profile_payload("configure", "special2")
+            self._write_strip("tclsh build.tcl {0}".format(self.config.extra_configure_special2))
+            self.write_make_line(False, "special2")
+            self._write_strip("popd")
+
+        if self.config.config_opts["32bit"]:
+            if self.config.configure_macro_32:
+                self._write_strip("pushd ../build32/" + self.config.subdir)
+                self.write_build_prepend32()
+                self.write_32bit_exports()
+                self.write_build_append()
+                self._write_strip("{} ".format(self.config.configure_macro_32))
+                self.write_make_line(True)
+                self._write_strip("popd")
+            else:
+                self._write_strip("pushd ../build32/" + self.config.subdir)
+                self.write_build_prepend()
+                self.write_32bit_exports()
+                self.write_build_append()
+                self._write_strip("tclsh build.tcl {0} {1}".format(self.config.extra_configure, self.config.extra_configure32))
+                self.write_make_line(True)
+                self._write_strip("popd")
+        self._write_strip("\n")
+        self.write_check()
+        self.write_make_install_buildtcl_script()
+
+    def write_buildtcl_configure_pattern(self):
+        """Write configure build tcl configure pattern to spec file."""
+        self.write_prep()
+        self.write_lang_c(export_epoch=True)
+        self.write_variables()
+        if self.config.configure_macro:
+            if self.config.subdir:
+                self._write_strip("pushd {}".format(self.config.subdir))
+            self._write_strip("{} ".format(self.config.configure_macro))
+            self.write_make_line()
+            if self.config.subdir:
+                self._write_strip("popd")
+            self._write_strip("\n")
+        else:
+            if self.config.subdir:
+                self._write_strip("pushd {}".format(self.config.subdir))
+            self._write_strip("%configure_buildtcl {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
+            self.write_make_line()
+            if self.config.subdir:
+                self._write_strip("popd")
+            self._write_strip("\n")
+
+        if self.config.config_opts["build_special"]:
+            self._write_strip("pushd ../build-special/" + self.config.subdir)
+            self.write_build_prepend()
+            self.write_variables()
+            self.write_profile_payload("configure", "special")
+            self._write_strip("%configure_buildtcl {0}".format(self.config.extra_configure_special))
+            self.write_make_line(False, "special")
+            self._write_strip("popd")
+
+        if self.config.config_opts["build_special2"]:
+            self._write_strip("pushd ../build-special2/" + self.config.subdir)
+            self.write_build_prepend()
+            self.write_variables()
+            self.write_profile_payload("configure", "special2")
+            self._write_strip("%configure_buildtcl {0}".format(self.config.extra_configure_special2))
+            self.write_make_line(False, "special2")
+            self._write_strip("popd")
+
+        if self.config.config_opts["32bit"]:
+            if self.config.configure_macro_32:
+                self._write_strip("pushd ../build32/" + self.config.subdir)
+                self.write_build_prepend32()
+                self.write_32bit_exports()
+                self.write_build_append()
+                self._write_strip("{} ".format(self.config.configure_macro_32))
+                self.write_make_line(True)
+                self._write_strip("popd")
+            else:
+                self._write_strip("pushd ../build32/" + self.config.subdir)
+                self.write_build_prepend()
+                self.write_32bit_exports()
+                self.write_build_append()
+                self._write_strip("%configure_buildtcl {0} {1}".format(self.config.extra_configure, self.config.extra_configure32))
+                self.write_make_line(True)
+                self._write_strip("popd")
+        self._write_strip("\n")
+        self.write_check()
+        self.write_make_install_buildtcl_configure()
 
     def write_configure_pattern(self):
         """Write configure build pattern to spec file."""

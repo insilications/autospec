@@ -526,6 +526,11 @@ class Requirements(object):
             self.add_buildreq("rubygem-rdoc")
         if config.default_pattern == "cargo":
             self.add_buildreq("rustc")
+            self.add_buildreq("rustc-dev")
+            self.add_buildreq("rustc-staticdev")
+            self.add_buildreq("rustc-bin")
+            self.add_buildreq("rustc-data")
+
 
     def rakefile(self, filename, gems):
         """Scan Rakefile for build requirements."""
@@ -891,6 +896,9 @@ class Requirements(object):
                 if (name.lower() == "cmakelists.txt" or name.endswith(".cmake")) \
                    and config.default_pattern == "cmake":
                     self.parse_cmake(os.path.join(dirpath, name), config.cmake_modules, config.config_opts.get('32bit'))
+
+            if "build.tcl" in files:
+                config.set_build_pattern("buildtcl_script", default_score)
 
         can_reconf = os.path.exists(os.path.join(dirn, "configure.ac"))
         if not can_reconf:
