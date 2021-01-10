@@ -214,6 +214,8 @@ def commit_to_git(config, name, success):
     call("git add attrs", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add altflags1", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add altflags_pgo", check=False, stderr=subprocess.DEVNULL, cwd=path)
+    call("git add altflags1_32", check=False, stderr=subprocess.DEVNULL, cwd=path)
+    call("git add altflags_pgo_32", check=False, stderr=subprocess.DEVNULL, cwd=path)
 
     # remove deprecated config files
     call("git rm make_install_append", check=False, stderr=subprocess.DEVNULL, cwd=path)

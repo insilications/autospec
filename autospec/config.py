@@ -85,15 +85,16 @@ class Config(object):
         self.extra_make_special = ""
         self.extra_make_special2 = ""
         self.extra_make_install = ""
+        self.extra_make32_install = ""
         self.extra_make_install_special = ""
         self.extra_make_install_special2 = ""
-        self.extra_make32_install = ""
         self.extra_cmake = ""
         self.extra_cmake_64 = ""
         self.extra_cmake_32 = ""
         self.extra_cmake_special = ""
         self.extra_cmake_special2 = ""
         self.cmake_macro = ""
+        self.cmake_macro_32 = ""
         self.cmake_macro_special = ""
         self.extra_cmake_openmpi = ""
         self.cmake_srcdir = ".."
@@ -114,7 +115,9 @@ class Config(object):
         self.custom_clean_pgo = ""
         self.disable_static = "--disable-static"
         self.altflags1 = []
+        self.altflags1_32 = []
         self.altflags_pgo = []
+        self.altflags_pgo_32 = []
         self.prep_prepend = []
         self.build_prepend = []
         self.build_prepend32 = []
@@ -218,7 +221,9 @@ class Config(object):
             "openmpi": "configure build also for openmpi",
             "ccstats": "show ccache stats after compile",
             "fsalt1": "alternative flags",
+            "fsalt1_32": "alternative 32bits flags",
             "altflags_pgo": "alternative pgo flags",
+            "altflags_pgo_32": "alternative pgo 32bits flags",
             "nomissingbuildids": "ignore missing build ids",
             "noautoreq": "disable automatic requeriments processing",
             "noautoprov": "disable automatic provides processing",
@@ -227,6 +232,7 @@ class Config(object):
             "build_special2": "configure build with special options 2",
             "disable_maintainer": "disable maintainer mode for autotools",
             "use_ninja": "use ninja instead of makefiles",
+            "32bit_only": "build 32 bit libraries only",
         }
         # simple_pattern_pkgconfig patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -530,15 +536,24 @@ class Config(object):
 
         # default alternative flags for new things
         config_f["autospec"]["fsalt1"] = "true"
-        
+
+        # default alternative flags for new things
+        config_f["autospec"]["fsalt1_32"] = "true"
+
+        # default alternative flags for build 32bits only
+        config_f["autospec"]["32bit_only"] = "false"
+
         # default alternative flags for show ccache stats after compile
-        config_f["autospec"]["ccstats"] = "true"
+        config_f["autospec"]["ccstats"] = "false"
 
         # don't use ninja by default
         config_f["autospec"]["use_ninja"] = "false"
 
         # default alternative pgo flags for new things
         config_f["autospec"]["altflags_pgo"] = "false"
+
+        # default alternative pgo flags for new things
+        config_f["autospec"]["altflags_pgo_32"] = "false"
 
         # default 32bits for new things
         config_f["autospec"]["32bit"] = "false"
@@ -1035,6 +1050,10 @@ class Config(object):
         if content:
             self.extra_make_install = " \\\n".join(content)
 
+        content = self.read_conf_file(os.path.join(self.download_path, "make_install_args_32"))
+        if content:
+            self.extra_make_install_32 = " \\\n".join(content)
+
         content = self.read_conf_file(os.path.join(self.download_path, "make_install_args_special"))
         if content:
             self.extra_make_install_special = " \\\n".join(content)
@@ -1123,6 +1142,10 @@ class Config(object):
         if content and content[0]:
             self.cmake_macro = "\n".join(content)
 
+        content = self.read_conf_file(os.path.join(self.download_path, "cmake_macro_32"))
+        if content and content[0]:
+            self.cmake_macro_32 = "\n".join(content)
+
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_macro_special"))
         if content and content[0]:
             self.cmake_macro_special = "\n".join(content)
@@ -1183,7 +1206,9 @@ class Config(object):
             requirements.add_buildreq("openssh")
 
         self.altflags1 = self.read_script_file(os.path.join(self.download_path, "altflags1"))
+        self.altflags1_32 = self.read_script_file(os.path.join(self.download_path, "altflags1_32"))
         self.altflags_pgo = self.read_script_file(os.path.join(self.download_path, "altflags_pgo"))
+        self.altflags_pgo_32 = self.read_script_file(os.path.join(self.download_path, "altflags_pgo_32"))
         self.prep_prepend = self.read_script_file(os.path.join(self.download_path, "prep_prepend"))
         if os.path.isfile(os.path.join(self.download_path, "prep_append")):
             os.rename(os.path.join(self.download_path, "prep_append"), os.path.join(self.download_path, "build_prepend"))
