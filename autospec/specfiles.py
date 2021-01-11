@@ -2764,7 +2764,7 @@ class Specfile(object):
             self._write_strip("meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure64))
             self.write_trystatic()
             self.write_make_prepend()
-            self._write_strip("ninja -v -C builddir")
+            self._write_strip("ninja %{?_smp_mflags} -v -C builddir")
             self._write_strip("\n")
             self._write_strip("\n".join(self.config.profile_payload))
             if self.config.custom_clean_pgo:
@@ -2776,7 +2776,7 @@ class Specfile(object):
             self._write_strip("meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure64))
             self.write_trystatic()
             self.write_make_prepend()
-            self._write_strip("ninja -v -C builddir")
+            self._write_strip("ninja %{?_smp_mflags} -v -C builddir")
             if self.config.subdir:
                 self._write_strip("popd")
         else:
@@ -2786,7 +2786,7 @@ class Specfile(object):
                 )
             )
             self.write_make_prepend()
-            self._write_strip("ninja -v -C builddir")
+            self._write_strip("ninja %{?_smp_mflags} -v -C builddir")
             if self.config.subdir:
                 self._write_strip("popd")
 
@@ -2798,18 +2798,18 @@ class Specfile(object):
             )
             self.write_trystatic()
             self.write_make_prepend()
-            self._write_strip("ninja -v -C builddiravx2")
+            self._write_strip("ninja %{?_smp_mflags} -v -C builddiravx2")
             if self.config.subdir:
                 self._write_strip("popd")
         if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
             self.write_build_prepend32()
             self.write_32bit_exports()
-            self.write_build_append()
-            self._write_strip("meson " "--libdir=lib32 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure32))
+            #self.write_build_append()
+            self._write_strip("meson --libdir=lib32 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir".format(self.config.extra_configure, self.config.extra_configure32))
             self.write_trystatic()
-            self.write_make_prepend()
-            self._write_strip("ninja -v -C builddir")
+            #self.write_make_prepend()
+            self._write_strip("ninja %{?_smp_mflags} -v -C builddir")
             self._write_strip("popd")
 
         self.write_build_append()
