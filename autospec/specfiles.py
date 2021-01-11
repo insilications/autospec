@@ -309,8 +309,11 @@ class Specfile(object):
             if pkg in ("dev", "perl", "tests"):
                 self._write("Requires: {} = %{{version}}-%{{release}}\n".format(self.name))
 
-            if pkg in ("staticdev", "staticdev32"):
+            if pkg in ("staticdev"):
                 self._write("Requires: {}-dev = %{{version}}-%{{release}}\n".format(self.name))
+
+            if pkg in ("staticdev32"):
+                self._write("Requires: {}-dev32 = %{{version}}-%{{release}}\n".format(self.name))
 
             if pkg == "python":
                 if self.name != self.name.lower():
@@ -603,9 +606,6 @@ class Specfile(object):
                 for line in self.config.altflags1_32:
                     self._write_strip("{}\n".format(line))
                 self._write_strip("## altflags1_32 end")
-                self._write_strip("##")
-                self._write_strip("%global _lto_cflags 1")
-                self._write_strip("##")
         else:
             if self.config.config_opts["use_clang"]:
                 self._write_strip("export CC=clang")
@@ -617,9 +617,9 @@ class Specfile(object):
                 self._write_strip('export CXXFLAGS="${CXXFLAGS}${CXXFLAGS:+ }-m32 -mstackrealign"')
                 self._write_strip('export LDFLAGS="${LDFLAGS}${LDFLAGS:+ }-m32 -mstackrealign"')
             else:
-                self._write_strip('export CFLAGS="-g -O2 -ffat-lto-objects -fuse-linker-plugin -pipe"')
-                self._write_strip('export CXXFLAGS="-g -O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe"')
-                self._write_strip('export LDFLAGS="-g -O2 -ffat-lto-objects -fuse-linker-plugin -pipe"')
+                self._write_strip('export CFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -fPIC -m32 -mstackrealign -march=native -mtune=native"')
+                self._write_strip('export CXXFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -fPIC -m32 -mstackrealign -march=native -mtune=native"')
+                self._write_strip('export LDFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -fPIC -m32 -mstackrealign -march=native -mtune=native"')
                 self._write_strip("export AR=gcc-ar")
                 self._write_strip("export RANLIB=gcc-ranlib")
                 self._write_strip("export NM=gcc-nm")
@@ -757,8 +757,6 @@ class Specfile(object):
             self._write_strip('export FFLAGS_USE="$FFLAGS {0} "\n'.format(" ".join(useflags)))
             self._write_strip('export CXXFLAGS_USE="$CXXFLAGS {0} "\n'.format(" ".join(useflags)))
             self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
-            self._write_strip("##")
-            self._write_strip("%global _lto_cflags 1")
             self._write_strip("##")
 
         if self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"]:
@@ -918,9 +916,6 @@ class Specfile(object):
                     self._write("-std=gnu++98")
                 # close the open quote from CXXFLAGS export and add newline
                 self._write('"\n')
-                self._write_strip("##")
-                self._write_strip("%global _lto_cflags 1")
-                self._write_strip("##")
         if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"]:
             genflags = []
             useflags = []
@@ -933,9 +928,6 @@ class Specfile(object):
                 for line in self.config.altflags_pgo:
                     self._write_strip("{}\n".format(line))
                 self._write_strip("## altflags_pgo end")
-                self._write_strip("##")
-                self._write_strip("%global _lto_cflags 1")
-                self._write_strip("##")
             else:
                 self._write_strip("## altflags_pgo content")
                 self._write_strip("## pgo generate")
@@ -951,9 +943,6 @@ class Specfile(object):
                 self._write_strip('export CXXFLAGS_USE="$CXXFLAGS {0} "\n'.format(" ".join(useflags)))
                 self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
                 self._write_strip("## altflags_pgo end")
-                self._write_strip("##")
-                self._write_strip("%global _lto_cflags 1")
-                self._write_strip("##")
 
     def write_check(self):
         """Write check section to spec file."""
