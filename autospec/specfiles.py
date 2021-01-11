@@ -1892,13 +1892,7 @@ class Specfile(object):
                 self.write_build_prepend()
                 self.write_32bit_exports()
                 self.write_build_append()
-                self._write_strip(
-                    "%configure {0} {1}"
-                    " --libdir=/usr/lib32 "
-                    "--build=i686-generic-linux-gnu "
-                    "--host=i686-generic-linux-gnu "
-                    "--target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32)
-                )
+                self._write_strip("%configure {0} {1} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32))
                 self.write_make_line(True)
                 self._write_strip("popd")
 
@@ -2000,13 +1994,7 @@ class Specfile(object):
             self.write_build_append()
             if self.config.config_opts["disable_maintainer"]:
                 self._write_strip(r"sd --flags mi '^AC_INIT\((.*\n.*\)|.*\))' '$0\nAM_MAINTAINER_MODE([disable])' configure.ac")
-            self._write_strip(
-                "%reconfigure {0} {1} "
-                "--libdir=/usr/lib32 "
-                "--build=i686-generic-linux-gnu "
-                "--host=i686-generic-linux-gnu "
-                "--target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32)
-            )
+            self._write_strip("%reconfigure {0} {1} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32))
             self.write_make_line(True)
             self._write_strip("popd")
 
@@ -2118,13 +2106,7 @@ class Specfile(object):
             self.write_build_prepend32()
             self.write_32bit_exports()
             self.write_build_append()
-            self._write_strip(
-                "%autogen {0} {1} {2} "
-                "--libdir=/usr/lib32 "
-                "--build=i686-generic-linux-gnu "
-                "--host=i686-generic-linux-gnu "
-                "--target=i686-clr-linux-gnu".format(self.config.disable_static, self.config.extra_configure, self.config.extra_configure32)
-            )
+            self._write_strip("%autogen {0} {1} {2} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu".format(self.config.disable_static, self.config.extra_configure, self.config.extra_configure32))
             self.write_make_line(True)
             self._write_strip("popd")
 
