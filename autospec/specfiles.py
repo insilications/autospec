@@ -285,6 +285,17 @@ class Specfile(object):
         if ("python3" in self.packages) and ("python" not in self.packages):
             self.packages["python"] = set()
 
+        dev_pkg_exists = False
+        if ("dev" in self.packages):
+            dev_pkg_exists = True
+
+        dev32_pkg_exists = False
+        if ("dev32" in self.packages):
+            dev32_pkg_exists = True
+
+        #print(f"dev_pkg_exists: {dev_pkg_exists}")
+        #print(f"dev32_pkg_exists: {dev32_pkg_exists}")
+
         provides = {}
         provides["dev"] = ["devel"]
 
@@ -309,11 +320,13 @@ class Specfile(object):
             if pkg in ("dev", "perl", "tests"):
                 self._write("Requires: {} = %{{version}}-%{{release}}\n".format(self.name))
 
-            if pkg in ("staticdev"):
-                self._write("Requires: {}-dev = %{{version}}-%{{release}}\n".format(self.name))
+            if pkg == "staticdev":
+                if dev_pkg_exists is True:
+                    self._write("Requires: {}-dev = %{{version}}-%{{release}}\n".format(self.name))
 
-            if pkg in ("staticdev32"):
-                self._write("Requires: {}-dev32 = %{{version}}-%{{release}}\n".format(self.name))
+            if pkg == "staticdev32":
+                if dev32_pkg_exists is True:
+                    self._write("Requires: {}-dev32 = %{{version}}-%{{release}}\n".format(self.name))
 
             if pkg == "python":
                 if self.name != self.name.lower():
