@@ -29,7 +29,7 @@ from collections import OrderedDict
 
 import check
 import license
-from util import call, print_warning, write_out
+from util import call, print_warning, print_fatal, write_out
 from util import open_auto
 
 
@@ -631,6 +631,14 @@ class Config(object):
         config_f.read(opts_path)
         if "autospec" not in config_f.sections():
             print("Missing autospec section in options.conf")
+            sys.exit(1)
+
+        if config_f["autospec"].get("altflags_pgo") == "true" and config_f["autospec"].get("fsalt1") == "true":
+            print_fatal("altflags_pgo and fsalt1 options cannot both be set to true")
+            sys.exit(1)
+
+        if config_f["autospec"].get("altflags_pgo_32") == "true" and config_f["autospec"].get("fsalt1_32") == "true":
+            print_fatal("altflags_pgo_32 and fsalt1_32 options cannot both be set to true")
             sys.exit(1)
 
         if "package" in config_f.sections() and config_f["package"].get("alias"):
