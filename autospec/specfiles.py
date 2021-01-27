@@ -2547,7 +2547,12 @@ class Specfile(object):
             self.write_proxy_exports()
             self._write_strip('RUSTFLAGS="-C target-cpu=native"')
             self._write_strip("export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt")
-            self._write_strip("cargo update --verbose")
+            if self.config.make_macro:
+                self._write_strip("## make_macro start")
+                self._write_strip("{}".format(self.config.make_macro))
+                self._write_strip("## make_macro end")
+            else:
+                self._write_strip("cargo update --verbose")
             # self._write_strip('RUSTFLAGS="-C target-cpu=native"')
             # self._write_strip("cargo build --no-track --all-features --release")
             self.write_build_append()
@@ -2555,9 +2560,14 @@ class Specfile(object):
             self._write_strip("%install")
             self.write_install_prepend()
             if self.requirements.cargo_bin:
-                self._write_strip('RUSTFLAGS="-C target-cpu=native"')
-                self._write_strip("export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt")
-                self._write_strip('RUSTFLAGS="-C target-cpu=native" cargo install --verbose --no-track --path . --root %{{buildroot}}/usr/ {}'.format(self.config.extra_configure))
+                if self.config.install_macro:
+                    self._write_strip("## install_macro start")
+                    self._write_strip("{}\n".format(self.config.install_macro))
+                    self._write_strip("## install_macro end")
+                else:
+                    self._write_strip('RUSTFLAGS="-C target-cpu=native"')
+                    self._write_strip("export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt")
+                    self._write_strip('RUSTFLAGS="-C target-cpu=native" cargo install --verbose --no-track --path . --root %{{buildroot}}/usr/ {}'.format(self.config.extra_configure))
         else:
             self.write_prep()
             src_dir = "/usr/share/rust/src/{0}".format(self.name)
