@@ -214,7 +214,7 @@ class FileManager(object):
                 self.push_package_file("%exclude " + filename, "services")
                 return
 
-        if self.want_dev_split and self.file_pat_match(filename, r"^/usr/.*/include/.*\.h$", "dev"):
+        if self.want_dev_split and self.file_pat_match(filename, r"^/usr/.*/include/.*\.(h|hpp)$", "dev"):
             return
 
         # if configured to do so, add .so files to the lib package instead of
