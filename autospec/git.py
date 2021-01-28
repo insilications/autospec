@@ -51,15 +51,15 @@ def clone_and_git_archive_all(path, name, url, branch, force_module, force_fullc
                 print("Teste: git clone -j8 --branch={}".format(cmd_args))
                 call(f"git clone -j8 --branch={cmd_args}", cwd=path)
             else:
-                print("Teste: git clone --depth 1 --no-single-branch -j8 --branch={}".format(cmd_args))
-                call(f"git clone --depth 1 --no-single-branch -j8 --branch={cmd_args}", cwd=path)
+                print("Teste: git clone --single-branch -j8 --branch={}".format(cmd_args))
+                call(f"git clone --single-branch -j8 --branch={cmd_args}", cwd=path)
         else:
             if force_fullclone is True:
                 print("Teste: git clone --recurse-submodules -j8 --branch={}".format(cmd_args))
                 call(f"git clone --recurse-submodules -j8 --branch={cmd_args}", cwd=path)
             else:
-                print("Teste: git clone --depth 1 --no-single-branch --shallow-submodules --recurse-submodules -j8 --branch={}".format(cmd_args))
-                call(f"git clone --depth 1 --no-single-branch --shallow-submodules --recurse-submodules -j8 --branch={cmd_args}", cwd=path)
+                print("Teste: git clone --single-branch --shallow-submodules --recurse-submodules -j8 --branch={}".format(cmd_args))
+                call(f"git clone --single-branch --shallow-submodules --recurse-submodules -j8 --branch={cmd_args}", cwd=path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
             remove_clone_archive(path, clone_path, is_fatal)
