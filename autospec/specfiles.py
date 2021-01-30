@@ -929,7 +929,7 @@ class Specfile(object):
                     self._write("-std=gnu++98")
                 # close the open quote from CXXFLAGS export and add newline
                 self._write('"\n')
-        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"]:
+        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
             genflags = []
             useflags = []
             genflags.extend(
@@ -977,7 +977,7 @@ class Specfile(object):
 
     def write_profile_payload(self, pattern=None, build_type=None):
         """Write the profile_payload specified for this package."""
-        if not self.config.profile_payload and self.config.profile_payload[0]:
+        if not self.config.profile_payload and not self.config.config_opts["altflags_pgo"] and self.config.config_opts["fsalt1"]:
             return
         use_subdir = True
         init = ""
@@ -1678,7 +1678,7 @@ class Specfile(object):
 
         otherwise an empty string is returned.
         """
-        if self.config.profile_payload and self.config.profile_payload[0]:
+        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
             return (
                 'export CFLAGS="${CFLAGS_GENERATE}"\n'
                 'export CXXFLAGS="${CXXFLAGS_GENERATE}"\n'
@@ -1700,7 +1700,7 @@ class Specfile(object):
 
         otherwise an empty string is returned.
         """
-        if self.config.profile_payload and self.config.profile_payload[0]:
+        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
             return 'export CFLAGS="${CFLAGS_USE}"\n' 'export CXXFLAGS="${CXXFLAGS_USE}"\n' 'export FFLAGS="${FFLAGS_USE}"\n' 'export FCFLAGS="${FCFLAGS_USE}"\n' 'export LDFLAGS="${LDFLAGS_USE}"\n'
         return ""
 
@@ -2111,7 +2111,7 @@ class Specfile(object):
         if self.config.config_opts["disable_maintainer"]:
             self._write_strip(r"sd --flags mi '^AC_INIT\((.*\n.*\)|.*\))' '$0\nAM_MAINTAINER_MODE([disable])' configure.ac")
         self.write_profile_payload("autogen")
-        if not self.config.profile_payload and self.config.profile_payload[0]:
+        if not self.config.profile_payload and not self.config.config_opts["altflags_pgo"] and self.config.config_opts["fsalt1"]:
             self._write_strip("%autogen {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
             self.write_make_line()
             self._write_strip("\n")
@@ -2368,7 +2368,7 @@ class Specfile(object):
                     self._write_strip("{}".format(self.config.cmake_macro))
                 else:
                     self._write_strip("%cmake {} {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_64))
-                self.write_profile_payload("cmake")
+                #self.write_profile_payload("cmake")
                 self.write_make_line()
                 self._write_strip("popd")
 
@@ -2410,7 +2410,7 @@ class Specfile(object):
                         self._write_strip("{}".format(self.config.cmake_macro_special))
                     else:
                         self._write_strip("%cmake {} {}".format(self.config.cmake_srcdir, self.extra_cmake_special))
-                    self.write_profile_payload("cmake")
+                    #self.write_profile_payload("cmake")
                     self.write_make_line()
                     self._write_strip("popd")
 
