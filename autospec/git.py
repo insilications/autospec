@@ -193,6 +193,7 @@ def commit_to_git(config, name, success):
     call("git add configure", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add configure32", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add configure64", check=False, stderr=subprocess.DEVNULL, cwd=path)
+    call("git add configure64_pgo", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add configure_avx2", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add configure_avx512", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add make_check_command", check=False, stderr=subprocess.DEVNULL, cwd=path)

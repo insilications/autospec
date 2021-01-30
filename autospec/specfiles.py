@@ -977,7 +977,7 @@ class Specfile(object):
 
     def write_profile_payload(self, pattern=None, build_type=None):
         """Write the profile_payload specified for this package."""
-        if not self.config.profile_payload:
+        if not self.config.profile_payload and self.config.profile_payload[0]:
             return
         use_subdir = True
         init = ""
@@ -2111,9 +2111,14 @@ class Specfile(object):
         if self.config.config_opts["disable_maintainer"]:
             self._write_strip(r"sd --flags mi '^AC_INIT\((.*\n.*\)|.*\))' '$0\nAM_MAINTAINER_MODE([disable])' configure.ac")
         self.write_profile_payload("autogen")
-        self._write_strip("{0}%autogen {1} {2} {3}".format(self.get_profile_use_flags(), self.config.disable_static, self.config.extra_configure, self.config.extra_configure64))
-        self.write_make_line()
-        self._write_strip("\n")
+        if not self.config.profile_payload and self.config.profile_payload[0]:
+            self._write_strip("%autogen {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
+            self.write_make_line()
+            self._write_strip("\n")
+        else:
+            self._write_strip("{0}%autogen {1} {2}".format(self.get_profile_use_flags(), self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
+            self.write_make_line()
+            self._write_strip("\n")
         if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
             self.write_build_prepend32()

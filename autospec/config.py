@@ -70,8 +70,10 @@ class Config(object):
         """Initialize Default configuration settings."""
         self.content = None  # hack to avoid circular init dependency
         self.extra_configure = ""
+        self.extra_configure_pgo = ""
         self.extra_configure32 = ""
         self.extra_configure64 = ""
+        self.extra_configure64_pgo = ""
         self.extra_configure_special = ""
         self.extra_configure_special2 = ""
         self.extra_configure_avx2 = ""
@@ -1008,11 +1010,17 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "configure"))
         self.extra_configure = " \\\n".join(content)
 
+        content = self.read_conf_file(os.path.join(self.download_path, "configure_pgo"))
+        self.extra_configure_pgo = " \\\n".join(content)
+
         content = self.read_conf_file(os.path.join(self.download_path, "configure32"))
         self.extra_configure32 = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure64"))
         self.extra_configure64 = " \\\n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "configure64_pgo"))
+        self.extra_configure64_pgo = " \\\n".join(content)
 
         content = self.read_conf_file(os.path.join(self.download_path, "configure_special"))
         self.extra_configure_special = " \\\n".join(content)
