@@ -142,8 +142,11 @@ class Config(object):
         self.custom_bashrc_file = ""
         self.disable_static = "--disable-static"
         self.altflags1 = []
+        self.altflags1f = []
         self.altflags1_32 = []
+        self.altflags1_32f = []
         self.altflags_pgo = []
+        self.altflags_pgof = []
         self.altflags_pgo_32 = []
         self.prep_prepend = []
         self.build_prepend = []
@@ -775,7 +778,7 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, fname))
         for pkg in content:
             if req_type == "add":
-                requirements.add_requires(pkg, self.os_packages, override=True, subpkg=subpkg)
+                requirements.add_requires(pkg, self.os_packages, override=True, subpkg=subpkg, cache=False)
             else:
                 requirements.ban_requires(pkg, subpkg=subpkg)
 
@@ -1046,42 +1049,42 @@ class Config(object):
 
         content = self.read_conf_file(os.path.join(self.download_path, "buildreq_ban"))
         for banned in content:
-            print("Banning build requirement: %s" % banned)
+            print(f"Banning build requirement: {banned}")
             requirements.banned_buildreqs.add(banned)
             requirements.buildreqs.discard(banned)
             requirements.buildreqs_cache.discard(banned)
 
         content = self.read_conf_file(os.path.join(self.download_path, "pkgconfig_ban"))
         for banned in content:
-            banned = "pkgconfig(%s)" % banned
-            print("Banning build requirement: %s" % banned)
+            banned = f"pkgconfig({banned})"
+            print(f"Banning build requirement: {banned}")
             requirements.banned_buildreqs.add(banned)
             requirements.buildreqs.discard(banned)
             requirements.buildreqs_cache.discard(banned)
 
         content = self.read_conf_file(os.path.join(self.download_path, "buildreq_add"))
         for extra in content:
-            print("Adding additional build (buildreq) requirement: %s" % extra)
+            print(f"Adding additional build (buildreq) requirement: {extra}")
             requirements.add_buildreq(extra)
 
-        cache_file = os.path.join(self.download_path, "buildreq_cache")
-        content = self.read_conf_file(cache_file)
-        if content and content[0] == version:
-            for extra in content[1:]:
-                print("Adding additional build (cache) requirement: %s" % extra)
-                requirements.add_buildreq(extra)
-        else:
-            try:
-                os.unlink(cache_file)
-            except FileNotFoundError:
-                pass
-            except Exception as e:
-                print_warning(f"Unable to remove buildreq_cache file: {e}")
+        #cache_file = os.path.join(self.download_path, "buildreq_cache")
+        #content = self.read_conf_file(cache_file)
+        #if content and content[0] == version:
+            #for extra in content[1:]:
+                #print("Adding additional build (cache) requirement: %s" % extra)
+                #requirements.add_buildreq(extra)
+        #else:
+            #try:
+                #os.unlink(cache_file)
+            #except FileNotFoundError:
+                #pass
+            #except Exception as e:
+                #print_warning(f"Unable to remove buildreq_cache file: {e}")
 
         content = self.read_conf_file(os.path.join(self.download_path, "pkgconfig_add"))
         for extra in content:
-            extra = "pkgconfig(%s)" % extra
-            print("Adding additional build (pkgconfig) requirement: %s" % extra)
+            extra = f"pkgconfig({extra})"
+            print(f"Adding additional build (pkgconfig) requirement: {extra}")
             requirements.add_buildreq(extra)
 
         # Handle dynamic configuration files (per subpackage)
@@ -1380,7 +1383,6 @@ class Config(object):
 
         if self.config_opts["32bit"]:
             requirements.add_buildreq("gcc")
-            requirements.add_buildreq("gcc-abi")
             requirements.add_buildreq("gcc-dev")
             requirements.add_buildreq("gcc-dev32")
             requirements.add_buildreq("gcc-doc")
@@ -1399,8 +1401,11 @@ class Config(object):
             requirements.add_buildreq("openssh")
 
         self.altflags1 = self.read_script_file(os.path.join(self.download_path, "altflags1"))
+        self.altflags1f = self.read_script_file(os.path.join(self.download_path, "altflags1f"))
         self.altflags1_32 = self.read_script_file(os.path.join(self.download_path, "altflags1_32"))
+        self.altflags1_32f = self.read_script_file(os.path.join(self.download_path, "altflags1_32f"))
         self.altflags_pgo = self.read_script_file(os.path.join(self.download_path, "altflags_pgo"))
+        self.altflags_pgof = self.read_script_file(os.path.join(self.download_path, "altflags_pgof"))
         self.altflags_pgo_32 = self.read_script_file(os.path.join(self.download_path, "altflags_pgo_32"))
         self.prep_prepend = self.read_script_file(os.path.join(self.download_path, "prep_prepend"))
         if os.path.isfile(os.path.join(self.download_path, "prep_append")):

@@ -62,7 +62,7 @@ def get_output(cmd):
 
 def get_soname(path):
     """Use objdump to find the SONAME of a file."""
-    cmd = "objdump -p \"{}\"|grep SONAME".format(path)
+    cmd = 'objdump -p "{}"|grep SONAME'.format(path)
     try:
         line = get_output(cmd)
         if "SONAME" not in line:
@@ -121,7 +121,7 @@ def get_all_dependencies(path):
 
 def get_file_magic(path):
     """Return the 'magic' for a given path."""
-    cmd = "file \"{}\"".format(path)
+    cmd = 'file "{}"'.format(path)
     try:
         line = get_output(cmd).split("\n")[0]
         return line.strip()
@@ -155,7 +155,7 @@ def is_file_valid(path):
 
 def dump_symbols(path):
     """Get symbols from a file."""
-    cmd = "nm --defined-only -g --dynamic \"{}\"".format(path)
+    cmd = 'nm --defined-only -g --dynamic "{}"'.format(path)
     lines = None
 
     ret = set()
@@ -232,8 +232,7 @@ def examine_abi_host(download_path, results_dir, name):
         sys.exit(1)
 
     try:
-        util.call("abireport scan-packages {}".format(" ".join(rpms)),
-                  cwd=download_path)
+        util.call("abireport scan-packages {}".format(" ".join(rpms)), cwd=download_path)
     except Exception as e:
         util.print_fatal("Error invoking abireport: {}".format(e))
 
@@ -268,7 +267,7 @@ def examine_abi_fallback(download_path, results_dir, name):
     # Extract all those rpms to our current directory
     try:
         for rpm in rpms:
-            cmd = "rpm2cpio \"{}\" | cpio -imd 2>/dev/null".format(os.path.join(results_dir, rpm))
+            cmd = 'rpm2cpio "{}" | cpio -imd 2>/dev/null'.format(os.path.join(results_dir, rpm))
             subprocess.check_call(cmd, shell=True)
     except Exception as e:
         util.print_fatal("Error extracting RPMS: {}".format(e))
@@ -278,7 +277,7 @@ def examine_abi_fallback(download_path, results_dir, name):
 
     # Places we expect to find shared libraries
     for check_path in valid_dirs:
-        if check_path[0] == '/':
+        if check_path[0] == "/":
             check_path = check_path[1:]
 
         dirn = os.path.join(extract_dir, check_path)

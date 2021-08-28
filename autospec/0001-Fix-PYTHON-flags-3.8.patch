@@ -1,0 +1,381 @@
+From 64a3484a01eecc458330aa166e0e15dbf696b15b Mon Sep 17 00:00:00 2001
+From: Francisco Boni <boboniboni@gmail.com>
+Date: Wed, 15 Sep 2021 00:13:42 -0300
+Subject: [PATCH] Fix PYTHON flags
+
+---
+ _sysconfigdata__linux_x86_64-linux-gnu.py | 160 +++++++++++-----------
+ distutils/unixccompiler.py                |  39 +-----
+ 2 files changed, 82 insertions(+), 117 deletions(-)
+
+diff --git a/_sysconfigdata__linux_x86_64-linux-gnu.py b/_sysconfigdata__linux_x86_64-linux-gnu.py
+index d91bfb64..7e8857a5 100644
+--- a/_sysconfigdata__linux_x86_64-linux-gnu.py
++++ b/_sysconfigdata__linux_x86_64-linux-gnu.py
+@@ -13,7 +13,7 @@ build_time_vars = {'ABIFLAGS': '',
+  'BINDIR': '/usr/bin',
+  'BINLIBDEST': '/usr/lib/python3.9',
+  'BLDLIBRARY': 'libpython3.9.a',
+- 'BLDSHARED': 'gcc -pthread -shared -Wa,-mbranches-within-32B-boundaries  '
++ 'BLDSHARED': 'gcc -pthread -shared   '
+               '-Wl,--build-id=sha1 -Wl,--build-id=sha1',
+  'BUILDEXE': '',
+  'BUILDPYTHON': 'python',
+@@ -21,45 +21,45 @@ build_time_vars = {'ABIFLAGS': '',
+  'BYTESTR_DEPS': '\\',
+  'CC': 'gcc -pthread',
+  'CCSHARED': '-fPIC',
+- 'CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -g '
++ 'CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g3 -fwrapv -O3 -Wall -g3 '
+            '-O3 -feliminate-unused-debug-types -pipe -Wall '
+-           '-Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector '
+-           '--param=ssp-buffer-size=32 -Wformat -Wformat-security -m64 '
++           ' -fexceptions -fno-stack-protector '
++           ' -Wformat -Wformat-security -m64 '
+            '-fasynchronous-unwind-tables -Wp,-D_REENTRANT '
+            '-ftree-loop-distribute-patterns -Wl,-z -Wl,now -Wl,-z -Wl,relro '
+            '-fno-semantic-interposition -ffat-lto-objects -fno-trapping-math '
+-           '-Wl,-sort-common -Wl,--enable-new-dtags -mtune=skylake '
+-           '-Wa,-mbranches-within-32B-boundaries -fPIC -fPIC -g -O3 '
+-           '-feliminate-unused-debug-types -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 '
+-           '-fexceptions -fstack-protector --param=ssp-buffer-size=32 -Wformat '
++           '-Wl,-sort-common -Wl,--enable-new-dtags -mtune=native -march=native '
++           ' -fPIC -fPIC -g3 -O3 '
++           '-feliminate-unused-debug-types -pipe -Wall  '
++           '-fexceptions -fno-stack-protector  -Wformat '
+            '-Wformat-security -m64 -fasynchronous-unwind-tables '
+            '-Wp,-D_REENTRANT -ftree-loop-distribute-patterns -Wl,-z -Wl,now '
+            '-Wl,-z -Wl,relro -fno-semantic-interposition -ffat-lto-objects '
+            '-fno-trapping-math -Wl,-sort-common -Wl,--enable-new-dtags '
+-           '-mtune=skylake -Wa,-mbranches-within-32B-boundaries -fPIC -fPIC',
++           '-mtune=native -march=native  -fPIC -fPIC',
+  'CFLAGSFORSHARED': '',
+  'CFLAGS_ALIASING': '',
+  'CONFIGFILES': 'configure configure.ac acconfig.h pyconfig.h.in '
+                 'Makefile.pre.in',
+- 'CONFIGURE_CFLAGS': '-g -O3 -feliminate-unused-debug-types -pipe -Wall '
+-                     '-Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector '
+-                     '--param=ssp-buffer-size=32 -Wformat -Wformat-security '
++ 'CONFIGURE_CFLAGS': '-g3 -O3 -feliminate-unused-debug-types -pipe -Wall '
++                     ' -fexceptions -fno-stack-protector '
++                     ' -Wformat -Wformat-security '
+                      '-m64 -fasynchronous-unwind-tables -Wp,-D_REENTRANT '
+                      '-ftree-loop-distribute-patterns -Wl,-z -Wl,now -Wl,-z '
+                      '-Wl,relro -fno-semantic-interposition -ffat-lto-objects '
+                      '-fno-trapping-math -Wl,-sort-common '
+-                     '-Wl,--enable-new-dtags -mtune=skylake '
+-                     '-Wa,-mbranches-within-32B-boundaries -fPIC -fPIC',
+- 'CONFIGURE_CFLAGS_NODIST': '-flto -fuse-linker-plugin -ffat-lto-objects '
+-                            '-flto-partition=none -g -std=gnu99 -Wextra '
++                     '-Wl,--enable-new-dtags -mtune=native -march=native '
++                     ' -fPIC -fPIC',
++ 'CONFIGURE_CFLAGS_NODIST': '-flto=auto -fuse-linker-plugin -ffat-lto-objects '
++                            ' -g3 -std=gnu99 -Wextra '
+                             '-Wno-unused-result -Wno-unused-parameter '
+                             '-Wno-missing-field-initializers '
+                             '-Werror=implicit-function-declaration '
+                             '-fvisibility=hidden',
+  'CONFIGURE_CPPFLAGS': '',
+- 'CONFIGURE_LDFLAGS': '-Wa,-mbranches-within-32B-boundaries',
+- 'CONFIGURE_LDFLAGS_NODIST': '-flto -fuse-linker-plugin -ffat-lto-objects '
+-                             '-flto-partition=none -g',
++ 'CONFIGURE_LDFLAGS': '',
++ 'CONFIGURE_LDFLAGS_NODIST': '-flto=auto -fuse-linker-plugin -ffat-lto-objects '
++                             ' -g3',
+  'CONFIG_ARGS': "'--build=x86_64-generic-linux-gnu' "
+                 "'--host=x86_64-generic-linux-gnu' "
+                 "'--target=x86_64-clr-linux-gnu' '--program-prefix=' "
+@@ -69,7 +69,7 @@ build_time_vars = {'ABIFLAGS': '',
+                 "'--libdir=/usr/lib64' '--libexecdir=/usr/libexec' "
+                 "'--localstatedir=/var' '--sharedstatedir=/usr/com' "
+                 "'--mandir=/usr/share/man' '--infodir=/usr/share/info' "
+-                "'LDFLAGS=-Wa,-mbranches-within-32B-boundaries' "
++                "'LDFLAGS=' "
+                 "'--with-threads' '--with-pymalloc' '--without-cxx-main' "
+                 "'--with-signal-module' '--enable-ipv6=yes' "
+                 "'--libdir=/usr/lib' 'ac_cv_header_bluetooth_bluetooth_h=no' "
+@@ -78,15 +78,15 @@ build_time_vars = {'ABIFLAGS': '',
+                 "'--without-ensurepip' '--enable-optimizations' "
+                 "'build_alias=x86_64-generic-linux-gnu' "
+                 "'host_alias=x86_64-generic-linux-gnu' "
+-                "'target_alias=x86_64-clr-linux-gnu' 'CC=gcc' 'CFLAGS=-g -O3 "
++                "'target_alias=x86_64-clr-linux-gnu' 'CC=gcc' 'CFLAGS=-g3 -O3 "
+                 '-feliminate-unused-debug-types -pipe -Wall '
+-                '-Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector '
+-                '--param=ssp-buffer-size=32 -Wformat -Wformat-security -m64 '
++                ' -fexceptions -fno-stack-protector '
++                ' -Wformat -Wformat-security -m64 '
+                 '-fasynchronous-unwind-tables -Wp,-D_REENTRANT '
+                 '-ftree-loop-distribute-patterns -Wl,-z -Wl,now -Wl,-z '
+                 '-Wl,relro -fno-semantic-interposition -ffat-lto-objects '
+                 '-fno-trapping-math -Wl,-sort-common -Wl,--enable-new-dtags '
+-                '-mtune=skylake -Wa,-mbranches-within-32B-boundaries -fPIC '
++                '-mtune=native -march=native  -fPIC '
+                 "-fPIC' "
+                 "'PKG_CONFIG_PATH=:/usr/lib64/pkgconfig:/usr/share/pkgconfig'",
+  'CONFINCLUDEDIR': '/usr/include',
+@@ -574,11 +574,11 @@ build_time_vars = {'ABIFLAGS': '',
+  'IO_H': 'Modules/_io/_iomodule.h',
+  'IO_OBJS': '\\',
+  'LDCXXSHARED': 'g++ -pthread -shared',
+- 'LDFLAGS': '-Wa,-mbranches-within-32B-boundaries  -Wl,--build-id=sha1 '
++ 'LDFLAGS': '  -Wl,--build-id=sha1 '
+             '-Wl,--build-id=sha1',
+  'LDLIBRARY': 'libpython3.9.a',
+  'LDLIBRARYDIR': '',
+- 'LDSHARED': 'gcc -pthread -shared -Wa,-mbranches-within-32B-boundaries  '
++ 'LDSHARED': 'gcc -pthread -shared   '
+              '-Wl,--build-id=sha1 -Wl,--build-id=sha1',
+  'LDVERSION': '3.9',
+  'LIBC': '',
+@@ -642,7 +642,7 @@ build_time_vars = {'ABIFLAGS': '',
+  'OPENSSL_INCLUDES': '',
+  'OPENSSL_LDFLAGS': '',
+  'OPENSSL_LIBS': '-lssl -lcrypto',
+- 'OPT': '-DNDEBUG -g -fwrapv -O3 -Wall',
++ 'OPT': '-DNDEBUG -g3 -fwrapv -O3 -Wall',
+  'OTHER_LIBTOOL_OPT': '',
+  'PACKAGE_BUGREPORT': 0,
+  'PACKAGE_NAME': 0,
+@@ -676,121 +676,121 @@ build_time_vars = {'ABIFLAGS': '',
+  'PYTHON_HEADERS': '\\',
+  'PYTHON_OBJS': '\\',
+  'PY_BUILTIN_HASHLIB_HASHES': '"md5,sha1,sha256,sha512,sha3,blake2"',
+- 'PY_BUILTIN_MODULE_CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g '
+-                             '-fwrapv -O3 -Wall -g -O3 '
++ 'PY_BUILTIN_MODULE_CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g3 '
++                             '-fwrapv -O3 -Wall -g3 -O3 '
+                              '-feliminate-unused-debug-types -pipe -Wall '
+-                             '-Wp,-D_FORTIFY_SOURCE=2 -fexceptions '
+-                             '-fstack-protector --param=ssp-buffer-size=32 '
++                             ' -fexceptions '
++                             '-fno-stack-protector  '
+                              '-Wformat -Wformat-security -m64 '
+                              '-fasynchronous-unwind-tables -Wp,-D_REENTRANT '
+                              '-ftree-loop-distribute-patterns -Wl,-z -Wl,now '
+                              '-Wl,-z -Wl,relro -fno-semantic-interposition '
+                              '-ffat-lto-objects -fno-trapping-math '
+                              '-Wl,-sort-common -Wl,--enable-new-dtags '
+-                             '-mtune=skylake '
+-                             '-Wa,-mbranches-within-32B-boundaries -fPIC -fPIC '
+-                             '-g -O3 -feliminate-unused-debug-types -pipe '
+-                             '-Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions '
+-                             '-fstack-protector --param=ssp-buffer-size=32 '
++                             '-mtune=native -march=native '
++                             ' -fPIC -fPIC '
++                             '-g3 -O3 -feliminate-unused-debug-types -pipe '
++                             '-Wall  -fexceptions '
++                             '-fno-stack-protector  '
+                              '-Wformat -Wformat-security -m64 '
+                              '-fasynchronous-unwind-tables -Wp,-D_REENTRANT '
+                              '-ftree-loop-distribute-patterns -Wl,-z -Wl,now '
+                              '-Wl,-z -Wl,relro -fno-semantic-interposition '
+                              '-ffat-lto-objects -fno-trapping-math '
+                              '-Wl,-sort-common -Wl,--enable-new-dtags '
+-                             '-mtune=skylake '
+-                             '-Wa,-mbranches-within-32B-boundaries -fPIC -fPIC '
+-                             '-flto -fuse-linker-plugin -ffat-lto-objects '
+-                             '-flto-partition=none -g -std=gnu99 -Wextra '
++                             '-mtune=native -march=native '
++                             ' -fPIC -fPIC '
++                             '-flto=auto -fuse-linker-plugin -ffat-lto-objects '
++                             ' -g3 -std=gnu99 -Wextra '
+                              '-Wno-unused-result -Wno-unused-parameter '
+                              '-Wno-missing-field-initializers '
+                              '-Werror=implicit-function-declaration '
+                              '-fvisibility=hidden -fprofile-use '
+                              '-fprofile-correction -I./Include/internal -I. '
+                              '-I./Include -DPy_BUILD_CORE_BUILTIN',
+- 'PY_CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall '
+-              '-g -O3 -feliminate-unused-debug-types -pipe -Wall '
+-              '-Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector '
+-              '--param=ssp-buffer-size=32 -Wformat -Wformat-security -m64 '
++ 'PY_CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g3 -fwrapv -O3 -Wall '
++              '-g3 -O3 -feliminate-unused-debug-types -pipe -Wall '
++              ' -fexceptions -fno-stack-protector '
++              ' -Wformat -Wformat-security -m64 '
+               '-fasynchronous-unwind-tables -Wp,-D_REENTRANT '
+               '-ftree-loop-distribute-patterns -Wl,-z -Wl,now -Wl,-z -Wl,relro '
+               '-fno-semantic-interposition -ffat-lto-objects '
+               '-fno-trapping-math -Wl,-sort-common -Wl,--enable-new-dtags '
+-              '-mtune=skylake -Wa,-mbranches-within-32B-boundaries -fPIC -fPIC '
+-              '-g -O3 -feliminate-unused-debug-types -pipe -Wall '
+-              '-Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector '
+-              '--param=ssp-buffer-size=32 -Wformat -Wformat-security -m64 '
++              '-mtune=native -march=native  -fPIC -fPIC '
++              '-g3 -O3 -feliminate-unused-debug-types -pipe -Wall '
++              ' -fexceptions -fno-stack-protector '
++              ' -Wformat -Wformat-security -m64 '
+               '-fasynchronous-unwind-tables -Wp,-D_REENTRANT '
+               '-ftree-loop-distribute-patterns -Wl,-z -Wl,now -Wl,-z -Wl,relro '
+               '-fno-semantic-interposition -ffat-lto-objects '
+               '-fno-trapping-math -Wl,-sort-common -Wl,--enable-new-dtags '
+-              '-mtune=skylake -Wa,-mbranches-within-32B-boundaries -fPIC -fPIC',
+- 'PY_CFLAGS_NODIST': '-flto -fuse-linker-plugin -ffat-lto-objects '
+-                     '-flto-partition=none -g -std=gnu99 -Wextra '
++              '-mtune=native -march=native  -fPIC -fPIC',
++ 'PY_CFLAGS_NODIST': '-flto=auto -fuse-linker-plugin -ffat-lto-objects '
++                     ' -g3 -std=gnu99 -Wextra '
+                      '-Wno-unused-result -Wno-unused-parameter '
+                      '-Wno-missing-field-initializers '
+                      '-Werror=implicit-function-declaration '
+                      '-fvisibility=hidden -fprofile-use -fprofile-correction '
+                      '-I./Include/internal',
+  'PY_COERCE_C_LOCALE': 1,
+- 'PY_CORE_CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O3 '
+-                   '-Wall -g -O3 -feliminate-unused-debug-types -pipe -Wall '
+-                   '-Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector '
+-                   '--param=ssp-buffer-size=32 -Wformat -Wformat-security -m64 '
++ 'PY_CORE_CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g3 -fwrapv -O3 '
++                   '-Wall -g3 -O3 -feliminate-unused-debug-types -pipe -Wall '
++                   ' -fexceptions -fno-stack-protector '
++                   ' -Wformat -Wformat-security -m64 '
+                    '-fasynchronous-unwind-tables -Wp,-D_REENTRANT '
+                    '-ftree-loop-distribute-patterns -Wl,-z -Wl,now -Wl,-z '
+                    '-Wl,relro -fno-semantic-interposition -ffat-lto-objects '
+                    '-fno-trapping-math -Wl,-sort-common -Wl,--enable-new-dtags '
+-                   '-mtune=skylake -Wa,-mbranches-within-32B-boundaries -fPIC '
+-                   '-fPIC -g -O3 -feliminate-unused-debug-types -pipe -Wall '
+-                   '-Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector '
+-                   '--param=ssp-buffer-size=32 -Wformat -Wformat-security -m64 '
++                   '-mtune=native -march=native  -fPIC '
++                   '-fPIC -g3 -O3 -feliminate-unused-debug-types -pipe -Wall '
++                   ' -fexceptions -fno-stack-protector '
++                   ' -Wformat -Wformat-security -m64 '
+                    '-fasynchronous-unwind-tables -Wp,-D_REENTRANT '
+                    '-ftree-loop-distribute-patterns -Wl,-z -Wl,now -Wl,-z '
+                    '-Wl,relro -fno-semantic-interposition -ffat-lto-objects '
+                    '-fno-trapping-math -Wl,-sort-common -Wl,--enable-new-dtags '
+-                   '-mtune=skylake -Wa,-mbranches-within-32B-boundaries -fPIC '
+-                   '-fPIC -flto -fuse-linker-plugin -ffat-lto-objects '
+-                   '-flto-partition=none -g -std=gnu99 -Wextra '
++                   '-mtune=native -march=native  -fPIC '
++                   '-fPIC -flto=auto -fuse-linker-plugin -ffat-lto-objects '
++                   ' -g3 -std=gnu99 -Wextra '
+                    '-Wno-unused-result -Wno-unused-parameter '
+                    '-Wno-missing-field-initializers '
+                    '-Werror=implicit-function-declaration -fvisibility=hidden '
+                    '-fprofile-use -fprofile-correction -I./Include/internal '
+                    '-I. -I./Include -DPy_BUILD_CORE',
+- 'PY_CORE_LDFLAGS': '-Wa,-mbranches-within-32B-boundaries  -Wl,--build-id=sha1 '
+-                    '-Wl,--build-id=sha1 -flto -fuse-linker-plugin '
+-                    '-ffat-lto-objects -flto-partition=none -g',
++ 'PY_CORE_LDFLAGS': '  -Wl,--build-id=sha1 '
++                    '-Wl,--build-id=sha1 -flto=auto -fuse-linker-plugin '
++                    '-ffat-lto-objects  -g3',
+  'PY_CPPFLAGS': '-I. -I./Include',
+  'PY_FORMAT_SIZE_T': '"z"',
+- 'PY_LDFLAGS': '-Wa,-mbranches-within-32B-boundaries  -Wl,--build-id=sha1 '
++ 'PY_LDFLAGS': '  -Wl,--build-id=sha1 '
+                '-Wl,--build-id=sha1',
+- 'PY_LDFLAGS_NODIST': '-flto -fuse-linker-plugin -ffat-lto-objects '
+-                      '-flto-partition=none -g',
++ 'PY_LDFLAGS_NODIST': '-flto=auto -fuse-linker-plugin -ffat-lto-objects '
++                      ' -g3',
+  'PY_SSL_DEFAULT_CIPHERS': 1,
+  'PY_SSL_DEFAULT_CIPHER_STRING': 0,
+- 'PY_STDMODULE_CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv '
+-                        '-O3 -Wall -g -O3 -feliminate-unused-debug-types -pipe '
+-                        '-Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions '
+-                        '-fstack-protector --param=ssp-buffer-size=32 -Wformat '
++ 'PY_STDMODULE_CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g3 -fwrapv '
++                        '-O3 -Wall -g3 -O3 -feliminate-unused-debug-types -pipe '
++                        '-Wall  -fexceptions '
++                        '-fno-stack-protector  -Wformat '
+                         '-Wformat-security -m64 -fasynchronous-unwind-tables '
+                         '-Wp,-D_REENTRANT -ftree-loop-distribute-patterns '
+                         '-Wl,-z -Wl,now -Wl,-z -Wl,relro '
+                         '-fno-semantic-interposition -ffat-lto-objects '
+                         '-fno-trapping-math -Wl,-sort-common '
+-                        '-Wl,--enable-new-dtags -mtune=skylake '
+-                        '-Wa,-mbranches-within-32B-boundaries -fPIC -fPIC -g '
++                        '-Wl,--enable-new-dtags -mtune=native -march=native '
++                        ' -fPIC -fPIC -g3 '
+                         '-O3 -feliminate-unused-debug-types -pipe -Wall '
+-                        '-Wp,-D_FORTIFY_SOURCE=2 -fexceptions '
+-                        '-fstack-protector --param=ssp-buffer-size=32 -Wformat '
++                        ' -fexceptions '
++                        '-fno-stack-protector  -Wformat '
+                         '-Wformat-security -m64 -fasynchronous-unwind-tables '
+                         '-Wp,-D_REENTRANT -ftree-loop-distribute-patterns '
+                         '-Wl,-z -Wl,now -Wl,-z -Wl,relro '
+                         '-fno-semantic-interposition -ffat-lto-objects '
+                         '-fno-trapping-math -Wl,-sort-common '
+-                        '-Wl,--enable-new-dtags -mtune=skylake '
+-                        '-Wa,-mbranches-within-32B-boundaries -fPIC -fPIC '
+-                        '-flto -fuse-linker-plugin -ffat-lto-objects '
+-                        '-flto-partition=none -g -std=gnu99 -Wextra '
++                        '-Wl,--enable-new-dtags -mtune=native -march=native '
++                        ' -fPIC -fPIC '
++                        '-flto=auto -fuse-linker-plugin -ffat-lto-objects '
++                        ' -g3 -std=gnu99 -Wextra '
+                         '-Wno-unused-result -Wno-unused-parameter '
+                         '-Wno-missing-field-initializers '
+                         '-Werror=implicit-function-declaration '
+diff --git a/distutils/unixccompiler.py b/distutils/unixccompiler.py
+index 9ab3fdde..d974f697 100644
+--- a/distutils/unixccompiler.py
++++ b/distutils/unixccompiler.py
+@@ -114,18 +114,8 @@ class UnixCCompiler(CCompiler):
+             compiler_so = _osx_support.compiler_fixup(compiler_so,
+                                                     cc_args + extra_postargs)
+         try:
+-            self.spawn(compiler_so + cc_args + [src, '-o', obj] +
+-                       extra_postargs)
+-            self.spawn(compiler_so + cc_args+ ["-march=haswell", "-O3",
+-                                               "-fno-semantic-interposition",
+-                                               "-ffat-lto-objects", "-Wa,-mbranches-within-32B-boundaries",
+-                                               "-flto=4"] +
+-                       [src, '-o', obj + ".avx2"] + extra_postargs)
+-            self.spawn(compiler_so + cc_args+ ["-march=skylake-avx512", "-O3",
+-                                               "-fno-semantic-interposition",
+-                                               "-ffat-lto-objects", "-flto=4", "-Wa,-mbranches-within-32B-boundaries",
+-                                               "-mprefer-vector-width=256"] +
+-                       [src, '-o', obj + ".avx512"] + extra_postargs)
++            self.spawn(compiler_so + ['-g3', '-ggdb', '-O3', '--param=lto-max-streaming-parallelism=16', '-march=native', '-mtune=native', '-fgraphite-identity', '-Wall', '-Wl,--as-needed', '-Wl,--build-id=sha1', '-Wl,--enable-new-dtags', '-Wl,--hash-style=gnu', '-Wl,-O2', '-Wl,-z,now,-z,relro,-z,max-page-size=0x1000,-z,separate-code', '-Wno-error', '-mprefer-vector-width=256', '-falign-functions=32', '-flimit-function-alignment', '-fasynchronous-unwind-tables', '-fdevirtualize-at-ltrans', '-floop-nest-optimize', '-floop-block', '-fno-semantic-interposition', '-Wl,-Bsymbolic-functions', '-fno-stack-protector', '-ftree-loop-distribute-patterns', '-ftree-loop-vectorize', '-ftree-slp-vectorize', '-ftree-vectorize', '-fuse-ld=bfd', '-fuse-linker-plugin', '-malign-data=cacheline', '-feliminate-unused-debug-types', '-fipa-pta', '-flto=auto', '-mtls-dialect=gnu2', '-Wl,-sort-common', '-Wno-error', '-Wp,-D_REENTRANT', '-pipe', '-ffat-lto-objects', '-fPIC', '-fomit-frame-pointer', '-fexceptions', '-static-libstdc++', '-static-libgcc', '-Wl,--build-id=sha1'] + cc_args + [src, '-o', obj] + extra_postargs)
++            self.spawn(compiler_so + ['-g3', '-ggdb', '-O3', '--param=lto-max-streaming-parallelism=16', '-march=native', '-mtune=native', '-fgraphite-identity', '-Wall', '-Wl,--as-needed', '-Wl,--build-id=sha1', '-Wl,--enable-new-dtags', '-Wl,--hash-style=gnu', '-Wl,-O2', '-Wl,-z,now,-z,relro,-z,max-page-size=0x1000,-z,separate-code', '-Wno-error', '-mprefer-vector-width=256', '-falign-functions=32', '-flimit-function-alignment', '-fasynchronous-unwind-tables', '-fdevirtualize-at-ltrans', '-floop-nest-optimize', '-floop-block', '-fno-semantic-interposition', '-Wl,-Bsymbolic-functions', '-fno-stack-protector', '-ftree-loop-distribute-patterns', '-ftree-loop-vectorize', '-ftree-slp-vectorize', '-ftree-vectorize', '-fuse-ld=bfd', '-fuse-linker-plugin', '-malign-data=cacheline', '-feliminate-unused-debug-types', '-fipa-pta', '-flto=auto', '-mtls-dialect=gnu2', '-Wl,-sort-common', '-Wno-error', '-Wp,-D_REENTRANT', '-pipe', '-ffat-lto-objects', '-fPIC', '-fomit-frame-pointer', '-fexceptions', '-static-libstdc++', '-static-libgcc', '-Wl,--build-id=sha1'] + cc_args + [src, '-o', obj + ".avx2"] + extra_postargs)
+         except DistutilsExecError as msg:
+             raise CompileError(msg)
+ 
+@@ -182,22 +172,6 @@ class UnixCCompiler(CCompiler):
+             else:
+                 lib_opts_avx2.append(element)
+ 
+-        lib_opts_avx512 = []
+-        for element in lib_opts:
+-            if element.startswith('-l'):
+-                element_tmp = element + '-avx512'
+-                lib_opts_avx512.append(element_tmp)
+-                # try with gcc to check whether there are avx2/avx512 lib versions
+-                # subprocess or os.popen() cannot be used as not support in python
+-                # self-boost building.
+-                ret = os.system(f"echo 'main() {{}}' | gcc -o /dev/null {element_tmp} -xc -")
+-                if ret:
+-                    lib_opts_avx512.pop()
+-                    lib_opts_avx512.append(element)
+-            else:
+-                lib_opts_avx512.append(element)
+-
+-
+         if not isinstance(output_dir, (str, type(None))):
+             raise TypeError("'output_dir' must be a string or None")
+         if output_dir is not None:
+@@ -252,15 +226,6 @@ class UnixCCompiler(CCompiler):
+                 if extra_postargs:
+                     ld_args.extend(extra_postargs)
+                 self.spawn(linker + ld_args)
+-                ld_args = ([obj + ".avx512" for obj in objects] + self.objects +
+-                       lib_opts_avx512 + ['-o', output_filename + ".avx512"])
+-                if debug:
+-                    ld_args[:0] = ['-g']
+-                if extra_preargs:
+-                    ld_args[:0] = extra_preargs
+-                if extra_postargs:
+-                    ld_args.extend(extra_postargs)
+-                self.spawn(linker + ld_args)
+             except DistutilsExecError as msg:
+                 raise LinkError(msg)
+         else:
+-- 
+2.32.0
+

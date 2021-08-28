@@ -133,7 +133,7 @@ def is_number(num_str):
 
 def is_version(num_str):
     """Return True if num_str looks like a version number."""
-    if re.search(r'^\d+(\.\d+)*$', num_str):
+    if re.search(r"^\d+(\.\d+)*$", num_str):
         return True
 
     return False
@@ -142,10 +142,10 @@ def is_version(num_str):
 def parse_modules_list(modules_string, is_cmake=False):
     """Parse the modules_string for the list of modules, stripping out the version requirements."""
     if is_cmake:
-        modules = [m for m in re.split(r'\s*([><]?=|\${?[^}]*}?)\s*', modules_string)]
+        modules = [m for m in re.split(r"\s*([><]?=|\${?[^}]*}?)\s*", modules_string)]
         modules = filter(None, modules)
     else:
-        modules = [m.strip('[]') for m in modules_string.split()]
+        modules = [m.strip("[]") for m in modules_string.split()]
     res = []
     next_is_ver = False
     for mod in modules:
@@ -153,7 +153,7 @@ def parse_modules_list(modules_string, is_cmake=False):
             next_is_ver = False
             continue
 
-        if any(s in mod for s in ['<', '>', '=']):
+        if any(s in mod for s in ["<", ">", "="]):
             next_is_ver = True
             continue
 
@@ -163,7 +163,7 @@ def parse_modules_list(modules_string, is_cmake=False):
         if is_version(mod):
             continue
 
-        if mod.startswith('$'):
+        if mod.startswith("$"):
             continue
 
         if len(mod) >= 2:
@@ -206,7 +206,7 @@ def parse_go_mod(path):
                 if line.startswith(")"):
                     break
                 req = line.split()[:2]
-                req[0] = req[0].replace('"', '')
+                req[0] = req[0].replace('"', "")
                 if req[0].endswith(".git"):
                     continue
                 reqs.append(req)
@@ -258,12 +258,12 @@ def _get_desc_field(field, desc):
     pat = re.compile(r"^" + field + r":(.*?)((?=\n\S+:)|\Z)", re.MULTILINE | re.DOTALL)
     match = pat.search(desc)
     if match:
-        joined = match.group(1).replace("\n", " ").strip(' ,')
+        joined = match.group(1).replace("\n", " ").strip(" ,")
         if joined:
             val = re.split(r"\s*,\s*", joined)
             # Also omit any version constraints
             # For example, translate "stringr (>= 1.2.0)" -> "stringr"
-            val = [re.split(r'\s*\(', v)[0] for v in val]
+            val = [re.split(r"\s*\(", v)[0] for v in val]
     return val
 
 
@@ -310,16 +310,19 @@ class Requirements(object):
 
     def __init__(self, url):
         """Initialize Default requirements settings."""
-        self.banned_requires = {None: set(["futures",
-                                           "configparser",
-                                           "typing",
-                                           "ipaddress"])}
+        self.banned_requires = {None: set(["futures", "configparser", "typing", "ipaddress"])}
         self.buildreqs = set()
         self.buildreqs_cache = set()
         self.reqs_cache = set()
         self.requires = {None: set(), "pypi": set()}
         self.provides = {None: set(), "pypi": set()}
         self.extra_cmake = set()
+        self.extra_cmake_special = set()
+        self.extra_cmake_special2 = set()
+        self.cmake_macro = set()
+        self.cmake_macro_32 = set()
+        self.cmake_macro_special = set()
+        self.extra_cmake_special_pgo = set()
         self.extra_cmake_openmpi = set()
         self.verbose = False
         self.cargo_bin = False
@@ -352,8 +355,6 @@ class Requirements(object):
     def add_buildreq(self, req, cache=False):
         """Add req to the global buildreqs set if req is not banned."""
         new = True
-        if not req:
-            return False
         req.strip()
         if req in self.buildreqs:
             new = False
@@ -364,12 +365,14 @@ class Requirements(object):
                 return new
             else:
                 if req in self.banned_buildreqs:
+                    print("  Banned buildreq:", req)
                     return False
                 else:
                     self.buildreqs.add(req)
-                    if self.verbose:
-                        print("  Adding buildreq:", req)
+                    print("  Adding buildreq:", req)
                     return new
+        else:
+            return new
 
     def ban_requires(self, ban, subpkg=None):
         """Add ban to the banned set (and remove it from requires if it was added)."""
@@ -385,6 +388,8 @@ class Requirements(object):
     def add_requires(self, req, packages, override=False, subpkg=None, cache=False):
         """Add req to the requires set if it is present in buildreqs and packages and is not banned."""
         new = True
+        requires : dict = dict()
+        banned_requires : dict = dict()
         req = req.strip()
         if (requires := self.requires.get(subpkg)) is None:
             requires = self.requires[subpkg] = set()
@@ -392,24 +397,25 @@ class Requirements(object):
             new = False
         if (banned_requires := self.banned_requires.get(subpkg)) is None:
             banned_requires = self.banned_requires[subpkg] = set()
-        if req in banned_requires:
-            return False
 
         # Try dashes instead of underscores as some ecosystems are inconsistent in their naming
         req2 = req.replace("_", "-")
-        if req not in self.buildreqs and req2 in packages and req2 not in requires and req2 not in banned_requires:
+        if req not in self.buildreqs and req2 in packages and req2 not in requires and new is True:
             # Since this is done for python add a buildreq just in case (might not be correct though)
             if cache:
                 self.add_buildreq(req2, cache)
                 print("  Adding cache req:", req2)
                 self.reqs_cache.add(req2)
-                requires.add(req2)
+                return new
             else:
+                if req in banned_requires or req2 in banned_requires:
+                    print(f"  Banned requirement: {req2}")
+                    return False
                 print(f"  Adding additional build requirement: {req2}")
                 self.add_buildreq(req2, cache)
                 print(f"  Adding requirement: {req2}")
                 requires.add(req2)
-            return True
+                return new
 
         # Try reversing the case of the first letter as some ecosystems are inconsistent in their naming
         if len(req) > 1:
@@ -417,33 +423,42 @@ class Requirements(object):
                 req2 = req[0].lower() + req[1:]
             else:
                 req2 = req[0].upper() + req[1:]
-        if req not in self.buildreqs and req2 in packages and req2 not in requires and req2 not in banned_requires:
+        if req not in self.buildreqs and req2 in packages and req2 not in requires and new is True:
             # Since this is done for python add a buildreq just in case (might not be correct though)
             if cache:
                 self.add_buildreq(req2, cache)
                 print("  Adding cache req:", req2)
                 self.reqs_cache.add(req2)
-                requires.add(req2)
+                return new
             else:
+                if req in banned_requires or req2 in banned_requires:
+                    print(f"  Banned requirement: {req2}")
+                    return False
                 print(f"  Adding additional build requirement: {req2}")
                 self.add_buildreq(req2, cache)
                 print(f"  Adding requirement: {req2}")
                 requires.add(req2)
-            return True
+                return new
 
         if req not in self.buildreqs and req not in packages and not override:
             if req:
                 print(f"requirement '{req}' not found in buildreqs or os_packages, skipping")
             return False
+
         if new:
             if cache:
                 print(f"  Adding cache req: {req}")
-                requires.add(req)
                 self.reqs_cache.add(req)
+                return new
             else:
+                if req in banned_requires:
+                    print(f"  Banned requirement: {req}")
+                    return False
                 print(f"  Adding requirement: {req}")
                 requires.add(req)
-        return new
+                return new
+        else:
+            return new
 
     def add_provides(self, prov, packages, subpkg=None):
         """Add prov to the provides set."""
@@ -464,31 +479,34 @@ class Requirements(object):
 
     def add_pkgconfig_buildreq(self, preq, conf32, cache=False):
         """Format preq as pkgconfig req and add to buildreqs."""
+        preq.strip()
         if conf32:
-            req = "pkgconfig(32" + preq + ")"
-            self.add_buildreq(req, cache)
-        req = "pkgconfig(" + preq + ")"
+            req = f"pkgconfig(32{preq})"
+            return self.add_buildreq(req, cache)
+        req = f"pkgconfig({preq})"
         return self.add_buildreq(req, cache)
 
-    def configure_ac_line(self, line, conf32):
+    def configure_ac_line(self, line, conf32, cache=False):
         """Parse configure_ac line and add appropriate buildreqs."""
         # print("----\n", line, "\n----")
         # ignore comments
-        if line.startswith('#'):
+        if line.startswith("#"):
             return
 
-        pat_reqs = [(r"AC_CHECK_FUNC\([tgetent]", ["ncurses-devel"]),
-                    ("PROG_INTLTOOL", ["intltool"]),
-                    ("GETTEXT_PACKAGE", ["gettext", "perl(XML::Parser)"]),
-                    ("AM_GLIB_GNU_GETTEXT", ["gettext", "perl(XML::Parser)"]),
-                    ("GTK_DOC_CHECK", ["gtk-doc", "gtk-doc-dev", "libxslt-bin", "docbook-xml"]),
-                    ("AC_PROG_SED", ["sed"]),
-                    ("AC_PROG_GREP", ["grep"])]
+        pat_reqs = [
+            (r"AC_CHECK_FUNC\([tgetent]", ["ncurses-devel"]),
+            ("PROG_INTLTOOL", ["intltool"]),
+            ("GETTEXT_PACKAGE", ["gettext", "perl(XML::Parser)"]),
+            ("AM_GLIB_GNU_GETTEXT", ["gettext", "perl(XML::Parser)"]),
+            ("GTK_DOC_CHECK", ["gtk-doc", "gtk-doc-dev", "libxslt-bin", "docbook-xml"]),
+            ("AC_PROG_SED", ["sed"]),
+            ("AC_PROG_GREP", ["grep"]),
+        ]
 
         for pat, reqs in pat_reqs:
             if pat in line:
                 for req in reqs:
-                    self.add_buildreq(req)
+                    self.add_buildreq(req, cache=cache)
 
         line = line.strip()
 
@@ -501,7 +519,7 @@ class Requirements(object):
             if len(L) > 1:
                 rqlist = L[1].strip()
                 for req in parse_modules_list(rqlist):
-                    self.add_pkgconfig_buildreq(req, conf32)
+                    self.add_pkgconfig_buildreq(req, conf32, cache=cache)
 
         # PKG_CHECK_EXISTS(MODULES, action-if-found, action-if-not-found)
         match = re.search(r"PKG_CHECK_EXISTS\((.*?)\)", line)
@@ -509,9 +527,9 @@ class Requirements(object):
             L = match.group(1).split(",")
             rqlist = L[0].strip()
             for req in parse_modules_list(rqlist):
-                self.add_pkgconfig_buildreq(req, conf32)
+                self.add_pkgconfig_buildreq(req, conf32, cache=cache)
 
-    def parse_configure_ac(self, filename, config):
+    def parse_configure_ac(self, filename, config, cache=False):
         """Parse the configure.ac file for build requirements."""
         buf = ""
         depth = 0
@@ -529,9 +547,9 @@ class Requirements(object):
             if c != "\n":
                 buf += c
             if c == "\n" and depth == 0:
-                self.configure_ac_line(buf, config.config_opts.get('32bit'))
+                self.configure_ac_line(buf, config.config_opts.get("32bit"), cache=cache)
                 buf = ""
-        self.configure_ac_line(buf, config.config_opts.get('32bit'))
+        self.configure_ac_line(buf, config.config_opts.get("32bit"), cache=cache)
         f.close()
 
     def parse_cargo_toml(self, filename, config):
@@ -631,13 +649,16 @@ class Requirements(object):
             deps.extend(_get_desc_field("LinkingTo", content))
         r_provides = _get_r_provides()
         for dep in deps:
-            if dep == 'R':
+            if dep == "R":
                 continue
             if dep in r_provides:
                 continue
-            pkg = 'R-' + dep
-            self.add_buildreq(pkg)
-            self.add_requires(pkg, packages)
+            pkg = "R-" + dep
+            if pkg in packages:
+                self.add_buildreq(pkg, cache=True)
+                self.add_requires(pkg, packages, cache=True)
+            else:
+                print("CRAN package '{}' not found in os_packages, skipping".format(pkg))
 
     def set_build_req(self, config):
         """Add build requirements based on the build pattern."""
@@ -650,7 +671,6 @@ class Requirements(object):
             self.add_buildreq("rustc-staticdev")
             self.add_buildreq("rustc-bin")
             self.add_buildreq("rustc-data")
-
 
     def rakefile(self, filename, gems):
         """Scan Rakefile for build requirements."""
@@ -668,12 +688,11 @@ class Requirements(object):
                 else:
                     print("Rakefile-new: rubygem-" + s)
 
-    def parse_cmake(self, filename, cmake_modules, conf32):
+    def parse_cmake(self, filename, cmake_modules, conf32, cache=False):
         """Scan a .cmake or CMakeLists.txt file for what's it's actually looking for."""
         findpackage = re.compile(r"^[^#]*find_package\((\w+)\b.*\)", re.I)
         pkgconfig = re.compile(r"^[^#]*pkg_check_modules\s*\(\w+ (.*)\)", re.I)
-        pkg_search_modifiers = {'REQUIRED', 'QUIET', 'NO_CMAKE_PATH',
-                                'NO_CMAKE_ENVIRONMENT_PATH', 'IMPORTED_TARGET'}
+        pkg_search_modifiers = {"REQUIRED", "QUIET", "NO_CMAKE_PATH", "NO_CMAKE_ENVIRONMENT_PATH", "IMPORTED_TARGET"}
         extractword = re.compile(r'(?:"([^"]+)"|(\S+))(.*)')
 
         with util.open_auto(filename, "r") as f:
@@ -684,8 +703,8 @@ class Requirements(object):
                 module = match.group(1)
                 try:
                     pkg = cmake_modules[module]
-                    print("Adding additional build (cmake) requirement: %s" % pkg)
-                    self.add_buildreq(pkg)
+                    print(f"Adding additional build (cmake) requirement: {pkg}")
+                    self.add_buildreq(pkg, cache=cache)
                 except Exception:
                     pass
 
@@ -705,9 +724,9 @@ class Requirements(object):
                         module = wordmatch.group(2)
                     # We have a match, so strip out any version info
                     for m in parse_modules_list(module, is_cmake=True):
-                        self.add_pkgconfig_buildreq(m, conf32)
+                        self.add_pkgconfig_buildreq(m, conf32, cache=cache)
 
-    def qmake_profile(self, filename, qt_modules):
+    def qmake_profile(self, filename, qt_modules, cache=False):
         """Scan .pro file for build requirements."""
         with util.open_auto(filename, "r") as f:
             lines = f.readlines()
@@ -719,14 +738,14 @@ class Requirements(object):
                 continue
             s = match.group(2)
             for module in s.split():
-                module = re.sub('-private$', '', module)
+                module = re.sub("-private$", "", module)
                 try:
                     pc = qt_modules[module]
-                    self.add_buildreq('pkgconfig({})'.format(pc))
+                    self.add_buildreq("pkgconfig({})".format(pc), cache=cache)
                 except Exception:
                     pass
 
-    def grab_python_requirements(self, descfile, packages):
+    def grab_python_requirements(self, descfile, packages, cache=False):
         """Add python requirements from requirements.txt file."""
         if "/demo/" in descfile:
             return
@@ -809,6 +828,7 @@ class Requirements(object):
         Does not evaluate variables for security purposes
         """
         multiline = False
+        req = ""
         with util.open_auto(filename) as f:
             lines = f.readlines()
 
@@ -828,16 +848,16 @@ class Requirements(object):
                 if line.startswith("[") and "]" in line:
                     # remove the leading [ and split off everthing after the ]
                     line = line[1:].split("]")[0]
-                    for item in line.split(','):
+                    for item in line.split(","):
                         item = item.strip()
                         try:
                             # eval the string and add requirements
                             dep = clean_python_req(ast.literal_eval(item), False)
                             print(f"Adding additional build (python setup) requirement: {dep}")
-                            self.add_buildreq(dep, cache=True)
+                            self.add_buildreq(dep, cache=cache)
                             if req:
                                 print(f"Adding additional (python setup) requirement: {dep}")
-                                self.add_requires(dep, packages, cache=True)
+                                self.add_requires(dep, packages, cache=cache)
 
                         except Exception:
                             # do not fail, the line contained a variable and
@@ -860,10 +880,10 @@ class Requirements(object):
                     try:
                         dep = clean_python_req(ast.literal_eval(line), False)
                         print(f"Adding additional build (python setup) requirement: {dep}")
-                        self.add_buildreq(dep, cache=True)
+                        self.add_buildreq(dep, cache=cache)
                         if req:
                             print(f"Adding additional (python setup) requirement: {dep}")
-                            self.add_requires(dep, packages, cache=True)
+                            self.add_requires(dep, packages, cache=cache)
 
                     except Exception:
                         # Do not fail, just keep looking
@@ -881,20 +901,20 @@ class Requirements(object):
                     line = line.split("]")[0]
 
                 try:
-                    dep = ast.literal_eval(line.split('#')[0].strip(' ,\n'))
+                    dep = ast.literal_eval(line.split("#")[0].strip(" ,\n"))
                     dep = clean_python_req(dep)
                     print(f"Adding additional build (python setup) requirement: {dep}")
-                    self.add_buildreq(dep, cache=True)
+                    self.add_buildreq(dep, cache=cache)
                     if req:
                         print(f"Adding additional (python setup) requirement: {dep}")
-                        self.add_requires(dep, packages, cache=True)
+                        self.add_requires(dep, packages, cache=cache)
 
                 except Exception:
                     # do not fail, the line contained a variable and had to
                     # be skipped
                     pass
 
-    def parse_catkin_deps(self, cmakelists_file, conf32):
+    def parse_catkin_deps(self, cmakelists_file, conf32, cache=False):
         """Determine requirements for catkin packages."""
         f = util.open_auto(cmakelists_file, "r")
         lines = f.readlines()
@@ -909,7 +929,7 @@ class Requirements(object):
             comp = match.group("comp")
             if comp:
                 for curr in comp.split(" "):
-                    self.add_pkgconfig_buildreq(curr, conf32)
+                    self.add_pkgconfig_buildreq(curr, conf32, cache=cache)
 
             catkin = True
 
@@ -918,7 +938,7 @@ class Requirements(object):
         # it'll never be able to find its modules
         if catkin:
             for curr in ["catkin", "catkin_pkg", "empy", "googletest"]:
-                self.add_buildreq(curr)
+                self.add_buildreq(curr, cache=cache)
 
             self.extra_cmake.add("-DCMAKE_PREFIX_PATH=/usr")
             self.extra_cmake.add("-DCATKIN_BUILD_BINARY_PACKAGE=ON")
@@ -996,7 +1016,7 @@ class Requirements(object):
                         pkg = "go-" + req[0].replace("/", "-")
                         self.add_buildreq(pkg)
                         if config.default_pattern == "godep":
-                            self.add_requires(pkg, config.os_packages)
+                            self.add_requires(pkg, config.os_packages, cache=True)
 
             if "CMakeLists.txt" in files and "configure.ac" not in files:
                 self.add_buildreq("buildreq-cmake")
@@ -1004,9 +1024,9 @@ class Requirements(object):
 
                 srcdir = os.path.abspath(os.path.join(dirn, "clr-build", config.cmake_srcdir or ".."))
                 if os.path.samefile(dirpath, srcdir):
-                    self.parse_catkin_deps(os.path.join(srcdir, "CMakeLists.txt"), config.config_opts.get('32bit'))
+                    self.parse_catkin_deps(os.path.join(srcdir, "CMakeLists.txt"), config.config_opts.get("32bit"), cache=True)
 
-            if "configure" in files and os.access(dirpath + '/configure', os.X_OK):
+            if "configure" in files and os.access(dirpath + "/configure", os.X_OK):
                 config.set_build_pattern("configure", default_score)
             elif any(is_qmake_pro(f) for f in files):
                 self.add_buildreq("buildreq-qmake")
@@ -1053,11 +1073,11 @@ class Requirements(object):
                 if name.lower() == "cargo.toml" and dirpath == dirn:
                     self.parse_cargo_toml(os.path.join(dirpath, name), config)
                 if name.lower().startswith("configure."):
-                    self.parse_configure_ac(os.path.join(dirpath, name), config)
+                    self.parse_configure_ac(os.path.join(dirpath, name), config, cache=True)
                 if name.lower().startswith("rakefile") and config.default_pattern == "ruby":
                     self.rakefile(os.path.join(dirpath, name), config.gems)
                 if name.endswith(".pro") and config.default_pattern == "qmake":
-                    self.qmake_profile(os.path.join(dirpath, name), config.qt_modules)
+                    self.qmake_profile(os.path.join(dirpath, name), config.qt_modules, cache=True)
                 if name.lower() == "makefile":
                     config.set_build_pattern("make", default_score)
                 if name.lower() == "autogen.sh":
@@ -1065,7 +1085,7 @@ class Requirements(object):
                 if name.lower() == "cmakelists.txt":
                     config.set_build_pattern("cmake", default_score)
                 if (name.lower() == "cmakelists.txt" or name.endswith(".cmake")) and config.default_pattern == "cmake":
-                    self.parse_cmake(os.path.join(dirpath, name), config.cmake_modules, config.config_opts.get('32bit'))
+                    self.parse_cmake(os.path.join(dirpath, name), config.cmake_modules, config.config_opts.get("32bit"), cache=True)
 
             if "build.tcl" in files:
                 config.set_build_pattern("buildtcl_script", default_score)
@@ -1103,7 +1123,7 @@ class Requirements(object):
                 if package_pypi.get("requires"):
                     for pkg in package_pypi["requires"]:
                         print(f"Adding additional (python distutils3) requirement: pypi({pkg})")
-                        self.add_requires(f"pypi({pkg})", config.os_packages, override=True, subpkg="python3")
+                        self.add_requires(f"pypi({pkg})", config.os_packages, override=True, subpkg="python3", cache=True)
                 if package_pypi.get("license"):
                     # The license field is freeform, might be worth looking at though
                     print(f"Pypi says the license is: {package_pypi['license']}")

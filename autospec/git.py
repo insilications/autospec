@@ -33,7 +33,6 @@ from util import call, write_out, print_fatal, print_debug, print_info
 
 def get_git_remote_url(target, clone_path):
     """Get the remote url for a targeted git repository."""
-    remote_url = ""
     git_config_get = f"git config --get remote.{target}.url"
     process = subprocess.run(
         git_config_get,
@@ -125,6 +124,8 @@ def git_describe(clone_path):
                 outputVersion1 = f"{outputVersion1}.{git_describe_cmd2_re1_result.group(4)}"
             if git_describe_cmd2_re1_result.group(5):
                 outputVersion1 = f"{outputVersion1}{git_describe_cmd2_re1_result.group(5)}"
+            if git_describe_cmd2_re1_result.group(7):
+                outputVersion1 = f"{outputVersion1}.{git_describe_cmd2_re1_result.group(7)}"
             return outputVersion1
 
 
@@ -373,7 +374,7 @@ def remove_clone_archive(path, clone_path, is_fatal):
             print_fatal("Unable to remove {}: {}".format(clone_path, err))
 
 
-def git_clone(path, cmd_args, clone_path, force_module, force_fullclone, is_fatal=True):
+def git_clone(url, path, cmd_args, clone_path, force_module, force_fullclone, is_fatal=True):
     try:
         if force_module is True:
             if force_fullclone is True:
@@ -407,7 +408,7 @@ def git_archive_all(path, name, url, branch, force_module, force_fullclone, conf
 
     is_url = validators.url(url)
     if is_url is True:
-        git_clone(path=path, cmd_args=cmd_args, clone_path=clone_path, force_module=force_module, force_fullclone=force_fullclone, is_fatal=is_fatal)
+        git_clone(url=url, path=path, cmd_args=cmd_args, clone_path=clone_path, force_module=force_module, force_fullclone=force_fullclone, is_fatal=is_fatal)
         try:
             outputVersion = find_version_git(url=url, clone_path=clone_path, path=path, conf=conf)
         except:

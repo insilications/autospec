@@ -286,6 +286,11 @@ def main():
     else:
         short_circuit = None
 
+    if short_circuit == "prep" or short_circuit is None:
+        args.bump = True
+    else:
+        args.bump = False
+
     if util.debugging:
         print_debug("a_download_from_git: {}".format(str(str_to_bool(a_download_from_git))))
     if args.download_from_git is not None:
@@ -640,7 +645,8 @@ def package(
         license.scan_for_licenses(os.path.dirname(_dir), conf, name)
         exit(0)
 
-    requirements.scan_for_configure(_dir, content.name, conf)
+    if short_circuit == "prep" or short_circuit is None:
+        requirements.scan_for_configure(_dir, content.name, conf)
     specdescription.scan_for_description(content.name, _dir, conf.license_translations, conf.license_blacklist)
     # Start one directory higher so we scan *all* versions for licenses
     license.scan_for_licenses(os.path.dirname(_dir), conf, content.name)
@@ -742,8 +748,9 @@ def package(
             # record logcheck output
             logcheck(conf.download_path)
 
-        elif (short_circuit == "install"):
-            examine_abi(conf.download_path, content.name)
+        #elif (short_circuit == "install"):
+            ## record logcheck output
+            #logcheck(conf.download_path)
 
         elif (short_circuit == "binary"):
             examine_abi(conf.download_path, content.name)
@@ -751,7 +758,7 @@ def package(
                 print("\nGenerating whatrequires\n")
                 pkg_scan.get_whatrequires(content.name, conf.yum_conf)
 
-            write_out(conf.download_path + "/release", content.release + "\n")
+            #write_out(conf.download_path + "/release", content.release + "\n")
 
             if args.git:
                 print("\nTrying to guess the commit message\n")

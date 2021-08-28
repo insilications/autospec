@@ -23,9 +23,10 @@ import os
 import re
 import shutil
 import sys
+import subprocess
 import util
 import shutil
-from util import call, write_out, print_fatal, print_debug, print_info
+from util import call, write_out, print_fatal, print_debug, print_info, scantree
 
 def cleanup_req(s: str) -> str:
     """Strip unhelpful strings from requirements."""
@@ -109,6 +110,50 @@ class Build(object):
             #util.print_fatal("Failed to move custom .bashrc to chroot home dir")
             #sys.exit(1)
 
+    def write_python_flags_fix(self, mock_dir, content_name, config):
+        """Patch python to use custom flags."""
+        python_dir_dst = f"{mock_dir}/clear-{content_name}/root/usr/lib/python3.9"
+        python_dir_patched_file = f"{python_dir_dst}/patched"
+        patch_file = "/aot/build/clearlinux/projects/autospec/autospec/0001-Fix-PYTHON-flags.patch"
+        patch_cmd = f"sudo /usr/bin/patch --backup -p1 --fuzz=2 --input={patch_file}"
+        if not os.path.isfile(python_dir_patched_file):
+            try:
+                process = subprocess.run(
+                    patch_cmd,
+                    check=True,
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    universal_newlines=True,
+                    cwd=python_dir_dst,
+                )
+            except subprocess.CalledProcessError as err:
+                revert_patch = [(f.path, f.path.replace(".orig", "")) for f in scantree(python_dir_dst) if f.is_file() and os.path.splitext(f.name)[1].lower() == ".orig"]
+                for pcs in revert_patch:
+                    process = subprocess.run(
+                        f"sudo cp {pcs[0]} {pcs[1]}",
+                        check=False,
+                        shell=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        text=True,
+                        universal_newlines=True,
+                        cwd=python_dir_dst,
+                    )
+                print_fatal(f"Unable to patch custom flags in {python_dir_dst}: {err}")
+                sys.exit(1)
+            process = subprocess.run(
+                f"echo patched | sudo tee patched",
+                check=False,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                universal_newlines=True,
+                cwd=python_dir_dst,
+            )
+
     def simple_pattern_pkgconfig(self, line, pattern, pkgconfig, conf32, requirements):
         """Check for pkgconfig patterns and restart build as needed."""
         pat = re.compile(pattern)
@@ -159,32 +204,55 @@ class Build(object):
                     else:
                         requirements.add_buildreq(req, cache=True)
             elif buildtool == 'pkgconfig':
-                self.must_restart += requirements.add_pkgconfig_buildreq(s, config.config_opts.get('32bit'), cache=True)
+                if self.short_circuit is None:
+                    self.must_restart += requirements.add_pkgconfig_buildreq(s, config.config_opts.get('32bit'), cache=True)
+                else:
+                    requirements.add_pkgconfig_buildreq(s, config.config_opts.get('32bit'), cache=True)
             elif buildtool == 'R':
                 if requirements.add_buildreq("R-" + s, cache=True) > 0:
-                    self.must_restart += 1
+                    if self.short_circuit is None:
+                        self.must_restart += 1
                     requirements.add_requires("R-" + s, config.os_packages, cache=True)
             elif buildtool == 'perl':
                 s = s.replace('inc::', '')
-                self.must_restart += requirements.add_buildreq('perl(%s)' % s, cache=True)
+                if self.short_circuit is None:
+                    self.must_restart += requirements.add_buildreq('perl(%s)' % s, cache=True)
+                else:
+                    requirements.add_buildreq('perl(%s)' % s, cache=True)
             elif buildtool == 'pypi':
                 s = util.translate(s)
                 if not s:
                     return
-                self.must_restart += requirements.add_buildreq(f"pypi({s.lower().replace('-', '_')})", cache=True)
+                if self.short_circuit is None:
+                	self.must_restart += requirements.add_buildreq(f"pypi({s.lower().replace('-', '_')})", cache=True)
+                else:
+                    requirements.add_buildreq(f"pypi({s.lower().replace('-', '_')})", cache=True)
             elif buildtool == 'ruby':
                 if s in config.gems:
-                    self.must_restart += requirements.add_buildreq(config.gems[s], cache=True)
+                    if self.short_circuit is None:
+                        self.must_restart += requirements.add_buildreq(config.gems[s], cache=True)
+                    else:
+                        requirements.add_buildreq(config.gems[s], cache=True)
                 else:
-                    self.must_restart += requirements.add_buildreq('rubygem-%s' % s, cache=True)
+                    if self.short_circuit is None:
+                        self.must_restart += requirements.add_buildreq('rubygem-%s' % s, cache=True)
+                    else:
+                        requirements.add_buildreq('rubygem-%s' % s, cache=True)
             elif buildtool == 'ruby table':
                 if s in config.gems:
-                    self.must_restart += requirements.add_buildreq(config.gems[s], cache=True)
+                    if self.short_circuit is None:
+                        self.must_restart += requirements.add_buildreq(config.gems[s], cache=True)
+                    else:
+                        requirements.add_buildreq(config.gems[s], cache=True)
                 else:
                     print("Unknown ruby gem match", s)
             elif buildtool == 'catkin':
-                self.must_restart += requirements.add_pkgconfig_buildreq(s, config.config_opts.get('32bit'), cache=True)
-                self.must_restart += requirements.add_buildreq(s, cache=True)
+                if self.short_circuit is None:
+                    self.must_restart += requirements.add_pkgconfig_buildreq(s, config.config_opts.get('32bit'), cache=True)
+                    self.must_restart += requirements.add_buildreq(s, cache=True)
+                else:
+                    requirements.add_pkgconfig_buildreq(s, config.config_opts.get('32bit'), cache=True)
+                    requirements.add_buildreq(s, cache=True)
         except Exception:
             if s.strip() and s not in self.warned_about and s[:2] != '--':
                 util.print_warning(f"Unknown pattern match: {s}")
@@ -226,17 +294,18 @@ class Build(object):
             if patch_name:
                 if self.patch_fail_line.search(line):
                     self.must_restart += config.remove_backport_patch(patch_name)
-            for pat in config.pkgconfig_pats:
-                self.simple_pattern_pkgconfig(line, *pat, config.config_opts.get('32bit'), requirements)
+            if self.short_circuit != "prep" and self.short_circuit != "binary":
+                for pat in config.pkgconfig_pats:
+                    self.simple_pattern_pkgconfig(line, *pat, config.config_opts.get('32bit'), requirements)
 
-            for pat in config.simple_pats:
-                self.simple_pattern(line, *pat, requirements)
+                for pat in config.simple_pats:
+                    self.simple_pattern(line, *pat, requirements)
 
-            for pat in config.failed_pats:
-                self.failed_pattern(line, config, requirements, *pat)
+                for pat in config.failed_pats:
+                    self.failed_pattern(line, config, requirements, *pat)
 
-            for pat in config.failed_exit_pats:
-                self.failed_exit_pattern(line, config, requirements, *pat)
+                for pat in config.failed_exit_pats:
+                    self.failed_exit_pattern(line, config, requirements, *pat)
 
             #check_for_warning_pattern(line)
 
@@ -362,6 +431,7 @@ class Build(object):
 
         if self.short_circuit == "prep":
             self.write_normal_bashrc(mock_dir, content.name, config)
+            self.write_python_flags_fix(mock_dir, content.name, config)
 
         # sanity check the build log
         if not os.path.exists(config.download_path + "/results/build.log"):

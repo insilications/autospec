@@ -244,7 +244,7 @@ class Specfile(object):
             self._write("Requires: {}-{} = %{{version}}-%{{release}}\n".format(self.name, pkg))
 
         for pkg in sorted(self.requirements.requires.get(None, [])):
-            if "{}-{}".format(self.name, pkg) in self.requirements.banned_requires.get(None, []):
+            if "{}".format(self.name, pkg) in self.requirements.banned_requires.get(None, []):
                 continue
             self._write("Requires: {}\n".format(pkg))
         for pkg in sorted(self.requirements.provides.get(None, [])):
@@ -254,7 +254,7 @@ class Specfile(object):
         """Write subpackage build requirements."""
         for pkg in sorted(self.subpackages):
             # honor requires_ban for manual overrides
-            if "{}-{}".format(self.name, pkg) in self.requirements.banned_requires.get(None, []):
+            if "{}".format(self.name, pkg) in self.requirements.banned_requires.get(None, []):
                 continue
             self._write("Requires: {} = %{{version}}-%{{release}}\n".format(pkg))
 
@@ -597,11 +597,11 @@ class Specfile(object):
                     self._write_strip("ninja --verbose {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
                 else:
                     if pattern == "make" and pgo is False:
-                        self._write_strip('make {} {} {} V=1 VERBOSE=1 CFLAGS="${{CFLAGS_GENERATE}}" CXXFLAGS="${{CXXFLAGS_GENERATE}}" FFLAGS="${{FFLAGS_GENERATE}}" FCFLAGS="${{FCFLAGS_GENERATE}}" LDFLAGS="${{LDFLAGS_GENERATE}}" LIBS="${{LIBS}}"'.format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+                        self._write_strip('make {} {} {} V=1 VERBOSE=1 CFLAGS="${{CFLAGS_GENERATE}}" CXXFLAGS="${{CXXFLAGS_GENERATE}}" FFLAGS="${{FFLAGS_GENERATE}}" FCFLAGS="${{FCFLAGS_GENERATE}}" LDFLAGS="${{LDFLAGS_GENERATE}}" LIBS="${{LIBS_GENERATE}}"'.format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
                     elif pattern == "make" and pgo is True:
-                        self._write_strip('make {} {} {} V=1 VERBOSE=1 CFLAGS="${{CFLAGS_USE}}" CXXFLAGS="${{CXXFLAGS_USE}}" FFLAGS="${{FFLAGS_USE}}" FCFLAGS="${{FCFLAGS_USE}}" LDFLAGS="${{LDFLAGS_USE}}" LIBS="${{LIBS}}"'.format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+                        self._write_strip('make {} {} {} V=1 VERBOSE=1 CFLAGS="${{CFLAGS_USE}}" CXXFLAGS="${{CXXFLAGS_USE}}" FFLAGS="${{FFLAGS_USE}}" FCFLAGS="${{FCFLAGS_USE}}" LDFLAGS="${{LDFLAGS_USE}}" LIBS="${{LIBS_GENERATE}}"'.format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
                     elif pattern == "make" and pgo is None:
-                        self._write_strip('make {} {} {} V=1 VERBOSE=1 CFLAGS="${{CFLAGS}}" CXXFLAGS="${{CXXFLAGS}}" FFLAGS="${{FFLAGS}}" FCFLAGS="${{FCFLAGS}}" LDFLAGS="${{LDFLAGS}}" LIBS="${{LIBS}}"'.format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+                        self._write_strip('make {} {} {} V=1 VERBOSE=1 CFLAGS="${{CFLAGS}}" CXXFLAGS="${{CXXFLAGS}}" FFLAGS="${{FFLAGS}}" FCFLAGS="${{FCFLAGS}}" LDFLAGS="${{LDFLAGS}}" LIBS="${{LIBS_GENERATE}}"'.format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
                     elif pattern != "make":
                         self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
             else:
@@ -809,7 +809,23 @@ class Specfile(object):
     def write_32bit_exports(self):
         """Write 32bit only env exports."""
         if self.config.config_opts["fsalt1_32"] and not self.config.config_opts["altflags_pgo_32"]:
-            if self.config.altflags1_32:
+            if self.config.altflags1_32f and self.config.altflags1_32f[0]:
+                self._write_strip("## altflags1_32f content")
+                self._write_strip("unset CFLAGS")
+                self._write_strip("unset CXXFLAGS")
+                self._write_strip("unset FCFLAGS")
+                self._write_strip("unset FFLAGS")
+                self._write_strip("unset CFFLAGS")
+                self._write_strip("unset LDFLAGS")
+                self._write_strip("unset ASFLAGS")
+                self._write_strip("unset LD_LIBRARY_PATH")
+                self._write_strip("unset LIBRARY_PATH")
+                self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
+                for line in self.config.altflags1_32f:
+                    self._write("{}\n".format(line))
+                self._write_strip('export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"')
+                self._write_strip("## altflags1_32f end")
+            elif self.config.altflags1_32 and self.config.altflags1_32[0]:
                 self._write_strip("## altflags1_32 content")
                 self._write_strip("unset CFLAGS")
                 self._write_strip("unset CXXFLAGS")
@@ -820,7 +836,7 @@ class Specfile(object):
                 self._write_strip("unset ASFLAGS")
                 self._write_strip("unset LD_LIBRARY_PATH")
                 self._write_strip("unset LIBRARY_PATH")
-                self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"')
+                self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 for line in self.config.altflags1_32:
                     self._write("{}\n".format(line))
                 self._write_strip('export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"')
@@ -832,7 +848,7 @@ class Specfile(object):
                 self._write_strip("unset LD_LIBRARY_PATH")
                 self._write_strip("unset LIBRARY_PATH")
                 self._write_strip("unset CPATH")
-                self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"')
+                self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 self._write_strip("unset ASFLAGS")
                 self._write_strip("unset CFLAGS")
                 self._write_strip("unset CXXFLAGS")
@@ -854,7 +870,7 @@ class Specfile(object):
                 self._write_strip("unset LD_LIBRARY_PATH")
                 self._write_strip("unset LIBRARY_PATH")
                 self._write_strip("unset CPATH")
-                self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"')
+                self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 self._write_strip("unset ASFLAGS")
                 self._write_strip("unset CFLAGS")
                 self._write_strip("unset CXXFLAGS")
@@ -1000,7 +1016,12 @@ class Specfile(object):
             self._write_strip("##")
 
         if self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"]:
-            if self.config.altflags1:
+            if self.config.altflags1f and self.config.altflags1f[0]:
+                self._write_strip("## altflags1f content")
+                for line in self.config.altflags1f:
+                    self._write("{}\n".format(line))
+                self._write_strip("## altflags1f end")
+            elif self.config.altflags1 and self.config.altflags1[0]:
                 self._write_strip("## altflags1 content")
                 for line in self.config.altflags1:
                     self._write("{}\n".format(line))
@@ -1163,7 +1184,12 @@ class Specfile(object):
                 ["-fprofile-generate", "-fprofile-dir=/var/tmp/pgo", "-fprofile-update=atomic", "-fprofile-abs-path", "-fprofile-arcs", "-ftest-coverage", "--coverage", "-fprofile-partial-training"]
             )
             useflags.extend(["-fprofile-use", "-fprofile-dir=/var/tmp/pgo", "-fprofile-correction", "-fprofile-partial-training"])
-            if self.config.altflags_pgo and self.config.altflags_pgo[0]:
+            if self.config.altflags_pgof and self.config.altflags_pgof[0]:
+                self._write_strip("## altflags_pgof content")
+                for line in self.config.altflags_pgof:
+                    self._write("{}\n".format(line))
+                self._write_strip("## altflags_pgof end")
+            elif self.config.altflags_pgo and self.config.altflags_pgo[0]:
                 self._write_strip("## altflags_pgo content")
                 for line in self.config.altflags_pgo:
                     self._write("{}\n".format(line))
@@ -1523,6 +1549,13 @@ class Specfile(object):
                 self._write("    popd\n")
                 self._write_strip("fi")
                 self._write_strip("popd")
+                self._write_strip("if [ -d %{buildroot}/usr/share/pkgconfig ]")
+                self._write_strip("then")
+                self._write_strip("    pushd %{buildroot}/usr/share/pkgconfig")
+                self._write_strip("    for i in *.pc ; do ln -s $i 32$i ; done")
+                self._write_strip("    popd")
+                self._write_strip("fi")
+                self._write_strip("popd")
             if self.config.config_opts["build_special_32"]:
                 if self.config.install_macro_build_special_32:
                     self._write_strip("## install_macro_build_special_32 start")
@@ -1823,7 +1856,13 @@ class Specfile(object):
                 self._write("    popd\n")
                 self._write_strip("fi")
                 self._write_strip("popd")
-
+                self._write_strip("if [ -d %{buildroot}/usr/share/pkgconfig ]")
+                self._write_strip("then")
+                self._write_strip("    pushd %{buildroot}/usr/share/pkgconfig")
+                self._write_strip("    for i in *.pc ; do ln -s $i 32$i ; done")
+                self._write_strip("    popd")
+                self._write_strip("fi")
+                self._write_strip("popd")
         if not self.config.config_opts["32bit_only"]:
             if self.config.config_opts["use_avx512"]:
                 if self.config.install_macro_512:
@@ -1915,6 +1954,7 @@ class Specfile(object):
                 'export FFLAGS="${FFLAGS_GENERATE}"\n'
                 'export FCFLAGS="${FCFLAGS_GENERATE}"\n'
                 'export LDFLAGS="${LDFLAGS_GENERATE}"\n'
+                'export LIBS="${LIBS_GENERATE}"\n'
             )
         return ""
 
@@ -1931,7 +1971,7 @@ class Specfile(object):
         otherwise an empty string is returned.
         """
         if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
-            return 'export CFLAGS="${CFLAGS_USE}"\n' 'export CXXFLAGS="${CXXFLAGS_USE}"\n' 'export FFLAGS="${FFLAGS_USE}"\n' 'export FCFLAGS="${FCFLAGS_USE}"\n' 'export LDFLAGS="${LDFLAGS_USE}"\n'
+            return 'export CFLAGS="${CFLAGS_USE}"\n' 'export CXXFLAGS="${CXXFLAGS_USE}"\n' 'export FFLAGS="${FFLAGS_USE}"\n' 'export FCFLAGS="${FCFLAGS_USE}"\n' 'export LDFLAGS="${LDFLAGS_USE}"\n' 'unset LIBS\n'
         return ""
 
     def get_systemd_units(self):
@@ -2379,7 +2419,7 @@ class Specfile(object):
         else:
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
-            self._write_strip("{0}%reconfigure {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure, self.config.extra_configure64))
+            self._write_strip("{0}%reconfigure {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
             if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
                 self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
             else:
@@ -2681,13 +2721,19 @@ class Specfile(object):
             for line in self.config.make_prepend:
                 self._write("{}\n".format(line))
             self._write_strip("## make_prepend end")
-        self._write_strip("if [ ! -f setup.py ]; then")
-        self._write('printf \"#!/usr/bin/env python\\nfrom setuptools import setup\\nsetup()\" > setup.py\n')
-        self._write_strip('chmod +x setup.py')
-        self._write_strip("python3 setup.py build  " + self.config.extra_configure)
-        self._write_strip("else")
-        self._write_strip("python3 setup.py build  " + self.config.extra_configure)
-        self._write_strip("fi")
+        if self.config.make_macro:
+            self._write_strip("## make_macro start")
+            for line in self.config.make_macro:
+                self._write("{}\n".format(line))
+            self._write_strip("## make_macro end")
+        else:
+            self._write_strip("if [ ! -f setup.py ]; then")
+            self._write('printf \"#!/usr/bin/env python\\nfrom setuptools import setup\\nsetup()\" > setup.py\n')
+            self._write_strip('chmod +x setup.py')
+            self._write_strip("python3 setup.py build -j 16 " + self.config.extra_configure)
+            self._write_strip("else")
+            self._write_strip("python3 setup.py build -j 16 " + self.config.extra_configure)
+            self._write_strip("fi")
         if self.config.subdir:
             self._write_strip("popd")
         if self.tests_config and not self.config.config_opts["skip_tests"]:
@@ -2708,7 +2754,7 @@ class Specfile(object):
         self._write_strip("rm -rf %{buildroot}")
         self.write_install_prepend()
         self.write_license_files()
-        self._write_strip("python3 -tt setup.py build  install --root=%{buildroot}")
+        self._write_strip("python3 -tt setup.py build -j 16 install --root=%{buildroot}")
         if self.config.subdir:
             self._write_strip("popd")
         for module in self.config.pypi_overrides:
