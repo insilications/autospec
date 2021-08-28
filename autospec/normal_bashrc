@@ -1,0 +1,18 @@
+# Use global profile when available
+if [ -f /usr/share/defaults/etc/profile ]; then
+	. /usr/share/defaults/etc/profile
+fi
+# allow admin overrides
+if [ -f /etc/profile ]; then
+	. /etc/profile
+fi
+#
+alias lt="exa --long --all --icons --color-scale --sort=modified --group-directories-first --group --git --octal-permissions --time-style long-iso --header"
+alias eg="printenv | grep -i"
+alias pyb="python setup.py sdist bdist_wheel"
+alias reconf="autoreconf -v --install --force"
+alias pit="/usr/bin/patch --no-backup-if-mismatch -p1 --fuzz=2"
+alias pk="pkill -9 -f"
+alias py="python"
+alias sf="sudo -s"
+alias sfs="sudo -E su -p"

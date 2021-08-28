@@ -25,7 +25,7 @@ import zipfile
 from collections import OrderedDict
 
 import download
-from util import do_regex, get_sha1sum, print_fatal, write_out
+from util import do_regex, get_sha1sum, print_fatal, write_out, print_debug
 
 
 class Source(object):
@@ -40,6 +40,7 @@ class Source(object):
         self.type = None
         self.prefix = None
         self.subdir = None
+        self.gem_subdir = None
 
         # Extra  compressed archives
         if not self.destination.startswith(':'):
@@ -59,9 +60,13 @@ class Source(object):
         """Determine the prefix and subdir if no prefix."""
         prefix_method = getattr(self, 'set_{}_prefix'.format(self.type))
         prefix_method()
+
         # When there is no prefix, create subdir
-        if not self.prefix:
+        if not self.prefix and not self.pattern == "ruby":
             self.subdir = os.path.splitext(os.path.basename(self.path))[0]
+        if not self.prefix and self.pattern == "ruby":
+            self.subdir = os.path.splitext(os.path.basename(self.path))[0]
+            self.gem_subdir = os.path.splitext(os.path.basename(self.path))[0]
 
     def set_tar_prefix(self):
         """Determine prefix folder name of tar file."""
@@ -162,7 +167,7 @@ def convert_version(ver_str, name):
 class Content(object):
     """Detect static information about the project."""
 
-    def __init__(self, url, name, version, archives, config, base_path):
+    def __init__(self, url, name, version, archives, config, base_path, giturl, download_from_git, branch, new_archives_from_git, force_module, force_fullclone):
         """Initialize Default content settings."""
         self.name = name
         self.rawname = ""
@@ -174,12 +179,18 @@ class Content(object):
         self.tarball_prefix = ""
         self.gcov_file = ""
         self.archives = archives
-        self.giturl = ""
+        self.giturl = giturl
         self.repo = ""
         self.domain = ""
         self.prefixes = dict()
         self.config = config
         self.base_path = base_path
+        self.download_from_git = download_from_git
+        self.branch = branch
+        self.force_module = force_module
+        self.force_fullclone = force_fullclone
+        self.archives_from_git = new_archives_from_git
+        self.gem_subdir = str()
 
     def write_upstream(self, sha, tarfile, mode="w"):
         """Write the upstream hash to the upstream file."""
@@ -211,7 +222,6 @@ class Content(object):
 
     def print_header(self):
         """Print header for autospec run."""
-        print("\n")
         print("Processing", self.url)
         print("=" * 105)
         print("Name        :", self.name)
@@ -447,6 +457,8 @@ class Content(object):
         full_archives = self.archives + go_archives + multiver_archives
         # Download and extract full list
         for arch_url, destination in zip(full_archives[::2], full_archives[1::2]):
+            if util.debugging:
+                print_debug("arch_url 3: {} - {}".format(arch_url, destination))
             src_path = self.check_or_get_file(arch_url, os.path.basename(arch_url), mode="a")
             # Create source object and extract archive
             archive = Source(arch_url, destination, src_path, self.config.default_pattern)
@@ -475,8 +487,12 @@ class Content(object):
         # Store the detected prefix associated with this file
         self.prefixes[self.url] = main_src.prefix
         self.tarball_prefix = main_src.prefix
+        if self.config.default_pattern == "ruby":
+            self.gem_subdir = main_src.gem_subdir
+            #print(f"self.gem_subdir: {self.gem_subdir}")
         # set global path with tarball_prefix
         self.path = os.path.join(self.base_path, self.tarball_prefix)
+        #print(f"self.path: {self.path} - self.base_path: {self.base_path} - self.tarball_prefix: {self.tarball_prefix}")
         # Now that the metadata has been collected print the header
         self.print_header()
         # Download and process extra sources: archives, go archives and

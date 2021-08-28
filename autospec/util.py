@@ -27,15 +27,27 @@ import sys
 dictionary_filename = os.path.dirname(__file__) + "/translate.dic"
 dictionary = [line.strip() for line in open(dictionary_filename, 'r')]
 os_paths = None
+debugging : bool = False
+
+
+def scantree(path):
+    """Recursively yield DirEntry objects for given directory."""
+    for entry in os.scandir(path):
+        if entry.is_dir(follow_symlinks=False):
+            yield from scantree(entry.path)
+        else:
+            yield entry
 
 
 def call(command, logfile=None, check=True, **kwargs):
     """Subprocess.call convenience wrapper."""
     returncode = 1
+
     full_args = {
         "args": shlex.split(command),
         "universal_newlines": True,
     }
+
     full_args.update(kwargs)
 
     if logfile:
@@ -111,6 +123,35 @@ def _print_message(message, level, color=None):
     print(f'[{prefix}] {message}')
 
 
+def _print_message_extra(message, level, color=None, color_text=None):
+    prefix = level
+    if color and _supports_color():
+        # FIXME: use terminfo instead
+        if color == 'red':
+            params = '31;1'
+        elif color == 'green':
+            params = '32;1'
+        elif color == 'yellow':
+            params = '33;1'
+        elif color == 'blue':
+            params = '34;1'
+        prefix = f'\033[{params}m{level}\033[0m'
+    if color_text and _supports_color():
+        # FIXME: use terminfo instead
+        if color_text == 'red':
+            params2 = '31;1'
+        elif color_text == 'green':
+            params2 = '32;1'
+        elif color_text == 'yellow':
+            params2 = '33;1'
+        elif color_text == 'blue':
+            params2 = '34;1'
+        elif color_text == 'orange':
+            params2 = '38;5;208'
+        message_colored = f'\033[{params2}m{message}\033[0m'
+    print(f'[{prefix}] {message_colored}')
+
+
 def print_error(message):
     """Print error, color coded for TTYs."""
     _print_message(message, 'ERROR', 'red')
@@ -126,6 +167,11 @@ def print_warning(message):
     _print_message(message, 'WARNING', 'red')
 
 
+def print_extra_warning(message):
+    """Print warning, color coded for TTYs."""
+    _print_message_extra(message, 'WARNING', 'red', 'orange')
+
+
 def print_info(message):
     """Print informational message, color coded for TTYs."""
     _print_message(message, 'INFO', 'yellow')
@@ -134,6 +180,11 @@ def print_info(message):
 def print_success(message):
     """Print success message, color coded for TTYs."""
     _print_message(message, 'SUCCESS', 'green')
+
+
+def print_debug(message):
+    """Print debug messages, color coded for TTYs."""
+    _print_message(message, 'DEBUG', 'red')
 
 
 def binary_in_path(binary):

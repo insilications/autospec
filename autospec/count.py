@@ -65,7 +65,6 @@ def zero_test_data():
     counted_xfail = 0
     counted_skip = 0
 
-
 def sanitize_counts():
     """Validate test counts are within sane bounds."""
     global total_tests

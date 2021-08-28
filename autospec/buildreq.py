@@ -50,8 +50,6 @@ def old_python_module(req):
 
 def clean_python_req(req):
     """Strip version information from req."""
-    if not req:
-        return ""
     if req[0] == "#":
         return ""
     ret = req.rstrip("\n\r").strip()
@@ -318,6 +316,7 @@ class Requirements(object):
                                            "ipaddress"])}
         self.buildreqs = set()
         self.buildreqs_cache = set()
+        self.reqs_cache = set()
         self.requires = {None: set(), "pypi": set()}
         self.provides = {None: set(), "pypi": set()}
         self.extra_cmake = set()
@@ -356,17 +355,21 @@ class Requirements(object):
         if not req:
             return False
         req.strip()
-        if req in self.banned_buildreqs:
-            return False
         if req in self.buildreqs:
             new = False
-        if self.verbose and new:
-            print("  Adding buildreq:", req)
-
-        self.buildreqs.add(req)
-        if cache and new:
-            self.buildreqs_cache.add(req)
-        return new
+        if new:
+            if cache:
+                print("  Adding cache buildreq:", req)
+                self.buildreqs_cache.add(req)
+                return new
+            else:
+                if req in self.banned_buildreqs:
+                    return False
+                else:
+                    self.buildreqs.add(req)
+                    if self.verbose:
+                        print("  Adding buildreq:", req)
+                    return new
 
     def ban_requires(self, ban, subpkg=None):
         """Add ban to the banned set (and remove it from requires if it was added)."""
@@ -377,8 +380,9 @@ class Requirements(object):
             banned_requires = self.banned_requires[subpkg] = set()
         requires.discard(ban)
         banned_requires.add(ban)
+        self.reqs_cache.discard(ban)
 
-    def add_requires(self, req, packages, override=False, subpkg=None):
+    def add_requires(self, req, packages, override=False, subpkg=None, cache=False):
         """Add req to the requires set if it is present in buildreqs and packages and is not banned."""
         new = True
         req = req.strip()
@@ -391,13 +395,71 @@ class Requirements(object):
         if req in banned_requires:
             return False
 
+        # Try dashes instead of underscores as some ecosystems are inconsistent in their naming
+        req2 = req.replace("_", "-")
+        if req not in self.buildreqs and req2 in packages and req2 not in requires and req2 not in banned_requires:
+            # Since this is done for python add a buildreq just in case (might not be correct though)
+            if cache:
+                self.add_buildreq(req2, cache)
+                print("  Adding cache req:", req2)
+                self.reqs_cache.add(req2)
+                requires.add(req2)
+            else:
+                print(f"  Adding additional build requirement: {req2}")
+                self.add_buildreq(req2, cache)
+                print(f"  Adding requirement: {req2}")
+                requires.add(req2)
+            return True
+
+        # Try reversing the case of the first letter as some ecosystems are inconsistent in their naming
+        if len(req) > 1:
+            if req[0].isupper():
+                req2 = req[0].lower() + req[1:]
+            else:
+                req2 = req[0].upper() + req[1:]
+        if req not in self.buildreqs and req2 in packages and req2 not in requires and req2 not in banned_requires:
+            # Since this is done for python add a buildreq just in case (might not be correct though)
+            if cache:
+                self.add_buildreq(req2, cache)
+                print("  Adding cache req:", req2)
+                self.reqs_cache.add(req2)
+                requires.add(req2)
+            else:
+                print(f"  Adding additional build requirement: {req2}")
+                self.add_buildreq(req2, cache)
+                print(f"  Adding requirement: {req2}")
+                requires.add(req2)
+            return True
+
         if req not in self.buildreqs and req not in packages and not override:
             if req:
-                print("requirement '{}' not found in buildreqs or os_packages, skipping".format(req))
+                print(f"requirement '{req}' not found in buildreqs or os_packages, skipping")
             return False
         if new:
-            # print("Adding requirement:", req)
-            requires.add(req)
+            if cache:
+                print(f"  Adding cache req: {req}")
+                requires.add(req)
+                self.reqs_cache.add(req)
+            else:
+                print(f"  Adding requirement: {req}")
+                requires.add(req)
+        return new
+
+    def add_provides(self, prov, packages, subpkg=None):
+        """Add prov to the provides set."""
+        new = True
+        prov = prov.strip()
+        if (provides := self.provides.get(subpkg)) is None:
+            provides = self.provides[subpkg] = set()
+        if prov in provides:
+            new = False
+
+        if new:
+            if subpkg is None:
+                print(f"Adding provides: {prov}")
+            else:
+                print(f"Adding provides: {prov} in subpackage {subpkg}")
+            provides.add(prov)
         return new
 
     def add_pkgconfig_buildreq(self, preq, conf32, cache=False):
@@ -478,18 +540,86 @@ class Requirements(object):
         Set the build requirements for building rust programs using cargo.
         """
         config.set_build_pattern("cargo", 1)
-        if config.default_pattern != "cargo":
-            return
+        self.add_buildreq("asciidoctor")
+        self.add_buildreq("asciidoctor-bin")
+        self.add_buildreq("asciidoctor-dev")
+        self.add_buildreq("binutils-dev")
+        self.add_buildreq("binutils-extras")
+        self.add_buildreq("buildreq-cmake")
+        self.add_buildreq("buildreq-distutils3")
+        self.add_buildreq("ca-certs")
+        self.add_buildreq("ca-certs-static")
+        self.add_buildreq("doxygen")
+        self.add_buildreq("elfutils-dev")
+        self.add_buildreq("git")
+        self.add_buildreq("googletest-dev")
+        self.add_buildreq("grep")
+        self.add_buildreq("intltool")
+        self.add_buildreq("intltool-dev")
+        self.add_buildreq("libedit")
+        self.add_buildreq("libedit-dev")
+        self.add_buildreq("libffi-dev")
+        self.add_buildreq("libffi-staticdev")
+        self.add_buildreq("libxml2-dev")
+        self.add_buildreq("libxml2-staticdev")
+        self.add_buildreq("ncurses-dev")
+        self.add_buildreq("openssl")
+        self.add_buildreq("openssl-dev")
+        self.add_buildreq("ruby")
         self.add_buildreq("rustc")
+        self.add_buildreq("rustc-bin")
+        self.add_buildreq("rustc-data")
+        self.add_buildreq("rustc-dev")
+        self.add_buildreq("rustc-staticdev")
+        self.add_buildreq("termcolor")
+        self.add_buildreq("time")
+        self.add_buildreq("cargo-edit")
+        self.add_buildreq("pandoc")
+        self.add_buildreq("pandocfilters")
+        self.add_buildreq("just")
+        self.add_buildreq("llvm-staticdev")
+        self.add_buildreq("llvm-man")
+        self.add_buildreq("llvm-libexec")
+        self.add_buildreq("llvm-lib")
+        self.add_buildreq("llvm-dev")
+        self.add_buildreq("llvm-data")
+        self.add_buildreq("llvm-bin")
+        self.add_buildreq("llvm")
+        self.add_buildreq("gcc")
+        self.add_buildreq("gcc-dev32")
+        self.add_buildreq("gcc-dev")
+        self.add_buildreq("gcc-doc")
+        self.add_buildreq("gcc-go")
+        self.add_buildreq("gcc-go-lib")
+        self.add_buildreq("gcc-libgcc32")
+        self.add_buildreq("gcc-libstdc++32")
+        self.add_buildreq("gcc-libs-math")
+        self.add_buildreq("gcc-libubsan")
+        self.add_buildreq("gcc-locale")
+        self.add_buildreq("libgcc1")
+        self.add_buildreq("libstdc++")
+        self.add_buildreq("glibc-bin")
+        self.add_buildreq("glibc-dev32")
+        self.add_buildreq("glibc-dev")
+        self.add_buildreq("glibc-doc")
+        self.add_buildreq("glibc-extras")
+        self.add_buildreq("glibc-libc32")
+        self.add_buildreq("glibc-lib-avx2")
+        self.add_buildreq("glibc-locale")
+        self.add_buildreq("glibc-nscd")
+        self.add_buildreq("glibc-staticdev")
+        self.add_buildreq("glibc-utils")
+        self.add_buildreq("glibc")
         with util.open_auto(filename, "r") as ctoml:
             cargo = toml.loads(ctoml.read())
         if cargo.get("bin") or os.path.exists(os.path.join(os.path.dirname(filename), "src/main.rs")):
             self.cargo_bin = True
         if not cargo.get("dependencies"):
             return
-        for cdep in cargo["dependencies"]:
-            if self.add_buildreq(cdep):
-                self.add_requires(cdep, config.os_packages)
+        if not config.config_opts["altcargo1"]:
+            for cdep in cargo["dependencies"]:
+                if self.add_buildreq(cdep):
+                    self.add_requires(cdep, config.os_packages)
 
     def parse_r_description(self, filename, packages):
         """Update build/runtime requirements according to the R package description."""
@@ -516,6 +646,11 @@ class Requirements(object):
             self.add_buildreq("rubygem-rdoc")
         if config.default_pattern == "cargo":
             self.add_buildreq("rustc")
+            self.add_buildreq("rustc-dev")
+            self.add_buildreq("rustc-staticdev")
+            self.add_buildreq("rustc-bin")
+            self.add_buildreq("rustc-data")
+
 
     def rakefile(self, filename, gems):
         """Scan Rakefile for build requirements."""
@@ -549,6 +684,7 @@ class Requirements(object):
                 module = match.group(1)
                 try:
                     pkg = cmake_modules[module]
+                    print("Adding additional build (cmake) requirement: %s" % pkg)
                     self.add_buildreq(pkg)
                 except Exception:
                     pass
@@ -592,13 +728,34 @@ class Requirements(object):
 
     def grab_python_requirements(self, descfile, packages):
         """Add python requirements from requirements.txt file."""
+        if "/demo/" in descfile:
+            return
+        if "/doc/" in descfile:
+            return
+        if "/docs/" in descfile:
+            return
+        if "/example/" in descfile:
+            return
+        if "/test/" in descfile:
+            return
+        if "/tests/" in descfile:
+            return
+
         with util.open_auto(descfile, "r") as f:
             lines = f.readlines()
 
         for line in lines:
-            if '[' in line:
+            # don't add the test section
+            if clean_python_req(line) == '[test]':
                 break
-            clean_line = clean_python_req(line)
+            if clean_python_req(line) == '[testing]':
+                break
+            if clean_python_req(line) == '[dev]':
+                break
+            if clean_python_req(line) == '[doc]':
+                break
+            if clean_python_req(line) == '[docs]':
+                break
             if 'pytest' in line:
                 continue
             if clean_line:
@@ -656,7 +813,7 @@ class Requirements(object):
             lines = f.readlines()
 
         for line in lines:
-            if not multiline and ("install_requires" in line or "setup_requires" in line):
+            if "install_requires" in line or "setup_requires" in line:
                 req = "install_requires" in line
                 # find the value for *_requires
                 line = line.split("=", 1)
@@ -675,10 +832,12 @@ class Requirements(object):
                         item = item.strip()
                         try:
                             # eval the string and add requirements
-                            if dep := clean_python_req(ast.literal_eval(item)):
-                                dep = f"pypi({dep})"
-                                if self.add_buildreq(dep) and req:
-                                    self.add_requires(dep, packages, subpkg="python3")
+                            dep = clean_python_req(ast.literal_eval(item), False)
+                            print(f"Adding additional build (python setup) requirement: {dep}")
+                            self.add_buildreq(dep, cache=True)
+                            if req:
+                                print(f"Adding additional (python setup) requirement: {dep}")
+                                self.add_requires(dep, packages, cache=True)
 
                         except Exception:
                             # do not fail, the line contained a variable and
@@ -699,10 +858,12 @@ class Requirements(object):
                 else:
                     line = line.strip()
                     try:
-                        if dep := clean_python_req(ast.literal_eval(line)):
-                            dep = f"pypi({dep})"
-                            if self.add_buildreq(dep) and req:
-                                self.add_requires(dep, packages, subpkg="python3")
+                        dep = clean_python_req(ast.literal_eval(line), False)
+                        print(f"Adding additional build (python setup) requirement: {dep}")
+                        self.add_buildreq(dep, cache=True)
+                        if req:
+                            print(f"Adding additional (python setup) requirement: {dep}")
+                            self.add_requires(dep, packages, cache=True)
 
                     except Exception:
                         # Do not fail, just keep looking
@@ -721,10 +882,12 @@ class Requirements(object):
 
                 try:
                     dep = ast.literal_eval(line.split('#')[0].strip(' ,\n'))
-                    if dep := clean_python_req(dep):
-                        dep = f"pypi({dep})"
-                        if self.add_buildreq(dep) and req:
-                            self.add_requires(dep, packages, subpkg="python3")
+                    dep = clean_python_req(dep)
+                    print(f"Adding additional build (python setup) requirement: {dep}")
+                    self.add_buildreq(dep, cache=True)
+                    if req:
+                        print(f"Adding additional (python setup) requirement: {dep}")
+                        self.add_requires(dep, packages, cache=True)
 
                 except Exception:
                     # do not fail, the line contained a variable and had to
@@ -760,13 +923,35 @@ class Requirements(object):
             self.extra_cmake.add("-DCMAKE_PREFIX_PATH=/usr")
             self.extra_cmake.add("-DCATKIN_BUILD_BINARY_PACKAGE=ON")
             self.extra_cmake.add("-DSETUPTOOLS_DEB_LAYOUT=OFF")
+            self.extra_cmake_special.add("-DCMAKE_PREFIX_PATH=/usr")
+            self.extra_cmake_special.add("-DCATKIN_BUILD_BINARY_PACKAGE=ON")
+            self.extra_cmake_special.add("-DSETUPTOOLS_DEB_LAYOUT=OFF")
+            self.extra_cmake_special2.add("-DCMAKE_PREFIX_PATH=/usr")
+            self.extra_cmake_special2.add("-DCATKIN_BUILD_BINARY_PACKAGE=ON")
+            self.extra_cmake_special2.add("-DSETUPTOOLS_DEB_LAYOUT=OFF")
+            self.cmake_macro.add("-DCMAKE_PREFIX_PATH=/usr")
+            self.cmake_macro.add("-DCATKIN_BUILD_BINARY_PACKAGE=ON")
+            self.cmake_macro.add("-DSETUPTOOLS_DEB_LAYOUT=OFF")
+            self.cmake_macro_32.add("-DCMAKE_PREFIX_PATH=/usr")
+            self.cmake_macro_32.add("-DCATKIN_BUILD_BINARY_PACKAGE=ON")
+            self.cmake_macro_32.add("-DSETUPTOOLS_DEB_LAYOUT=OFF")
+            self.cmake_macro_special.add("-DCMAKE_PREFIX_PATH=/usr")
+            self.cmake_macro_special.add("-DCATKIN_BUILD_BINARY_PACKAGE=ON")
+            self.cmake_macro_special.add("-DSETUPTOOLS_DEB_LAYOUT=OFF")
+            self.extra_cmake_special_pgo.add("-DCMAKE_PREFIX_PATH=/usr")
+            self.extra_cmake_special_pgo.add("-DCATKIN_BUILD_BINARY_PACKAGE=ON")
+            self.extra_cmake_special_pgo.add("-DSETUPTOOLS_DEB_LAYOUT=OFF")
 
     def scan_for_configure(self, dirn, tname, config):
         """Scan the package directory for build files to determine build pattern."""
         if config.default_pattern == "distutils36":
             self.add_buildreq("buildreq-distutils36")
+            self.add_buildreq("python-build")
+            self.add_buildreq("pep517")
         elif config.default_pattern == "distutils3":
             self.add_buildreq("buildreq-distutils3")
+            self.add_buildreq("python-build")
+            self.add_buildreq("pep517")
         elif config.default_pattern == "golang":
             self.add_buildreq("buildreq-golang")
         elif config.default_pattern == "cmake":
@@ -879,9 +1064,11 @@ class Requirements(object):
                     config.set_build_pattern("autogen", default_score)
                 if name.lower() == "cmakelists.txt":
                     config.set_build_pattern("cmake", default_score)
-                if (name.lower() == "cmakelists.txt" or name.endswith(".cmake")) \
-                   and config.default_pattern == "cmake":
+                if (name.lower() == "cmakelists.txt" or name.endswith(".cmake")) and config.default_pattern == "cmake":
                     self.parse_cmake(os.path.join(dirpath, name), config.cmake_modules, config.config_opts.get('32bit'))
+
+            if "build.tcl" in files:
+                config.set_build_pattern("buildtcl_script", default_score)
 
         can_reconf = os.path.exists(os.path.join(dirn, "configure.ac"))
         if not can_reconf:
@@ -893,7 +1080,7 @@ class Requirements(object):
         else:
             config.autoreconf = False
 
-        if config.default_pattern in ("distutils3", "pyproject"):
+        if config.default_pattern == "distutils3":
             # First look for a local override
             pypi_json = ""
             pypi_file = os.path.join(config.download_path, "pypi.json")
@@ -915,6 +1102,7 @@ class Requirements(object):
                     self.pypi_provides = package_pypi["name"]
                 if package_pypi.get("requires"):
                     for pkg in package_pypi["requires"]:
+                        print(f"Adding additional (python distutils3) requirement: pypi({pkg})")
                         self.add_requires(f"pypi({pkg})", config.os_packages, override=True, subpkg="python3")
                 if package_pypi.get("license"):
                     # The license field is freeform, might be worth looking at though

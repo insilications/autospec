@@ -93,14 +93,26 @@ def scan_for_tests(src_dir, config, requirements, content):
         "perlcheck": perl_check,
         "setup.py": setup_check,
         "cmake": "cd clr-build; " + cmake_check,
-        "rakefile": "pushd %{buildroot}%{gem_dir}/gems/" + content.tarball_prefix + "\nrake --trace test TESTOPTS=\"-v\"\npopd",
-        "rspec": "pushd %{buildroot}%{gem_dir}/gems/" + content.tarball_prefix + "\nrspec -I.:lib spec/\npopd",
+        "rakefile": "pushd %{buildroot}%{gem_dir}/gems/" + content.gem_subdir + "\nrake --trace test TESTOPTS=\"-v\"\npopd",
+        "rspec": "pushd %{buildroot}%{gem_dir}/gems/" + content.gem_subdir + "\nrspec -I.:lib spec/\npopd",
         "meson": meson_check,
     }
     if config.config_opts.get('32bit'):
         testsuites["makecheck"] += "\ncd ../build32;\n" + make_check + " || :"
         testsuites["cmake"] += "\ncd ../clr-build32;\n" + cmake_check + " || :"
         testsuites["meson"] += "\ncd ../build32;\n" + meson_check + " || :"
+        if config.config_opts.get('build_special_32'):
+            testsuites["makecheck"] += "\ncd ../build-special-32;\n" + make_check + " || :"
+            testsuites["cmake"] += "\ncd ../clr-build-special-32;\n" + cmake_check + " || :"
+            testsuites["meson"] += "\ncd ../build-special-32;\n" + meson_check + " || :"
+    if config.config_opts.get('build_special'):
+        testsuites["makecheck"] += "\ncd ../build-special;\n" + make_check + " || :"
+        testsuites["cmake"] += "\ncd ../clr-build-special;\n" + cmake_check + " || :"
+        testsuites["meson"] += "\ncd ../build-special;\n" + meson_check + " || :"
+    if config.config_opts.get('build_special2'):
+        testsuites["makecheck"] += "\ncd ../build-special2;\n" + make_check + " || :"
+        testsuites["cmake"] += "\ncd ../clr-build-special2;\n" + cmake_check + " || :"
+        testsuites["meson"] += "\ncd ../build-special2;\n" + meson_check + " || :"
     if config.config_opts.get('use_avx2'):
         testsuites["makecheck"] += "\ncd ../buildavx2;\n" + make_check + " || :"
         testsuites["cmake"] += "\ncd ../clr-build-avx2;\n" + cmake_check + " || :"

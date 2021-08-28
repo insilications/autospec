@@ -29,6 +29,7 @@ def get_whatrequires(pkg, yum_conf):
     """
     # clean up dnf cache to avoid 'no more mirrors repo' error
     try:
+        print(f"Generating whatrequires: {yum_conf}")
         subprocess.check_output(['dnf', '--config', yum_conf,
                                  '--releasever', 'clear', 'clean', 'all'])
     except subprocess.CalledProcessError as err:
@@ -39,7 +40,7 @@ def get_whatrequires(pkg, yum_conf):
         out = subprocess.check_output(['dnf', 'repoquery',
                                        '--config', yum_conf,
                                        '--releasever', 'clear',
-                                       '--archlist=src', '--recursive', '--queryformat=%{NAME}',
+                                       '--recursive', '--queryformat=%{NAME}', '--alldeps',
                                        '--whatrequires', pkg]).decode('utf-8')
 
     except subprocess.CalledProcessError as err:

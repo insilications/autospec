@@ -22,9 +22,10 @@
 import os
 import re
 import shutil
-
+import sys
 import util
-
+import shutil
+from util import call, write_out, print_fatal, print_debug, print_info
 
 def cleanup_req(s: str) -> str:
     """Strip unhelpful strings from requirements."""
@@ -64,7 +65,6 @@ def cleanup_req(s: str) -> str:
 def check_for_warning_pattern(line):
     """Print warning if a line matches against a warning list."""
     warning_patterns = [
-        "march=native"
     ]
     for pat in warning_patterns:
         if pat in line:
@@ -76,8 +76,8 @@ def get_mock_cmd():
     # Some distributions (e.g. Fedora) use consolehelper to run mock,
     # while others (e.g. Clear Linux) expect the user run it via sudo.
     if os.path.basename(os.path.realpath('/usr/bin/mock')) == 'consolehelper':
-        return '/usr/bin/mock'
-    return 'sudo /usr/bin/mock'
+        return 'PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /usr/bin/mock'
+    return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /usr/bin/mock'
 
 
 class Build(object):
@@ -91,22 +91,51 @@ class Build(object):
         self.file_restart = 0
         self.uniqueext = ''
         self.warned_about = set()
+        self.mock_dir = str()
+        self.short_circuit = str()
         self.patch_name_line = re.compile(r'^Patch #[0-9]+ \((.*)\):$')
         self.patch_fail_line = re.compile(r'^Skipping patch.$')
+
+    def write_normal_bashrc(self, mock_dir, content_name, config):
+        """Write normal bashrc to package builddir home directory."""
+        builddir_home_dst = f"{mock_dir}/clear-{content_name}/root/builddir/.bashrc"
+        normal_bashrc_file = "/aot/build/clearlinux/projects/autospec/autospec/normal_bashrc"
+
+        if os.path.isfile(normal_bashrc_file) and not config.config_opts.get("custom_bashrc"):
+            shutil.copy2(normal_bashrc_file, builddir_home_dst)
+        elif config.config_opts.get("custom_bashrc") and config.custom_bashrc_file and os.path.isfile(config.custom_bashrc_file):
+            shutil.copy2(config.custom_bashrc_file, builddir_home_dst)
+        #else:
+            #util.print_fatal("Failed to move custom .bashrc to chroot home dir")
+            #sys.exit(1)
 
     def simple_pattern_pkgconfig(self, line, pattern, pkgconfig, conf32, requirements):
         """Check for pkgconfig patterns and restart build as needed."""
         pat = re.compile(pattern)
         match = pat.search(line)
         if match:
-            self.must_restart += requirements.add_pkgconfig_buildreq(pkgconfig, conf32, cache=True)
+            if self.short_circuit is None:
+                self.must_restart += requirements.add_pkgconfig_buildreq(pkgconfig, conf32, cache=True)
+            else:
+                requirements.add_pkgconfig_buildreq(pkgconfig, conf32, cache=True)
 
     def simple_pattern(self, line, pattern, req, requirements):
         """Check for simple patterns and restart the build as needed."""
         pat = re.compile(pattern)
         match = pat.search(line)
         if match:
-            self.must_restart += requirements.add_buildreq(req, cache=True)
+            if self.short_circuit is None:
+                self.must_restart += requirements.add_buildreq(req, cache=True)
+            else:
+                requirements.add_buildreq(req, cache=True)
+
+    def failed_exit_pattern(self, line, config, requirements, pattern, verbose, buildtool=None):
+        pat = re.compile(pattern)
+        match = pat.search(line)
+        if not match:
+            return
+        #s = match.group(0)
+        util.print_extra_warning(f"{line}")
 
     def failed_pattern(self, line, config, requirements, pattern, verbose, buildtool=None):
         """Check against failed patterns to restart build as needed."""
@@ -125,12 +154,16 @@ class Build(object):
             if not buildtool:
                 req = config.failed_commands[s]
                 if req:
-                    self.must_restart += requirements.add_buildreq(req, cache=True)
+                    if self.short_circuit is None:
+                        self.must_restart += requirements.add_buildreq(req, cache=True)
+                    else:
+                        requirements.add_buildreq(req, cache=True)
             elif buildtool == 'pkgconfig':
                 self.must_restart += requirements.add_pkgconfig_buildreq(s, config.config_opts.get('32bit'), cache=True)
             elif buildtool == 'R':
                 if requirements.add_buildreq("R-" + s, cache=True) > 0:
                     self.must_restart += 1
+                    requirements.add_requires("R-" + s, config.os_packages, cache=True)
             elif buildtool == 'perl':
                 s = s.replace('inc::', '')
                 self.must_restart += requirements.add_buildreq('perl(%s)' % s, cache=True)
@@ -202,7 +235,10 @@ class Build(object):
             for pat in config.failed_pats:
                 self.failed_pattern(line, config, requirements, *pat)
 
-            check_for_warning_pattern(line)
+            for pat in config.failed_exit_pats:
+                self.failed_exit_pattern(line, config, requirements, *pat)
+
+            #check_for_warning_pattern(line)
 
             # Search for files to add to the %files section.
             # * infiles == 0 before we reach the files listing
@@ -220,10 +256,15 @@ class Build(object):
 
             if infiles == 0 and "Installed (but unpackaged) file(s) found:" in line:
                 infiles = 1
-            elif infiles == 1 and "not matching the package arch" not in line:
+                filemanager.fix_broken_pkg_config_versioning(content.name)
+                if config.config_opts["altcargo1"]:
+                    filemanager.write_cargo_find_install_assets(content.name)
+            # elif infiles == 1 and "not matching the package arch" not in line:
+            elif infiles == 1:
                 # exclude blank lines from consideration...
                 file = line.strip()
                 if file and file[0] == "/":
+                    print(f"file: {file}")
                     filemanager.push_file(file, content.name)
 
             if line.startswith("Sorry: TabError: inconsistent use of tabs and spaces in indentation"):
@@ -237,11 +278,29 @@ class Build(object):
                 filemanager.remove_file(missing_file)
 
             if line.startswith("Executing(%clean") and returncode == 0:
-                print("RPM build successful")
-                self.success = 1
+                if self.short_circuit == "binary":
+                    print("RPM binary build successful")
+                    self.success = 1
+                elif self.short_circuit == None:
+                    print("RPM build successful")
+                    self.success = 1
 
-    def package(self, filemanager, mockconfig, mockopts, config, requirements, content, cleanup=False):
+            if line.startswith("Child return code was: 0") and returncode == 0:
+                if self.short_circuit == "prep":
+                    print("RPM short circuit prep build successful")
+                    self.success = 1
+                elif self.short_circuit == "build":
+                    print("RPM build build successful")
+                    self.success = 1
+                elif self.short_circuit == "install":
+                    print("RPM install build successful")
+                    self.success = 1
+
+
+    def package(self, filemanager, mockconfig, mockopts, config, requirements, content, mock_dir, short_circuit, cleanup=False):
         """Run main package build routine."""
+        self.mock_dir = mock_dir
+        self.short_circuit = short_circuit
         self.round += 1
         self.success = 0
         mock_cmd = get_mock_cmd()
@@ -254,7 +313,7 @@ class Build(object):
         else:
             cleanup_flag = "--no-cleanup-after"
 
-        print("{} mock chroot at /var/lib/mock/clear-{}".format(content.name, self.uniqueext))
+        print("{0} mock chroot at {1}/clear-{2}".format(content.name, mock_dir, self.uniqueext))
 
         if self.round == 1:
             shutil.rmtree('{}/results'.format(config.download_path), ignore_errors=True)
@@ -287,7 +346,6 @@ class Build(object):
             f"--root={mockconfig}",
             "--result=results/",
             srcrpm,
-            "--enable-plugin=ccache",
             f"--uniqueext={self.uniqueext}",
             cleanup_flag,
             mockopts,
@@ -301,6 +359,9 @@ class Build(object):
                         logfile=f"{config.download_path}/results/mock_build.log",
                         check=False,
                         cwd=config.download_path)
+
+        if self.short_circuit == "prep":
+            self.write_normal_bashrc(mock_dir, content.name, config)
 
         # sanity check the build log
         if not os.path.exists(config.download_path + "/results/build.log"):
