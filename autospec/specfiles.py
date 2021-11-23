@@ -1774,7 +1774,7 @@ class Specfile(object):
                 self._write("{}\n".format(line))
             self._write_strip("## install_append_special_32 end")
 
-def write_elf_move(self):
+    def write_elf_move(self):
         """Write out elf-move for alternate build roots."""
         if self.config.config_opts['use_avx2'] or self.config.default_pattern == "distutils3" or self.config.default_pattern == "pyproject":
             self._write_strip('/usr/bin/elf-move.py avx2 %{buildroot}-v3 %{buildroot} %{buildroot}/usr/share/clear/filemap/filemap-%{name}' + skips)
