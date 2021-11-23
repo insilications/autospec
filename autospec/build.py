@@ -66,6 +66,7 @@ def cleanup_req(s: str) -> str:
 def check_for_warning_pattern(line):
     """Print warning if a line matches against a warning list."""
     warning_patterns = [
+        "march=native"
     ]
     for pat in warning_patterns:
         if pat in line:
@@ -303,7 +304,7 @@ class Build(object):
                 for pat in config.failed_exit_pats:
                     self.failed_exit_pattern(line, config, requirements, *pat)
 
-            #check_for_warning_pattern(line)
+            # check_for_warning_pattern(line)
 
             # Search for files to add to the %files section.
             # * infiles == 0 before we reach the files listing
