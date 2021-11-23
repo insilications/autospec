@@ -1757,18 +1757,15 @@ class Specfile(object):
                 self._write("{}\n".format(line))
             self._write_strip("## install_append_special_32 end")
 
-    def write_elf_move(self):
+def write_elf_move(self):
         """Write out elf-move for alternate build roots."""
-        skips = ""
-        for setuid in self.setuid:
-            skips = f"{skips} --skip-path {setuid}"
         if self.config.config_opts['use_avx2'] or self.config.default_pattern == "distutils3" or self.config.default_pattern == "pyproject":
             self._write_strip('/usr/bin/elf-move.py avx2 %{buildroot}-v3 %{buildroot} %{buildroot}/usr/share/clear/filemap/filemap-%{name}' + skips)
         if self.config.config_opts['use_avx512']:
-            self._write_strip('/usr/bin/elf-move.py avx512 %{buildroot}-v4 %{buildroot} %{buildroot}/usr/share/clear/filemap/filemap-%{name}' + skips)
+            self._write_strip('/usr/bin/elf-move.py avx512 %{buildroot} %{buildroot}/usr/share/clear/optimized-elf/ %{buildroot}/usr/share/clear/filemap/filemap-%{name}')
 
     def write_cargo_assets(self):
-        """Write out install assets found by filemanager.write_cargo_find_install_assets"""
+        """Write out install assets found by filemanager.write_cargo_find_install_assets."""
         self._write_strip("## Cargo install assets")
         if self.cargo_install_assets:
             for i, install_cmd in enumerate(self.cargo_install_assets):
