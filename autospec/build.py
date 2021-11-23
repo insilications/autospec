@@ -212,7 +212,6 @@ class Build(object):
                 if requirements.add_buildreq("R-" + s, cache=True) > 0:
                     if self.short_circuit is None:
                         self.must_restart += 1
-                    requirements.add_requires("R-" + s, config.os_packages, cache=True)
             elif buildtool == 'perl':
                 s = s.replace('inc::', '')
                 if self.short_circuit is None:
