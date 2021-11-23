@@ -106,9 +106,6 @@ class Build(object):
             shutil.copy2(normal_bashrc_file, builddir_home_dst)
         elif config.config_opts.get("custom_bashrc") and config.custom_bashrc_file and os.path.isfile(config.custom_bashrc_file):
             shutil.copy2(config.custom_bashrc_file, builddir_home_dst)
-        #else:
-            #util.print_fatal("Failed to move custom .bashrc to chroot home dir")
-            #sys.exit(1)
 
     def write_python_flags_fix(self, mock_dir, content_name, config):
         """Patch python to use custom flags."""
@@ -430,7 +427,7 @@ class Build(object):
 
         if self.short_circuit == "prep":
             self.write_normal_bashrc(mock_dir, content.name, config)
-            self.write_python_flags_fix(mock_dir, content.name, config)
+            # self.write_python_flags_fix(mock_dir, content.name, config)
 
         # sanity check the build log
         if not os.path.exists(config.download_path + "/results/build.log"):
