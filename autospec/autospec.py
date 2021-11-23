@@ -669,7 +669,7 @@ def package(
         pkg_integrity.load_specfile(specfile)
 
     conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
-    conf.create_reqs_cache(content.version, requirements.reqs_cache)
+    # conf.create_reqs_cache(content.version, requirements.reqs_cache)
     specfile.write_spec()
     filemanager.load_specfile_information(specfile, content)
     if short_circuit == "prep":

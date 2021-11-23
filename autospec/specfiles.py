@@ -3251,16 +3251,16 @@ class Specfile(object):
                 else:
                     self._write_strip('cargo install %{{?_smp_mflags}} --all-features --offline --no-track --verbose --path . --target-dir target --root %{{buildroot}}/usr/ {0} {1}'.format(self.config.extra_configure, self.config.extra_make_install))
         else:
-        self.write_prep()
-        self._write_strip("%build")
-        self.write_build_prepend()
-        self.write_proxy_exports()
-        self._write_strip("cargo build --release")
-        self.write_build_append()
-        self._write_strip("\n")
-        self._write_strip("%install")
-        self.write_install_prepend()
-        self.write_license_files()
+            self.write_prep()
+            self._write_strip("%build")
+            self.write_build_prepend()
+            self.write_proxy_exports()
+            self._write_strip("cargo build --release")
+            self.write_build_append()
+            self._write_strip("\n")
+            self._write_strip("%install")
+            self.write_install_prepend()
+            self.write_license_files()
 
     def write_cpan_pattern(self):
         """Write cpan build pattern to spec file."""
