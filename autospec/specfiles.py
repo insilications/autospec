@@ -2729,6 +2729,8 @@ class Specfile(object):
         self._write_strip("export MAKEFLAGS=%{?_smp_mflags}")
         if self.config.subdir:
             self._write_strip("pushd " + self.config.subdir)
+        for module in self.config.pypi_overrides:
+            self._write_strip(f"pypi-dep-fix.py . {module}")
         if self.config.make_prepend:
             self._write_strip("## make_prepend content")
             for line in self.config.make_prepend:
@@ -2749,6 +2751,8 @@ class Specfile(object):
             self._write_strip("fi")
         if self.config.subdir:
             self._write_strip("popd")
+        for module in self.config.pypi_overrides:
+            self._write_strip(f"pypi-dep-fix.py . {module}")
         if self.tests_config and not self.config.config_opts["skip_tests"]:
             self._write_strip("\n%check")
             if self.config.subdir:

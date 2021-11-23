@@ -1153,6 +1153,7 @@ class Config(object):
         if update_security_sensitive:
             self.config_opts["security_sensitive"] = True
             self.rewrite_config_opts()
+
         self.pypi_overrides += self.read_conf_file(os.path.join(self.download_path, "pypi_overrides"))
 
         self.patches_cargo = [list(map(str, sub.split(' '))) for sub in self.read_conf_file(os.path.join(self.download_path, "series_cargo"))]
