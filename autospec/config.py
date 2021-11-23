@@ -778,7 +778,7 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, fname))
         for pkg in content:
             if req_type == "add":
-                requirements.add_requires(pkg, self.os_packages, override=True, subpkg=subpkg, cache=False)
+                requirements.add_requires(pkg, self.os_packages, override=True, subpkg=subpkg)
             else:
                 requirements.ban_requires(pkg, subpkg=subpkg)
 
