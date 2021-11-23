@@ -558,6 +558,8 @@ class Requirements(object):
         Set the build requirements for building rust programs using cargo.
         """
         config.set_build_pattern("cargo", 1)
+        if config.default_pattern != "cargo":
+            return
         self.add_buildreq("asciidoctor")
         self.add_buildreq("asciidoctor-bin")
         self.add_buildreq("asciidoctor-dev")
