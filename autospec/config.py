@@ -1000,12 +1000,6 @@ class Config(object):
         # Read values from options.conf (and deprecated files) and rewrite as necessary
         self.read_config_opts()
 
-        if not self.git_uri:
-            print("Warning: Set [autospec][git] upstream template for remote git URI configuration")
-        if not self.license_fetch:
-            print("Warning: Set [autospec][license_fetch] uri for license fetch support")
-        if not self.license_show:
-            print("Warning: Set [autospec][license_show] uri for license link check support")
         if not self.yum_conf:
             print("Warning: Set [autospec][yum_conf] path to yum.conf file for whatrequires validation")
             self.yum_conf = os.path.join(os.path.dirname(self.config_file), "dnf.conf")
