@@ -738,8 +738,6 @@ def package(
                 print("\nTrying to guess the commit message\n")
                 commitmessage.guess_commit_message(pkg_integrity.IMPORTED, conf, content)
                 git.commit_to_git(conf, content.name, package.success)
-            else:
-                print("To commit your changes, git add the relevant files and run 'git commit -F commitmsg'")
 
         elif (short_circuit == "prep"):
             write_out(conf.download_path + "/release", content.release + "\n")
