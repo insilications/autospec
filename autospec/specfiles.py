@@ -823,7 +823,7 @@ class Specfile(object):
                 self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 for line in self.config.altflags1_32f:
                     self._write("{}\n".format(line))
-                self._write_strip('export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"')
+                self._write_strip('export ASFLAGS="--32"')
                 self._write_strip("## altflags1_32f end")
             elif self.config.altflags1_32 and self.config.altflags1_32[0]:
                 self._write_strip("## altflags1_32 content")
@@ -839,7 +839,7 @@ class Specfile(object):
                 self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 for line in self.config.altflags1_32:
                     self._write("{}\n".format(line))
-                self._write_strip('export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"')
+                self._write_strip('export ASFLAGS="--32"')
                 self._write_strip("## altflags1_32 end")
         else:
             if self.config.config_opts["use_clang"]:
@@ -856,7 +856,7 @@ class Specfile(object):
                 self._write_strip("unset CFFLAGS")
                 self._write_strip("unset LDFLAGS")
                 self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
-                self._write_strip('export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"')
+                self._write_strip('export ASFLAGS="--32"')
                 self._write_strip('export CFLAGS="-O2 -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
                 self._write_strip('export CXXFLAGS="-O2 -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
                 self._write_strip('export FCFLAGS="-O2 -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
@@ -878,7 +878,7 @@ class Specfile(object):
                 self._write_strip("unset CFFLAGS")
                 self._write_strip("unset LDFLAGS")
                 self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
-                self._write_strip('export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"')
+                self._write_strip('export ASFLAGS="--32"')
                 self._write_strip('export CFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
                 self._write_strip('export CXXFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
                 self._write_strip('export FCFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
@@ -3110,7 +3110,7 @@ class Specfile(object):
                 self.write_build_prepend32()
                 self.write_32bit_exports()
                 self.write_build_append()
-                self._write_strip("%cmake -DLIB_INSTALL_DIR:PATH=/usr/lib32 " "-DCMAKE_INSTALL_LIBDIR=/usr/lib32 " "-DLIB_SUFFIX=32 " "{} {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_32))
+                self._write_strip("%cmake {} -DLIB_INSTALL_DIR:PATH=/usr/lib32 -DCMAKE_INSTALL_LIBDIR=/usr/lib32 -DLIB_SUFFIX=32 {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_32))
                 self.write_make_line(build32=True, build_type=None, pgo=False, pattern=None)
                 self._write_strip("unset PKG_CONFIG_PATH")
                 self._write_strip("popd")
