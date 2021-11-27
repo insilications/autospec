@@ -25,11 +25,12 @@ import sys
 import subprocess
 import re
 import util
+import download
 import natsort
 import fastnumbers
 import validators
 from util import call, write_out, print_fatal, print_debug, print_info
-
+from lastversion import latest as latest_pypi
 
 def get_git_remote_url(target, clone_path):
     """Get the remote url for a targeted git repository."""
@@ -408,45 +409,53 @@ def git_archive_all(path, name, url, branch, force_module, force_fullclone, conf
 
     is_url = validators.url(url)
     if is_url is True:
-        git_clone(url=url, path=path, cmd_args=cmd_args, clone_path=clone_path, force_module=force_module, force_fullclone=force_fullclone, is_fatal=is_fatal)
-        try:
-            outputVersion = find_version_git(url=url, clone_path=clone_path, path=path, conf=conf)
-        except:
-            if is_fatal:
-                remove_clone_archive(path, clone_path, is_fatal)
-                print_fatal(f"Unexpected error: {sys.exc_info()[0]}")
-                sys.exit(1)
+        if "pypi.org/project/" in url:
+            latest_pypi_source = latest_pypi(url, output_format="source", pre_ok=True)
+            print_info(f"pypi.org/project/: {latest_pypi_source}")
+            latest_pypi_source_basename=os.path.basename(latest_pypi_source)
+            download.do_curl(latest_pypi_source, dest=f"./{latest_pypi_source_basename}", is_fatal=True)
+            absolute_url_file=f"file://{os.path.abspath(latest_pypi_source_basename)}"
+            return absolute_url_file
+        else:
+            git_clone(url=url, path=path, cmd_args=cmd_args, clone_path=clone_path, force_module=force_module, force_fullclone=force_fullclone, is_fatal=is_fatal)
+            try:
+                outputVersion = find_version_git(url=url, clone_path=clone_path, path=path, conf=conf)
+            except:
+                if is_fatal:
+                    remove_clone_archive(path, clone_path, is_fatal)
+                    print_fatal(f"Unexpected error: {sys.exc_info()[0]}")
+                    sys.exit(1)
 
-        if not outputVersion.startswith("v") and not outputVersion.startswith("V"):
-            outputVersion = f"v{outputVersion}"
+            if not outputVersion.startswith("v") and not outputVersion.startswith("V"):
+                outputVersion = f"v{outputVersion}"
 
-        clone_file = f"{name}-{outputVersion}.tar.gz"
-        absolute_file_path = os.path.abspath(clone_file)
-        absolute_url_file = f"file://{absolute_file_path}"
-        if util.debugging:
-            print_debug(f"{clone_file}")
-            print_debug(f"clone_path: {clone_path}")
-            print_debug(f"absolute_file_path: {absolute_file_path}")
-            print_debug(f"absolute_url_file: {absolute_url_file}")
-        try:
-            process = subprocess.run(
-                f"tar --create --file=- {clone_path}/ | pigz -9 -p 16 > {clone_file}",
-                check=True,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                universal_newlines=True,
-                cwd=path,
-            )
-        except subprocess.CalledProcessError as err:
-            if is_fatal:
-                remove_clone_archive(path, clone_path, is_fatal)
-                print_fatal(f"Unable to archive {clone_path} in {clone_file} from {url}: {err}")
-                sys.exit(1)
+            clone_file = f"{name}-{outputVersion}.tar.gz"
+            absolute_file_path = os.path.abspath(clone_file)
+            absolute_url_file = f"file://{absolute_file_path}"
+            if util.debugging:
+                print_debug(f"{clone_file}")
+                print_debug(f"clone_path: {clone_path}")
+                print_debug(f"absolute_file_path: {absolute_file_path}")
+                print_debug(f"absolute_url_file: {absolute_url_file}")
+            try:
+                process = subprocess.run(
+                    f"tar --create --file=- {clone_path}/ | pigz -9 -p 16 > {clone_file}",
+                    check=True,
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    universal_newlines=True,
+                    cwd=path,
+                )
+            except subprocess.CalledProcessError as err:
+                if is_fatal:
+                    remove_clone_archive(path, clone_path, is_fatal)
+                    print_fatal(f"Unable to archive {clone_path} in {clone_file} from {url}: {err}")
+                    sys.exit(1)
 
-        remove_clone_archive(path, clone_path, is_fatal)
-        return absolute_url_file
+            remove_clone_archive(path, clone_path, is_fatal)
+            return absolute_url_file
     else:
         if os.path.isdir(url):
             clone_path = url
