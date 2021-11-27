@@ -597,11 +597,14 @@ class Specfile(object):
                     self._write_strip("ninja --verbose {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
                 else:
                     if pattern == "make" and pgo is False:
-                        self._write_strip('make {} {} {} V=1 VERBOSE=1 CFLAGS="${{CFLAGS_GENERATE}}" CXXFLAGS="${{CXXFLAGS_GENERATE}}" FFLAGS="${{FFLAGS_GENERATE}}" FCFLAGS="${{FCFLAGS_GENERATE}}" LDFLAGS="${{LDFLAGS_GENERATE}}" LIBS="${{LIBS_GENERATE}}"'.format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+                        self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+                        #self._write_strip('make {} {} {} V=1 VERBOSE=1 CFLAGS="${{CFLAGS_GENERATE}}" CXXFLAGS="${{CXXFLAGS_GENERATE}}" FFLAGS="${{FFLAGS_GENERATE}}" FCFLAGS="${{FCFLAGS_GENERATE}}" LDFLAGS="${{LDFLAGS_GENERATE}}" LIBS+="${{LIBS_GENERATE}}"'.format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
                     elif pattern == "make" and pgo is True:
-                        self._write_strip('make {} {} {} V=1 VERBOSE=1 CFLAGS="${{CFLAGS_USE}}" CXXFLAGS="${{CXXFLAGS_USE}}" FFLAGS="${{FFLAGS_USE}}" FCFLAGS="${{FCFLAGS_USE}}" LDFLAGS="${{LDFLAGS_USE}}" LIBS="${{LIBS_USE}}"'.format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+                        self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+                        #self._write_strip('make {} {} {} V=1 VERBOSE=1 CFLAGS="${{CFLAGS_USE}}" CXXFLAGS="${{CXXFLAGS_USE}}" FFLAGS="${{FFLAGS_USE}}" FCFLAGS="${{FCFLAGS_USE}}" LDFLAGS="${{LDFLAGS_USE}}" LIBS+="${{LIBS_USE}}"'.format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
                     elif pattern == "make" and pgo is None:
-                        self._write_strip('make {} {} {} V=1 VERBOSE=1 CFLAGS="${{CFLAGS}}" CXXFLAGS="${{CXXFLAGS}}" FFLAGS="${{FFLAGS}}" FCFLAGS="${{FCFLAGS}}" LDFLAGS="${{LDFLAGS}}" LIBS="${{LIBS}}"'.format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+                        self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
+                        #self._write_strip('make {} {} {} V=1 VERBOSE=1 CFLAGS="${{CFLAGS}}" CXXFLAGS="${{CXXFLAGS}}" FFLAGS="${{FFLAGS}}" FCFLAGS="${{FCFLAGS}}" LDFLAGS="${{LDFLAGS}}" LIBS+="${{LIBS}}"'.format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
                     elif pattern != "make":
                         self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make, self.config.extra64_make))
             else:
