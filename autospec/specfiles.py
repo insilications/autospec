@@ -2208,9 +2208,7 @@ class Specfile(object):
             self.write_build_prepend()
             self.write_variables()
             self.write_profile_payload("configure", "special")
-            #self._write_strip("{0}%configure {1}".format(self.get_profile_use_flags(), self.config.extra_configure_special))
-            #self.write_make_line(False, "special")
-            #self._write_strip("popd")
+
             if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
                 if self.config.configure_macro_special_pgo:
                     if self.config.subdir:
@@ -2600,7 +2598,7 @@ class Specfile(object):
             self._write_strip(r"sd --flags mi '^AC_INIT\((.*\n.*\)|.*\))' '$0\nAM_MAINTAINER_MODE([disable])' configure.ac")
 
         if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
-            self.write_profile_payload("autogen")
+            self.write_profile_payload(pattern="autogen", build_type=None)
             if self.config.extra_configure_pgo or self.config.extra_configure64_pgo:
                 if self.config.config_opts.get("autogen_simple"):
                     self._write_strip("{0}%autogen_simple {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
@@ -2637,15 +2635,25 @@ class Specfile(object):
             self._write_strip("pushd ../build-special/" + self.config.subdir)
             self.write_build_prepend()
             self.write_variables()
+            self._write_strip(r"sd -r '\s--dirty\s' ' ' .")
+            self._write_strip(r"sd -r 'git describe' 'git describe --abbrev=0' .")
             if self.config.config_opts["disable_maintainer"]:
                 self._write_strip(r"sd --flags mi '^AC_INIT\((.*\n.*\)|.*\))' '$0\nAM_MAINTAINER_MODE([disable])' configure.ac")
-            self.write_profile_payload("autogen", "special")
-            if self.config.config_opts.get("autogen_simple"):
-                self._write_strip("{0}%autogen_simple {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special))
+            if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                self.write_profile_payload(pattern="autogen", build_type="special")
+                if self.config.config_opts.get("autogen_simple"):
+                    self._write_strip("{0}%autogen_simple {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special_pgo))
+                else:
+                    self._write_strip("{0}%autogen {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special_pgo))
+                self.write_make_line(build32=False, build_type="special", pgo=True, pattern=None)
+                self._write_strip("popd")
             else:
-                self._write_strip("{0}%autogen {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special))
-            self.write_make_line()
-            self._write_strip("popd")
+                if self.config.config_opts.get("autogen_simple"):
+                    self._write_strip("%autogen_simple {0} ".format(self.config.extra_configure_special))
+                else:
+                    self._write_strip("%autogen {0} ".format(self.config.extra_configure_special))
+                self.write_make_line(build32=False, build_type="special", pgo=False, pattern=None)
+                self._write_strip("popd")
 
         if self.config.config_opts["use_avx2"]:
             self._write_strip("pushd ../buildavx2/" + self.config.subdir)
