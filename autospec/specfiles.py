@@ -121,11 +121,6 @@ class Specfile(object):
         if self.config.config_opts.get("keepstatic"):
             self._write("%define keepstatic 1\n")
 
-        #if self.config.config_opts.get("filters_provreq"):
-            #filters = self.read_script_file(os.path.join(os.path.dirname(__file__), "filters_provreq"))
-            #for line in filters:
-                #self._write("{}\n".format(line))
-
         # general package header
         self.write_nvr()
         self.write_sources()
@@ -1348,21 +1343,26 @@ class Specfile(object):
             if use_subdir and self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
             init = f"{self.get_profile_generate_flags()}"
-            init2 = f"%autogen {self.config.extra_configure_special}"
+            if self.config.config_opts.get("autogen_simple"):
+                init2 = f"%autogen_simple {self.config.extra_configure_special}"
+            else:
+                init2 = f"%autogen {self.config.extra_configure_special}"
         elif pattern == "autogen" and build_type == "special2":
             if use_subdir and self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
             init = f"{self.get_profile_generate_flags()}"
-            init2 = f"%autogen {self.config.extra_configure_special2}"
+            if self.config.config_opts.get("autogen_simple"):
+                init2 = f"%autogen_simple {self.config.extra_configure_special2}"
+            else:
+                init2 = f"%autogen {self.config.extra_configure_special2}"
         elif pattern == "autogen" and build_type is None:
             if use_subdir and self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
             init = f"{self.get_profile_generate_flags()}"
-            init2 = f"%autogen {self.config.extra_configure} {self.config.extra_configure64}"
-        #elif pattern == "cmake":
-            #use_subdir = False
-            #init = f"{self.get_profile_generate_flags()} "
-            #post = f"{self.get_profile_use_flags()} "
+            if self.config.config_opts.get("autogen_simple"):
+                init2 = f"%autogen_simple {self.config.extra_configure} {self.config.extra_configure64}"
+            else:
+                init2 = f"%autogen {self.config.extra_configure} {self.config.extra_configure64}"
         elif pattern == "make":
             if use_subdir and self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
@@ -2602,13 +2602,22 @@ class Specfile(object):
         if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
             self.write_profile_payload("autogen")
             if self.config.extra_configure_pgo or self.config.extra_configure64_pgo:
-                self._write_strip("{0}%autogen {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
+                if self.config.config_opts.get("autogen_simple"):
+                    self._write_strip("{0}%autogen_simple {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
+                else:
+                    self._write_strip("{0}%autogen {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
             elif self.config.extra_configure or self.config.extra_configure64:
-                self._write_strip("{0}%autogen {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure, self.config.extra_configure64))
+                if self.config.config_opts.get("autogen_simple"):
+                    self._write_strip("{0}%autogen_simple {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure, self.config.extra_configure64))
+                else:
+                    self._write_strip("{0}%autogen {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure, self.config.extra_configure64))
             self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
             self._write_strip("\n")
         else:
-            self._write_strip("%autogen {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
+            if self.config.config_opts.get("autogen_simple"):
+                self._write_strip("%autogen_simple {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
+            else:
+                self._write_strip("%autogen {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
             self.write_make_line(build32=False, build_type=None, pgo=False, pattern=None)
             self._write_strip("\n")
 
@@ -2617,7 +2626,10 @@ class Specfile(object):
             self.write_build_prepend32()
             self.write_32bit_exports()
             self.write_build_append()
-            self._write_strip("%autogen {0} {1} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32))
+            if self.config.config_opts.get("autogen_simple"):
+                self._write_strip("%autogen_simple {0} {1} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32))
+            else:
+                self._write_strip("%autogen {0} {1} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32))
             self.write_make_line(build32=True, build_type=None, pgo=False, pattern=None)
             self._write_strip("popd")
 
@@ -2628,7 +2640,10 @@ class Specfile(object):
             if self.config.config_opts["disable_maintainer"]:
                 self._write_strip(r"sd --flags mi '^AC_INIT\((.*\n.*\)|.*\))' '$0\nAM_MAINTAINER_MODE([disable])' configure.ac")
             self.write_profile_payload("autogen", "special")
-            self._write_strip("{0}%autogen {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special))
+            if self.config.config_opts.get("autogen_simple"):
+                self._write_strip("{0}%autogen_simple {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special))
+            else:
+                self._write_strip("{0}%autogen {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special))
             self.write_make_line()
             self._write_strip("popd")
 
@@ -2642,7 +2657,10 @@ class Specfile(object):
             self._write_strip('export FFLAGS="$FFLAGS -m64 -march=native -mtune=native "')
             self._write_strip('export FCFLAGS="$FCFLAGS -m64 -march=native -mtune=native "')
             self._write_strip('export LDFLAGS="$LDFLAGS -m64 -march=native -mtune=native "')
-            self._write_strip("%autogen {0} {1} ".format(self.config.extra_configure, self.config.extra_configure_avx2))
+            if self.config.config_opts.get("autogen_simple"):
+                self._write_strip("%autogen_simple {0} {1} ".format(self.config.extra_configure, self.config.extra_configure_avx2))
+            else:
+                self._write_strip("%autogen {0} {1} ".format(self.config.extra_configure, self.config.extra_configure_avx2))
             self.write_make_line()
             self._write_strip("popd")
 
@@ -2656,7 +2674,10 @@ class Specfile(object):
             self._write_strip('export FFLAGS="$FFLAGS -m64 -march=skylake-avx512 "')
             self._write_strip('export FCFLAGS="$FCFLAGS -m64 -march=skylake-avx512 "')
             self._write_strip('export LDFLAGS="$LDFLAGS -m64 -march=skylake-avx512 "')
-            self._write_strip("%autogen {0} {1} ".format(self.config.extra_configure, self.config.extra_configure_avx512))
+            if self.config.config_opts.get("autogen_simple"):
+                self._write_strip("%autogen_simple {0} {1} ".format(self.config.extra_configure, self.config.extra_configure_avx512))
+            else:
+                self._write_strip("%autogen {0} {1} ".format(self.config.extra_configure, self.config.extra_configure_avx512))
             self.write_make_line()
             self._write_strip("popd")
         self._write_strip("\n")

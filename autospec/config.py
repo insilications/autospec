@@ -275,6 +275,7 @@ class Config(object):
             "use_oneapi": "enable source /aot/intel/oneapi/setvars.sh",
             "custom_bashrc": "enable source custom .bashrc",
             "build_special_32": "configure 32bits build with special options",
+            "autogen_simple": "enable a simpler autogen macro",
         }
         # simple_pattern_pkgconfig patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -630,6 +631,9 @@ class Config(object):
 
         # default enable cargo local with full LTO
         config_f["autospec"]["altcargo1_lto"] = "false"
+
+        # default disable simpler autogen macro
+        config_f["autospec"]["autogen_simple"] = "false"
 
         # new defaults
         config_f["autospec"]["asneeded"] = "false"
