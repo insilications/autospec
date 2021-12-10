@@ -2419,29 +2419,50 @@ class Specfile(object):
         self._write_strip(r"sd -r 'git describe' 'git describe --abbrev=0' .")
         if self.config.config_opts["disable_maintainer"]:
             self._write_strip(r"sd --flags mi '^AC_INIT\((.*\n.*\)|.*\))' '$0\nAM_MAINTAINER_MODE([disable])' configure.ac")
-        self.write_profile_payload("configure_ac")
-        if self.config.configure_macro:
-            if self.config.subdir:
-                self._write_strip("pushd " + self.config.subdir)
-            self._write("{} {} ".format(self.get_profile_use_flags(), self.config.configure_macro))
-            if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
-                self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
-            else:
+        if not self.config.profile_payload and not self.config.config_opts["altflags_pgo"] or self.config.config_opts["fsalt1"]:
+            if self.config.configure_macro:
+                if use_subdir and self.config.subdir:
+                    self._write_strip("pushd " + self.config.subdir)
+                self.write_build_append()
+                for line in self.config.configure_macro:
+                    self._write("{}\n".format(line))
                 self.write_make_line(build32=False, build_type=None, pgo=False, pattern=None)
-            if self.config.subdir:
-                self._write_strip("popd")
-            self._write_strip("\n")
+                if self.config.subdir:
+                    self._write_strip("popd")
+                self._write_strip("\n")
+            else:
+                if self.config.subdir:
+                    self._write_strip("pushd " + self.config.subdir)
+                self.write_build_append()
+                self._write_strip(f"%reconfigure {self.config.extra_configure} {self.config.extra_configure64}")
+                self.write_make_line(build32=False, build_type=None, pgo=False, pattern=None)
+                if self.config.subdir:
+                    self._write_strip("popd")
+                self._write_strip("\n")
         else:
-            if self.config.subdir:
-                self._write_strip("pushd " + self.config.subdir)
-            self._write_strip("{0}%reconfigure {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
-            if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
-                self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
+            self.write_profile_payload("configure_ac")
+            if self.config.configure_macro:
+                if self.config.subdir:
+                    self._write_strip("pushd " + self.config.subdir)
+                self._write("{} {} ".format(self.get_profile_use_flags(), self.config.configure_macro))
+                if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                    self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
+                else:
+                    self.write_make_line(build32=False, build_type=None, pgo=False, pattern=None)
+                if self.config.subdir:
+                    self._write_strip("popd")
+                self._write_strip("\n")
             else:
-                self.write_make_line(build32=False, build_type=None, pgo=False, pattern=None)
-            if self.config.subdir:
-                self._write_strip("popd")
-            self._write_strip("\n")
+                if self.config.subdir:
+                    self._write_strip("pushd " + self.config.subdir)
+                self._write_strip("{0}%reconfigure {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
+                if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                    self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
+                else:
+                    self.write_make_line(build32=False, build_type=None, pgo=False, pattern=None)
+                if self.config.subdir:
+                    self._write_strip("popd")
+                self._write_strip("\n")
 
         if self.config.config_opts["build_special"]:
             self._write_strip("pushd ../build-special/")
