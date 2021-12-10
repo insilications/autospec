@@ -3474,7 +3474,7 @@ class Specfile(object):
                 if self.config.subdir:
                     self._write_strip("popd")
             else:
-                self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+                self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
                 self.write_trystatic()
                 self.write_make_prepend(build32=False)
                 if self.config.make_macro:
@@ -3497,9 +3497,9 @@ class Specfile(object):
                 if post:
                     self._write_strip(post)
                 if self.config.extra_configure_pgo or self.config.extra_configure64_pgo:
-                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
+                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
                 elif self.config.extra_configure or self.config.extra_configure64:
-                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
                 self.write_trystatic()
                 self.write_make_prepend(build32=False)
                 if self.config.make_macro_pgo:
@@ -3579,7 +3579,7 @@ class Specfile(object):
                     if self.config.subdir:
                         self._write_strip("popd")
                 else:
-                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
+                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
                     self.write_trystatic()
                     self.write_make_prepend(build32=False)
                     if self.config.make_macro_special:
@@ -3607,9 +3607,9 @@ class Specfile(object):
                     if post:
                         self._write_strip(post)
                     if self.config.extra_configure_special_pgo:
-                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special_pgo))
+                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special_pgo))
                     elif self.config.extra_configure_special:
-                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
+                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
                     self.write_trystatic()
                     self.write_make_prepend(build32=False)
                     if self.config.make_macro_special_pgo:
@@ -3637,7 +3637,7 @@ class Specfile(object):
             self.write_variables()
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
-            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
             self.write_trystatic()
             self.write_make_prepend(build32=False)
             if self.config.make_macro:
@@ -3652,12 +3652,12 @@ class Specfile(object):
                 self._write_strip("popd")
 
         if self.config.config_opts["use_avx2"]:
-            self._write_strip('CFLAGS="$CFLAGS -m64 -march=native -mtune=native" CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native" LDFLAGS="$LDFLAGS -m64 -march=native -mtune=native" meson --libdir=lib64/haswell --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddiravx2'.format(self.config.extra_configure, self.config.extra_configure64))
+            self._write_strip('CFLAGS="$CFLAGS -m64 -march=native -mtune=native" CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native" LDFLAGS="$LDFLAGS LIBS="$LIBS" -m64 -march=native -mtune=native" meson --libdir=lib64/haswell --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddiravx2'.format(self.config.extra_configure, self.config.extra_configure64))
             self.write_trystatic()
             self.write_make_prepend(build32=False)
             self._write_strip("ninja --verbose %{?_smp_mflags} -C builddiravx2")
             if self.config.config_opts['use_avx512']:
-                self._write_strip('CFLAGS="$CFLAGS -m64 -march=skylake-avx512" CXXFLAGS="$CXXFLAGS -m64 -march=skylake-avx512" LDFLAGS="$LDFLAGS -m64 -march=skylake-avx512" meson --libdir=lib64/haswell/avx512_1 --prefix=/usr --buildtype=plain {0} {1} builddiravx512'.format(self.config.extra_configure, self.config.extra_configure64))
+                self._write_strip('CFLAGS="$CFLAGS -m64 -march=skylake-avx512" CXXFLAGS="$CXXFLAGS -m64 -march=skylake-avx512" LDFLAGS="$LDFLAGS LIBS="$LIBS" -m64 -march=skylake-avx512" meson --libdir=lib64/haswell/avx512_1 --prefix=/usr --buildtype=plain {0} {1} builddiravx512'.format(self.config.extra_configure, self.config.extra_configure64))
                 self._write_strip('ninja -v -C builddiravx512')
                 if self.config.subdir:
                     self._write_strip("popd")
@@ -3666,7 +3666,7 @@ class Specfile(object):
             self.write_build_prepend32()
             self.write_32bit_exports()
             self.write_build_append()
-            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" meson --libdir=lib32 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure32))
+            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib32 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure32))
             self.write_trystatic()
             self.write_make_prepend(build32=True)
             self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
