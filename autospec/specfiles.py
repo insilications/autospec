@@ -856,6 +856,7 @@ class Specfile(object):
                 self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 self._write_strip('export ASFLAGS="--32"')
                 self._write_strip('export CFLAGS="-O2 -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export ASMFLAGS="-O2 -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
                 self._write_strip('export CXXFLAGS="-O2 -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
                 self._write_strip('export FCFLAGS="-O2 -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
                 self._write_strip('export FFLAGS="-O2 -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
@@ -878,6 +879,7 @@ class Specfile(object):
                 self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 self._write_strip('export ASFLAGS="--32"')
                 self._write_strip('export CFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export ASMFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
                 self._write_strip('export CXXFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
                 self._write_strip('export FCFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
                 self._write_strip('export FFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
@@ -1953,17 +1955,7 @@ class Specfile(object):
         self.write_find_lang()
 
     def get_profile_generate_flags(self):
-        """Return profile generate flags if proper configuration is set.
-
-        If config.profile_payload is non-empty, returns
-                'CFLAGS="${CFLAGS_GENERATE}" '
-                'CXXFLAGS="${CXXFLAGS_GENERATE}" '
-                'FFLAGS="${FFLAGS_GENERATE}" '
-                'FCFLAGS="${FCFLAGS_GENERATE}" '
-                'LDFLAGS="${LDFLAGS_GENERATE}" '
-
-        otherwise an empty string is returned.
-        """
+        """Return profile generate flags if proper configuration is set. Otherwise an empty string is returned."""
         if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
             return (
                 'export CFLAGS="${CFLAGS_GENERATE}"\n'
@@ -1971,24 +1963,15 @@ class Specfile(object):
                 'export FFLAGS="${FFLAGS_GENERATE}"\n'
                 'export FCFLAGS="${FCFLAGS_GENERATE}"\n'
                 'export LDFLAGS="${LDFLAGS_GENERATE}"\n'
+                'export ASMFLAGS="${ASMFLAGS_GENERATE}"\n'
                 'export LIBS="${LIBS_GENERATE}"\n'
             )
         return ""
 
     def get_profile_use_flags(self):
-        """Return profile generate flags if proper configuration is set.
-
-        If config.profile_payload is non-empty, returns
-                'CFLAGS="${CFLAGS_USE}" '
-                'CXXFLAGS="${CXXFLAGS_USE}" '
-                'FFLAGS="${FFLAGS_USE}" '
-                'FCFLAGS="${FCFLAGS_USE}" '
-                'LDFLAGS="${LDFLAGS_USE}" '
-
-        otherwise an empty string is returned.
-        """
+        """Return profile generate flags if proper configuration is set. Otherwise an empty string is returned."""
         if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
-            return 'export CFLAGS="${CFLAGS_USE}"\n' 'export CXXFLAGS="${CXXFLAGS_USE}"\n' 'export FFLAGS="${FFLAGS_USE}"\n' 'export FCFLAGS="${FCFLAGS_USE}"\n' 'export LDFLAGS="${LDFLAGS_USE}"\n' 'export LIBS="${LIBS_USE}"\n'
+            return 'export CFLAGS="${CFLAGS_USE}"\n' 'export CXXFLAGS="${CXXFLAGS_USE}"\n' 'export FFLAGS="${FFLAGS_USE}"\n' 'export FCFLAGS="${FCFLAGS_USE}"\n' 'export LDFLAGS="${LDFLAGS_USE}"\n' 'export ASMFLAGS="${ASMFLAGS_USE}"\n' 'export LIBS="${LIBS_USE}"\n'
         return ""
 
     def get_systemd_units(self):
