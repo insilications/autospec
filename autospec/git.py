@@ -32,6 +32,31 @@ import validators
 from util import call, write_out, print_fatal, print_debug, print_info
 from lastversion import latest as latest_pypi
 
+def read_file(path):
+    """Read full file at path."""
+    try:
+        with open(path, "r") as f:
+            return f.readlines()
+    except EnvironmentError:
+        return []
+
+
+def read_script_file(path):
+    """Read RPM script snippet file at path.
+
+    Returns verbatim, except for possibly the first line.
+
+    If the config file does not exist (or is not expected to exist)
+    in the package git repo, specify 'track=False'.
+    """
+    lines = read_file(path)
+    if len(lines) > 0 and (lines[0].startswith("#!") or lines[0].startswith("# -*- ")):
+        lines = lines[1:]
+    # Remove any trailing whitespace and newlines. The newlines are later
+    # restored by writer functions.
+    return [line.rstrip() for line in lines]
+
+
 def get_git_remote_url(target, clone_path):
     """Get the remote url for a targeted git repository."""
     git_config_get = f"git config --get remote.{target}.url"
@@ -295,6 +320,14 @@ def git_ls_remote(remote_url_cmd, clone_path, path, conf):
 
 def find_version_git(url, clone_path, path, conf):
     """Get the highest semantic versioning avaiable for a package from git repositories."""
+    add_versions = []
+    add_versions_file = f"{path}add_versions"
+    add_versions_check = False
+    if os.path.isfile(add_versions_file):
+        add_versions = read_script_file(add_versions_file)
+        if len(add_versions) > 0:
+            add_versions_check = True
+
     remote_url_origin = ""
     remote_url_insilications = ""
     remote_url_origin = get_git_remote_url(target="origin", clone_path=clone_path)
@@ -338,6 +371,10 @@ def find_version_git(url, clone_path, path, conf):
         print_info(f"{git_tag_version_cmd3}")
         print_info(f"outputVersion3: {outputVersion3}")
         outputVersionCompare.append(outputVersion3)
+    if add_versions_check:
+        for line in add_versions:
+            print_info(f"add_versions: {line}")
+            outputVersionCompare.append(line)
 
     if len(outputVersionCompare) > 0:
         outputVersionCompareSorted = natsort.natsorted(outputVersionCompare, key=lambda x: x.replace('.', '~')+'z')
@@ -362,7 +399,7 @@ def find_version_git(url, clone_path, path, conf):
         outputVersionFinal = outputDateVersion
         print_info(f"outputDateVersion: {outputDateVersion}")
 
-    print_info(f"outputVersionFinal: {outputVersionFinal}")
+    print_info(f"outputVersionFinal winner: {outputVersionFinal}")
     return outputVersionFinal
 
 
