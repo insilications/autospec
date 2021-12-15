@@ -909,6 +909,8 @@ class Requirements(object):
             self.add_buildreq("buildreq-php")
         elif config.default_pattern == "nginx":
             self.add_buildreq("buildreq-nginx")
+        elif config.default_pattern == "waf":
+            self.add_buildreq("buildreq-configure")
 
         count = 0
         for dirpath, _, files in os.walk(dirn):

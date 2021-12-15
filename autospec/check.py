@@ -81,12 +81,14 @@ def scan_for_tests(src_dir, config, requirements, content):
     perl_check = "make TEST_VERBOSE=1 test"
     setup_check = """PYTHONPATH=%{buildroot}$(python -c "import sys; print(sys.path[-1])") python setup.py test"""
     meson_check = "meson test -C builddir --print-errorlogs"
+    waf_check = "./waf test -vvv"
     if config.config_opts.get('allow_test_failures'):
         make_check += " || :"
         cmake_check += " || :"
         perl_check += " || :"
         setup_check += " || :"
         meson_check += " || :"
+        waf_check += " || :"
 
     testsuites = {
         "makecheck": make_check,
@@ -96,23 +98,28 @@ def scan_for_tests(src_dir, config, requirements, content):
         "rakefile": "pushd %{buildroot}%{gem_dir}/gems/" + content.gem_subdir + "\nrake --trace test TESTOPTS=\"-v\"\npopd",
         "rspec": "pushd %{buildroot}%{gem_dir}/gems/" + content.gem_subdir + "\nrspec -I.:lib spec/\npopd",
         "meson": meson_check,
+        "waf": waf_check,
     }
     if config.config_opts.get('32bit'):
         testsuites["makecheck"] += "\ncd ../build32;\n" + make_check + " || :"
         testsuites["cmake"] += "\ncd ../clr-build32;\n" + cmake_check + " || :"
         testsuites["meson"] += "\ncd ../build32;\n" + meson_check + " || :"
+        testsuites["waf"] += "\ncd ../build32;\n" + waf_check + " || :"
         if config.config_opts.get('build_special_32'):
             testsuites["makecheck"] += "\ncd ../build-special-32;\n" + make_check + " || :"
             testsuites["cmake"] += "\ncd ../clr-build-special-32;\n" + cmake_check + " || :"
             testsuites["meson"] += "\ncd ../build-special-32;\n" + meson_check + " || :"
+            testsuites["waf"] += "\ncd ../build-special-32;\n" + waf_check + " || :"
     if config.config_opts.get('build_special'):
         testsuites["makecheck"] += "\ncd ../build-special;\n" + make_check + " || :"
         testsuites["cmake"] += "\ncd ../clr-build-special;\n" + cmake_check + " || :"
         testsuites["meson"] += "\ncd ../build-special;\n" + meson_check + " || :"
+        testsuites["waf"] += "\ncd ../build-special;\n" + waf_check + " || :"
     if config.config_opts.get('build_special2'):
         testsuites["makecheck"] += "\ncd ../build-special2;\n" + make_check + " || :"
         testsuites["cmake"] += "\ncd ../clr-build-special2;\n" + cmake_check + " || :"
         testsuites["meson"] += "\ncd ../build-special2;\n" + meson_check + " || :"
+        testsuites["waf"] += "\ncd ../build-special2;\n" + waf_check + " || :"
     if config.config_opts.get('use_avx2'):
         testsuites["makecheck"] += "\ncd ../buildavx2;\n" + make_check + " || :"
         testsuites["cmake"] += "\ncd ../clr-build-avx2;\n" + cmake_check + " || :"
@@ -178,6 +185,9 @@ def scan_for_tests(src_dir, config, requirements, content):
                             break
             if found_tests:
                 break
+
+    elif config.default_pattern == "waf":
+        tests_config = testsuites["waf"]
 
     if "tox.ini" in files:
         requirements.add_buildreq("pypi-tox")

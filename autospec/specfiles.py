@@ -815,6 +815,7 @@ class Specfile(object):
                 self._write_strip("unset FFLAGS")
                 self._write_strip("unset CFFLAGS")
                 self._write_strip("unset LDFLAGS")
+                self._write_strip("unset LINKFLAGS")
                 self._write_strip("unset ASFLAGS")
                 self._write_strip("unset LD_LIBRARY_PATH")
                 self._write_strip("unset LIBRARY_PATH")
@@ -831,6 +832,7 @@ class Specfile(object):
                 self._write_strip("unset FFLAGS")
                 self._write_strip("unset CFFLAGS")
                 self._write_strip("unset LDFLAGS")
+                self._write_strip("unset LINKFLAGS")
                 self._write_strip("unset ASFLAGS")
                 self._write_strip("unset LD_LIBRARY_PATH")
                 self._write_strip("unset LIBRARY_PATH")
@@ -853,6 +855,7 @@ class Specfile(object):
                 self._write_strip("unset FFLAGS")
                 self._write_strip("unset CFFLAGS")
                 self._write_strip("unset LDFLAGS")
+                self._write_strip("unset LINKFLAGS")
                 self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 self._write_strip('export ASFLAGS="--32"')
                 self._write_strip('export CFLAGS="-O2 -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
@@ -876,6 +879,7 @@ class Specfile(object):
                 self._write_strip("unset FFLAGS")
                 self._write_strip("unset CFFLAGS")
                 self._write_strip("unset LDFLAGS")
+                self._write_strip("unset LINKFLAGS")
                 self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 self._write_strip('export ASFLAGS="--32"')
                 self._write_strip('export CFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
@@ -3419,7 +3423,6 @@ class Specfile(object):
                     self._write_strip("## make_macro end")
                 else:
                     self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
-                    self._write_strip("\n")
                 self.write_profile_payload_content(pattern="meson", build_type=None)
                 if self.config.custom_clean_pgo:
                     self._write_strip("{}\n".format(self.config.custom_clean_pgo))
@@ -3452,8 +3455,7 @@ class Specfile(object):
                     self._write_strip("## make_macro end")
                 else:
                     self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
-                self._write_strip("fi")
-                self._write_strip("\n")
+                self._write_strip("fi\n")
                 if self.config.subdir:
                     self._write_strip("popd")
             else:
@@ -3497,8 +3499,7 @@ class Specfile(object):
                     self._write_strip("## make_macro end")
                 else:
                     self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
-                self._write_strip("fi")
-                self._write_strip("\n")
+                self._write_strip("fi\n")
                 if self.config.subdir:
                     self._write_strip("popd")
 
@@ -3523,8 +3524,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro_special end")
                     else:
-                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
-                        self._write_strip("\n")
+                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir\n")
                     self.write_profile_payload_content(pattern="meson", build_type="special")
                     if self.config.custom_clean_pgo:
                         self._write_strip("{}\n".format(self.config.custom_clean_pgo))
@@ -3557,8 +3557,7 @@ class Specfile(object):
                         self._write_strip("## make_macro_special end")
                     else:
                         self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
-                    self._write_strip("fi")
-                    self._write_strip("\n")
+                    self._write_strip("fi\n")
                     if self.config.subdir:
                         self._write_strip("popd")
                 else:
@@ -3576,8 +3575,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro end")
                     else:
-                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
-                        self._write_strip("\n")
+                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir\n")
                     self.write_profile_payload_content(pattern="meson", build_type="special")
                     if self.config.custom_clean_pgo:
                         self._write_strip("{}\n".format(self.config.custom_clean_pgo))
@@ -3704,6 +3702,331 @@ class Specfile(object):
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
             self._write_strip("DESTDIR=%{buildroot} ninja -C builddir install")
+            if self.config.subdir:
+                self._write_strip("popd")
+        self.write_find_lang()
+
+
+    def write_waf_pattern(self):
+        """Write waf build pattern to spec file."""
+        self.write_prep()
+        self.write_lang_c(export_epoch=True)
+        self.write_build_prepend()
+        if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+            self.write_variables()
+            init = f"{self.get_profile_generate_flags()}"
+            post = f"{self.get_profile_use_flags()}"
+            self._write_strip("if [ ! -f statuspgo ]; then")
+            self._write_strip("echo PGO Phase 1")
+            if init:
+                self._write_strip(init)
+            self.write_build_append()
+            if self.config.configure_macro:
+                if self.config.subdir:
+                    self._write_strip("pushd " + self.config.subdir)
+                self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+                for line in self.config.configure_macro:
+                    self._write("{}\n".format(line))
+                self.write_trystatic()
+                self.write_make_prepend(build32=False)
+                if self.config.make_macro:
+                    self._write_strip("## make_macro start")
+                    for line in self.config.make_macro:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## make_macro end")
+                else:
+                    self._write_strip("./waf build --verbose --jobs=16 --out=builddir\n")
+                self.write_profile_payload_content(pattern="waf", build_type=None)
+                if self.config.custom_clean_pgo:
+                    self._write_strip("{}\n".format(self.config.custom_clean_pgo))
+                else:
+                    self._write_strip("\n./waf distclean --verbose || :\n")
+                self._write_strip("echo USED > statuspgo")
+                self._write_strip("fi")
+                self._write_strip("if [ -f statuspgo ]; then")
+                self._write_strip("echo PGO Phase 2\n")
+                self.write_variables()
+                if post:
+                    self._write_strip(post)
+                if self.config.configure_macro_pgo:
+                    self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+                    for line in self.config.configure_macro_pgo:
+                        self._write("{}\n".format(line))
+                else:
+                    self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+                    for line in self.config.configure_macro:
+                        self._write("{}\n".format(line))
+                self.write_trystatic()
+                self.write_make_prepend(build32=False)
+                if self.config.make_macro_pgo:
+                    self._write_strip("## make_macro_pgo start")
+                    for line in self.config.make_macro_pgo:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## make_macro_pgo end")
+                elif self.config.make_macro:
+                    self._write_strip("## make_macro start")
+                    for line in self.config.make_macro:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## make_macro end")
+                else:
+                    self._write_strip("./waf build --verbose --jobs=16 --out=builddir")
+                self._write_strip("fi\n")
+                if self.config.subdir:
+                    self._write_strip("popd")
+            else:
+                self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+                self._write_strip(f"%waf --out=builddir {self.config.extra_configure} {self.config.extra_configure64} || :")
+                self.write_trystatic()
+                self.write_make_prepend(build32=False)
+                if self.config.make_macro:
+                    self._write_strip("## make_macro start")
+                    for line in self.config.make_macro:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## make_macro end")
+                else:
+                    self._write_strip("./waf build --verbose --jobs=16 --out=builddir")
+                self._write_strip("\n")
+                self.write_profile_payload_content(pattern="waf", build_type=None)
+                if self.config.custom_clean_pgo:
+                    self._write_strip("{}\n".format(self.config.custom_clean_pgo))
+                else:
+                    self._write_strip("\n./waf distclean --verbose || :\n")
+                self._write_strip("echo USED > statuspgo")
+                self._write_strip("fi")
+                self._write_strip("if [ -f statuspgo ]; then")
+                self._write_strip("echo PGO Phase 2\n")
+                if post:
+                    self._write_strip(post)
+                if self.config.extra_configure_pgo or self.config.extra_configure64_pgo:
+                    self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+                    self._write_strip(f"%waf --out=builddir {self.config.extra_configure_pgo} {self.config.extra_configure64_pgo} || :")
+                elif self.config.extra_configure or self.config.extra_configure64:
+                    self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+                    self._write_strip(f"%waf --out=builddir {self.config.extra_configure} {self.config.extra_configure64} || :")
+                self.write_trystatic()
+                self.write_make_prepend(build32=False)
+                if self.config.make_macro_pgo:
+                    self._write_strip("## make_macro_pgo start")
+                    for line in self.config.make_macro_pgo:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## make_macro_pgo end")
+                elif self.config.make_macro:
+                    self._write_strip("## make_macro start")
+                    for line in self.config.make_macro:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## make_macro end")
+                else:
+                    self._write_strip("./waf build --verbose --jobs=16 --out=builddir")
+                self._write_strip("fi\n")
+                if self.config.subdir:
+                    self._write_strip("popd")
+
+            if self.config.config_opts["build_special"]:
+                self.write_variables()
+                self._write_strip("pushd ../build-special/" + self.config.subdir)
+                init = f"{self.get_profile_generate_flags()}"
+                post = f"{self.get_profile_use_flags()}"
+                self._write_strip("if [ ! -f statuspgo ]; then")
+                self._write_strip("echo PGO Phase 1")
+                if init:
+                    self._write_strip(init)
+                self.write_build_append()
+                if self.config.configure_macro_special:
+                    self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+                    for line in self.config.configure_macro_special:
+                        self._write("{}\n".format(line))
+                    self.write_trystatic()
+                    self.write_make_prepend(build32=False)
+                    if self.config.make_macro_special:
+                        self._write_strip("## make_macro_special start")
+                        for line in self.config.make_macro_special:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro_special end")
+                    else:
+                        self._write_strip("./waf build --verbose --jobs=16 --out=builddir\n")
+                    self.write_profile_payload_content(pattern="waf", build_type="special")
+                    if self.config.custom_clean_pgo:
+                        self._write_strip("{}\n".format(self.config.custom_clean_pgo))
+                    else:
+                        self._write_strip("\n./waf distclean --verbose || :\n")
+                    self._write_strip("echo USED > statuspgo")
+                    self._write_strip("fi")
+                    self._write_strip("if [ -f statuspgo ]; then")
+                    self._write_strip("echo PGO Phase 2\n")
+                    self.write_variables()
+                    if post:
+                        self._write_strip(post)
+                    if self.config.configure_macro_special_pgo:
+                        self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+                        for line in self.config.configure_macro_special_pgo:
+                            self._write("{}\n".format(line))
+                    else:
+                        for line in self.config.configure_macro_special:
+                            self._write("{}\n".format(line))
+                    self.write_trystatic()
+                    self.write_make_prepend(build32=False)
+                    if self.config.make_macro_special_pgo:
+                        self._write_strip("## make_macro_special_pgo start")
+                        for line in self.config.make_macro_special_pgo:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro_special_pgo end")
+                    elif self.config.make_macro_special:
+                        self._write_strip("## make_macro_special start")
+                        for line in self.config.make_macro_special:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro_special end")
+                    else:
+                        self._write_strip("./waf build --verbose --jobs=16 --out=builddir")
+                    self._write_strip("fi\n")
+                    if self.config.subdir:
+                        self._write_strip("popd")
+                else:
+                    self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+                    self._write_strip(f"%waf --out=builddir {self.config.extra_configure_special} || :")
+                    self.write_trystatic()
+                    self.write_make_prepend(build32=False)
+                    if self.config.make_macro_special:
+                        self._write_strip("## make_macro_special start")
+                        for line in self.config.make_macro_special:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro_special end")
+                    elif self.config.make_macro:
+                        self._write_strip("## make_macro start")
+                        for line in self.config.make_macro:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro end")
+                    else:
+                        self._write_strip("./waf build --verbose --jobs=16 --out=builddir\n")
+                    self.write_profile_payload_content(pattern="waf", build_type="special")
+                    if self.config.custom_clean_pgo:
+                        self._write_strip("{}\n".format(self.config.custom_clean_pgo))
+                    else:
+                        self._write_strip("\n./waf distclean --verbose || :\n")
+                    self._write_strip("echo USED > statuspgo")
+                    self._write_strip("fi")
+                    self._write_strip("if [ -f statuspgo ]; then")
+                    self._write_strip("echo PGO Phase 2\n")
+                    if post:
+                        self._write_strip(post)
+                    if self.config.extra_configure_special_pgo:
+                        self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+                        self._write_strip(f"%waf --out=builddir {self.config.extra_configure_special_pgo} || :")
+                    elif self.config.extra_configure_special:
+                        self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+                        self._write_strip(f"%waf --out=builddir {self.config.extra_configure_special} || :")
+                    self.write_trystatic()
+                    self.write_make_prepend(build32=False)
+                    if self.config.make_macro_special_pgo:
+                        self._write_strip("## make_macro_special_pgo start")
+                        for line in self.config.make_macro_special_pgo:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro_special_pgo end")
+                    elif self.config.make_macro_special:
+                        self._write_strip("## make_macro_special start")
+                        for line in self.config.make_macro_special:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro_special end")
+                    elif self.config.make_macro:
+                        self._write_strip("## make_macro start")
+                        for line in self.config.make_macro:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro end")
+                    else:
+                        self._write_strip("./waf build --verbose --jobs=16 --out=builddir")
+                    self._write_strip("fi\n")
+                    if self.config.subdir:
+                        self._write_strip("popd")
+        else:
+            self.write_variables()
+            if self.config.subdir:
+                self._write_strip("pushd " + self.config.subdir)
+            self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+            self._write_strip(f"%waf --out=builddir {self.config.extra_configure} {self.config.extra_configure64} || :")
+            self.write_trystatic()
+            self.write_make_prepend(build32=False)
+            if self.config.make_macro:
+                self._write_strip("## make_macro start")
+                for line in self.config.make_macro:
+                    self._write("{}\n".format(line))
+                self._write_strip("## make_macro end")
+            else:
+                self._write_strip("./waf build --verbose --jobs=16 --out=builddir\n")
+            if self.config.subdir:
+                self._write_strip("popd")
+
+        if self.config.config_opts["use_avx2"]:
+            self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+            self._write_strip(f"%waf --out=builddiravx2 {self.config.extra_configure} {self.config.extra_configure64} || :")
+            self.write_trystatic()
+            self.write_make_prepend(build32=False)
+            self._write_strip("./waf build --verbose --jobs=16 --out=builddiravx2")
+            if self.config.config_opts['use_avx512']:
+                self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+                self._write_strip(f"%waf --out=builddiravx512 {self.config.extra_configure} {self.config.extra_configure64} || :")
+                self._write_strip("./waf build --verbose --jobs=16 --out=builddiravx512")
+                if self.config.subdir:
+                    self._write_strip("popd")
+        if self.config.config_opts["32bit"]:
+            self._write_strip("pushd ../build32/" + self.config.subdir)
+            self.write_build_prepend32()
+            self.write_32bit_exports()
+            self.write_build_append()
+            self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
+            self._write_strip(f"%waf --out=builddir {self.config.extra_configure} {self.config.extra_configure32} || :")
+            self.write_trystatic()
+            self.write_make_prepend(build32=True)
+            self._write_strip("./waf build --verbose --jobs=16 --out=builddir")
+            self._write_strip("popd")
+
+        self.write_build_append()
+        self._write_strip("\n")
+        self.write_check()
+        self._write_strip("%install")
+        self.write_install_prepend()
+        self.write_license_files()
+        if self.config.config_opts["32bit"]:
+            self._write_strip("pushd ../build32/" + self.config.subdir)
+            self._write_strip(f"%waf_install -- --verbose {self.config.extra_make_install} {self.config.extra_make32_install}")
+            self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
+            self._write_strip("then")
+            self._write_strip("    pushd %{buildroot}/usr/lib32/pkgconfig\n")
+            self._write_strip("    for i in *.pc ; do ln -s $i 32$i ; done")
+            self._write_strip("    popd")
+            self._write_strip("fi")
+            self._write_strip("if [ -d %{buildroot}/usr/share/pkgconfig ]")
+            self._write_strip("then")
+            self._write_strip("    pushd %{buildroot}/usr/share/pkgconfig")
+            self._write_strip("    for i in *.pc ; do ln -s $i 32$i ; done")
+            self._write_strip("    popd")
+            self._write_strip("fi")
+            self._write_strip("popd")
+        if self.config.config_opts['use_avx512']:
+            if self.config.subdir:
+                self._write_strip("pushd " + self.config.subdir)
+            self._write_strip(f"%waf_install -- --verbose --out=builddiravx512 {self.config.extra_make_install}")
+            if self.config.subdir:
+                self._write_strip("popd")
+        if self.config.config_opts["use_avx2"]:
+            if self.config.subdir:
+                self._write_strip("pushd " + self.config.subdir)
+            self._write_strip(f"%waf_install -- --verbose --out=builddiravx2 {self.config.extra_make_install}")
+            if self.config.subdir:
+                self._write_strip("popd")
+        if self.config.config_opts["build_special"]:
+            self._write_strip("pushd ../build-special/" + self.config.subdir)
+            self._write_strip(f"%waf_install -- --verbose {self.config.extra_make_install_special}")
+            self._write_strip("popd")
+            if self.config.subdir:
+                self._write_strip("popd")
+        if self.config.install_macro:
+            self._write_strip("## install_macro start")
+            for line in self.config.install_macro:
+                self._write("{}\n".format(line))
+            self._write_strip("## install_macro end")
+        else:
+            if self.config.subdir:
+                self._write_strip("pushd " + self.config.subdir)
+            self._write_strip(f"%waf_install -- --verbose {self.config.extra_make_install}")
             if self.config.subdir:
                 self._write_strip("popd")
         self.write_find_lang()

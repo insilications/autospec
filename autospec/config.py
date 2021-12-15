@@ -128,6 +128,7 @@ class Config(object):
         self.make_macro_32 = []
         self.make_macro_special = ""
         self.make_macro_special2 = ""
+        self.make_macro_special_pgo = ""
         self.install_macro = []
         self.install_macro_32 = []
         self.install_macro_512 = ""
@@ -1279,6 +1280,10 @@ class Config(object):
         content = self.read_conf_file(os.path.join(self.download_path, "make_macro_special2"))
         if content and content[0]:
             self.make_macro_special2 = "\n".join(content)
+
+        content = self.read_conf_file(os.path.join(self.download_path, "make_macro_special_pgo"))
+        if content and content[0]:
+            self.make_macro_special_pgo = "\n".join(content)
 
         self.install_macro = self.read_script_file(os.path.join(self.download_path, "install_macro"))
 
