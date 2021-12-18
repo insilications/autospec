@@ -890,6 +890,7 @@ class Requirements(object):
             self.add_buildreq("buildreq-distutils36")
         elif config.default_pattern == "distutils3":
             self.add_buildreq("buildreq-distutils3")
+            self.add_buildreq("pypi(setuptools)")
         elif config.default_pattern == "golang":
             self.add_buildreq("buildreq-golang")
         elif config.default_pattern == "cmake":
