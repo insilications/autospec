@@ -662,14 +662,14 @@ class Specfile(object):
         )
         self._write_strip("{} {} {}".format(cmake_string, self.config.cmake_srcdir, self.extra_cmake_openmpi))
 
-    def write_prep(self, ruby_pattern=False):
+    def write_prep(self, ruby_pattern_from_gemspec=False):
         """Write prep section to spec file."""
         self._write_strip("%prep")
         #if self.config.config_opts.get("use_oneapi"):
             #self._write_strip("echo 'intelpython=exclude' > /builddir/oneapi.txt")
             #self._write_strip("grep -qxF 'source /aot/intel/oneapi/setvars.sh --config=/aot/intel/oneapi/config.txt' /builddir/.bashrc || echo 'source /aot/intel/oneapi/setvars.sh --config=/aot/intel/oneapi/config.txt' >> /builddir/.bashrc || :")
         self.write_prep_prepend()
-        if ruby_pattern:
+        if ruby_pattern_from_gemspec:
             self.build_dirs[self.url] = self.content.gem_subdir
             self._write_strip("gem unpack %{SOURCE0}")
             self._write_strip("%setup -q -D -T -n " + self.content.gem_subdir)
@@ -2932,37 +2932,28 @@ class Specfile(object):
 
     def write_ruby_pattern(self):
         """Write build pattern for ruby packages."""
-        self.write_prep(ruby_pattern=True)
+        if self.config.config_opts.get("ruby_pattern_from_gemspec"):
+            self.write_prep(ruby_pattern_from_gemspec=True)
+        else:
+            self.write_prep(ruby_pattern_from_gemspec=False)
         self._write_strip("%build")
         self.write_build_prepend()
         self.write_proxy_exports()
         self._write_strip("export LANG=C.UTF-8")
-        self._write_strip("gem build {}.gemspec".format(self.name))
+        self._write_strip(f"gem build {self.name}.gemspec --output {self.name}.gem")
         self.write_build_append()
         self._write_strip("\n")
 
         self._write_strip("%install")
         self.write_install_prepend()
         self._write_strip("%global gem_dir $(ruby -e'puts Gem.default_dir')")
-        self._write_strip("gem install -V \\")
-        self._write_strip("  --local \\")
-        self._write_strip("  --force \\")
-        self._write_strip("  --install-dir .%{gem_dir} \\")
-        self._write_strip("  --bindir .%{_bindir} \\")
-        self._write_strip(" {}.gem".format(self.content.gem_subdir))
+        self._write_strip("gem install --verbose --local --force \\")
+        self._write_strip("  --build-root %{buildroot} \\")
+        self._write_strip("  --install-dir %{gem_dir} \\")
+        self._write_strip("  --bindir %{_bindir} \\")
+        self._write_strip(f" {self.name}.gem")
         self._write_strip("\n")
 
-        self._write_strip("mkdir -p %{buildroot}%{gem_dir}")
-        self._write_strip("cp -pa .%{gem_dir}/* \\")
-        self._write_strip("        %{buildroot}%{gem_dir}")
-        self._write_strip("\n")
-
-        self._write_strip("if [ -d .%{_bindir} ]; then")
-        self._write_strip("    mkdir -p %{buildroot}%{_bindir}")
-        self._write_strip("    cp -pa .%{_bindir}/* \\")
-        self._write_strip("        %{buildroot}%{_bindir}/")
-        self._write_strip("fi")
-        self._write_strip("\n")
         self.write_find_lang()
         self.write_check()
 

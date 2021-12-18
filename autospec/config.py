@@ -277,6 +277,7 @@ class Config(object):
             "custom_bashrc": "enable source custom .bashrc",
             "build_special_32": "configure 32bits build with special options",
             "autogen_simple": "enable a simpler autogen macro",
+            "ruby_pattern_from_gemspec": "enable ruby build from gemspec",
         }
         # simple_pattern_pkgconfig patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -635,6 +636,9 @@ class Config(object):
 
         # default disable simpler autogen macro
         config_f["autospec"]["autogen_simple"] = "false"
+
+        # default enable ruby build from gemspec
+        config_f["autospec"]["ruby_pattern_from_gemspec"] = "false"
 
         # new defaults
         config_f["autospec"]["asneeded"] = "false"
