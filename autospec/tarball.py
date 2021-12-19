@@ -22,6 +22,7 @@ import os
 import re
 import tarfile
 import zipfile
+import util
 from collections import OrderedDict
 
 import download
