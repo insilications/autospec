@@ -2013,7 +2013,7 @@ class Specfile(object):
         self.write_variables()
         if self.config.configure_macro:
             if self.config.subdir:
-                self._write_strip("pushd {}".format(self.config.subdir))
+                self._write_strip(f"pushd {self.config.subdir}")
             for line in self.config.configure_macro:
                 self._write("{}\n".format(line))
             self.write_make_line()
@@ -2022,7 +2022,7 @@ class Specfile(object):
             self._write_strip("\n")
         else:
             if self.config.subdir:
-                self._write_strip("pushd {}".format(self.config.subdir))
+                self._write_strip(f"pushd {self.config.subdir}")
             self._write_strip("tclsh build.tcl {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
             self.write_make_line()
             if self.config.subdir:
@@ -2074,7 +2074,7 @@ class Specfile(object):
         self.write_variables()
         if self.config.configure_macro:
             if self.config.subdir:
-                self._write_strip("pushd {}".format(self.config.subdir))
+                self._write_strip(f"pushd {self.config.subdir}")
             self._write("{} ".format(self.config.configure_macro))
             self.write_make_line()
             if self.config.subdir:
@@ -2082,7 +2082,7 @@ class Specfile(object):
             self._write_strip("\n")
         else:
             if self.config.subdir:
-                self._write_strip("pushd {}".format(self.config.subdir))
+                self._write_strip(f"pushd {self.config.subdir}")
             self._write_strip("%configure_buildtcl {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
             self.write_make_line()
             if self.config.subdir:
@@ -2138,11 +2138,11 @@ class Specfile(object):
         self.write_lang_c(export_epoch=True)
         self.write_build_prepend()
         self.write_variables()
-        self.write_profile_payload("configure")
+        self.write_profile_payload(pattern="configure", build_type=None)
         if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
             if self.config.configure_macro_pgo:
                 if self.config.subdir:
-                    self._write_strip("pushd {}".format(self.config.subdir))
+                    self._write_strip(f"pushd {self.config.subdir}")
                 self._write("{}".format(self.get_profile_use_flags()))
                 for line in self.config.configure_macro_pgo:
                     self._write("{}\n".format(line))
@@ -2152,7 +2152,7 @@ class Specfile(object):
                 self._write_strip("\n")
             elif self.config.configure_macro:
                 if self.config.subdir:
-                    self._write_strip("pushd {}".format(self.config.subdir))
+                    self._write_strip(f"pushd {self.config.subdir}")
                 self._write("{}".format(self.get_profile_use_flags()))
                 for line in self.config.configure_macro:
                     self._write("{}\n".format(line))
@@ -2162,8 +2162,8 @@ class Specfile(object):
                 self._write_strip("\n")
             else:
                 if self.config.subdir:
-                    self._write_strip("pushd {}".format(self.config.subdir))
-                self._write_strip("{0}%configure {1} {2}".format(self.get_profile_use_flags(), self.config.extra_configure, self.config.extra_configure64))
+                    self._write_strip(f"pushd {self.config.subdir}")
+                self._write_strip(f"{self.get_profile_use_flags()}%configure {self.config.extra_configure_pgo}")
                 self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
                 if self.config.subdir:
                     self._write_strip("popd")
@@ -2171,7 +2171,7 @@ class Specfile(object):
         else:
             if self.config.configure_macro:
                 if self.config.subdir:
-                    self._write_strip("pushd {}".format(self.config.subdir))
+                    self._write_strip(f"pushd {self.config.subdir}")
                 self._write("{}".format(self.get_profile_use_flags()))
                 self.write_build_append()
                 for line in self.config.configure_macro:
@@ -2182,9 +2182,9 @@ class Specfile(object):
                 self._write_strip("\n")
             else:
                 if self.config.subdir:
-                    self._write_strip("pushd {}".format(self.config.subdir))
+                    self._write_strip(f"pushd {self.config.subdir}")
                 self.write_build_append()
-                self._write_strip("{0}%configure {1} {2}".format(self.get_profile_use_flags(), self.config.extra_configure, self.config.extra_configure64))
+                self._write_strip(f"{self.get_profile_use_flags()}%configure {self.config.extra_configure} {self.config.extra_configure64}")
                 self.write_make_line()
                 if self.config.subdir:
                     self._write_strip("popd")
@@ -2194,12 +2194,12 @@ class Specfile(object):
             self._write_strip("pushd ../build-special/")
             self.write_build_prepend()
             self.write_variables()
-            self.write_profile_payload("configure", "special")
+            self.write_profile_payload(pattern="configure", build_type="special")
 
             if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
                 if self.config.configure_macro_special_pgo:
                     if self.config.subdir:
-                        self._write_strip("pushd {}".format(self.config.subdir))
+                        self._write_strip(f"pushd {self.config.subdir}")
                     self._write("{}".format(self.get_profile_use_flags()))
                     self.write_build_append()
                     for line in self.config.configure_macro_special_pgo:
@@ -2210,7 +2210,7 @@ class Specfile(object):
                     self._write_strip("popd\n")
                 elif self.config.configure_macro_special:
                     if self.config.subdir:
-                        self._write_strip("pushd {}".format(self.config.subdir))
+                        self._write_strip(f"pushd {self.config.subdir}")
                     self._write("{}".format(self.get_profile_use_flags()))
                     self.write_build_append()
                     for line in self.config.configure_macro_special:
@@ -2221,9 +2221,9 @@ class Specfile(object):
                     self._write_strip("popd\n")
                 else:
                     if self.config.subdir:
-                        self._write_strip("pushd {}".format(self.config.subdir))
+                        self._write_strip(f"pushd {self.config.subdir}")
                     self.write_build_append()
-                    self._write_strip("{0}%configure {1}".format(self.get_profile_use_flags(), self.config.extra_configure_special))
+                    self._write_strip(f"{self.get_profile_use_flags()}%configure {self.config.extra_configure_special_pgo}")
                     self.write_make_line(build32=False, build_type="special", pgo=True, pattern=None)
                     if self.config.subdir:
                         self._write_strip("popd")
@@ -2231,7 +2231,7 @@ class Specfile(object):
             else:
                 if self.config.configure_macro_special:
                     if self.config.subdir:
-                        self._write_strip("pushd {}".format(self.config.subdir))
+                        self._write_strip(f"pushd {self.config.subdir}")
                     self.write_build_append()
                     self._write("{}".format(self.get_profile_use_flags()))
                     for line in self.config.configure_macro_special:
@@ -2242,9 +2242,9 @@ class Specfile(object):
                     self._write_strip("popd\n")
                 else:
                     if self.config.subdir:
-                        self._write_strip("pushd {}".format(self.config.subdir))
+                        self._write_strip(f"pushd {self.config.subdir}")
                     self.write_build_append()
-                    self._write_strip("%configure {0}".format(self.config.extra_configure_special))
+                    self._write_strip(f"%configure {self.config.extra_configure_special}")
                     self.write_make_line(build32=False, build_type="special", pgo=False, pattern=None)
                     if self.config.subdir:
                         self._write_strip("popd")
@@ -2254,12 +2254,12 @@ class Specfile(object):
             self._write_strip("pushd ../build-special2/" + self.config.subdir)
             self.write_build_prepend()
             self.write_variables()
-            self.write_profile_payload("configure", "special2")
+            self.write_profile_payload(pattern="configure", build_type="special2")
 
             if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
                 if self.config.configure_macro_special2_pgo:
                     if self.config.subdir:
-                        self._write_strip("pushd {}".format(self.config.subdir))
+                        self._write_strip(f"pushd {self.config.subdir}")
                     self._write("{}".format(self.get_profile_use_flags()))
                     for line in self.config.configure_macro_special2_pgo:
                         self._write("{}\n".format(line))
@@ -2269,7 +2269,7 @@ class Specfile(object):
                     self._write_strip("popd\n")
                 elif self.config.configure_macro_special2:
                     if self.config.subdir:
-                        self._write_strip("pushd {}".format(self.config.subdir))
+                        self._write_strip(f"pushd {self.config.subdir}")
                     self._write("{}".format(self.get_profile_use_flags()))
                     for line in self.config.configure_macro_special2:
                         self._write("{}\n".format(line))
@@ -2279,8 +2279,8 @@ class Specfile(object):
                     self._write_strip("popd\n")
                 else:
                     if self.config.subdir:
-                        self._write_strip("pushd {}".format(self.config.subdir))
-                    self._write_strip("{0}%configure {1}".format(self.get_profile_use_flags(), self.config.extra_configure_special2))
+                        self._write_strip(f"pushd {self.config.subdir}")
+                    self._write_strip(f"{self.get_profile_use_flags()}%configure {self.config.extra_configure_special2_pgo}")
                     self.write_make_line(build32=False, build_type="special2", pgo=True, pattern=None)
                     if self.config.subdir:
                         self._write_strip("popd")
@@ -2288,7 +2288,7 @@ class Specfile(object):
             else:
                 if self.config.configure_macro_special2:
                     if self.config.subdir:
-                        self._write_strip("pushd {}".format(self.config.subdir))
+                        self._write_strip(f"pushd {self.config.subdir}")
                     self._write("{}".format(self.get_profile_use_flags()))
                     for line in self.config.configure_macro_special2:
                         self._write("{}\n".format(line))
@@ -2298,7 +2298,7 @@ class Specfile(object):
                     self._write_strip("popd\n")
                 else:
                     if self.config.subdir:
-                        self._write_strip("pushd {}".format(self.config.subdir))
+                        self._write_strip(f"pushd {self.config.subdir}")
                     self._write_strip("%configure {0}".format(self.config.extra_configure_special2))
                     self.write_make_line(build32=False, build_type="special2", pgo=False, pattern=None)
                     if self.config.subdir:
@@ -2320,7 +2320,7 @@ class Specfile(object):
                 self.write_build_prepend32()
                 self.write_32bit_exports()
                 self.write_build_append()
-                self._write_strip("%configure {0} {1} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32))
+                self._write_strip(f"%configure {self.config.extra_configure} {self.config.extra_configure32} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu")
                 self.write_make_line(build32=True, build_type=None, pgo=False, pattern=None)
                 self._write_strip("popd")
             if self.config.config_opts["build_special_32"]:
@@ -2336,9 +2336,9 @@ class Specfile(object):
                 else:
                     self.write_build_append()
                     if self.config.extra_configure_special_32:
-                        self._write_strip("%configure {0} {1} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure_special_32))
+                        self._write_strip(f"%configure {self.config.extra_configure_special_32} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu")
                     else:
-                        self._write_strip("%configure {0} {1} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32))
+                        self._write_strip(f"%configure {self.config.extra_configure32} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu")
                     self.write_make_line(build32=True, build_type=None, pgo=False, pattern=None)
                     self._write_strip("popd\n")
 
