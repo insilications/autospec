@@ -162,6 +162,8 @@ class Config(object):
         self.install_prepend = []
         self.install_prepend_special = []
         self.install_prepend_special2 = []
+        self.install_prepend_32 = []
+        self.install_prepend_special_32 = []
         self.install_append = []
         self.install_append_special = []
         self.install_append_special2 = []
@@ -1430,6 +1432,8 @@ class Config(object):
         self.install_prepend = self.read_script_file(os.path.join(self.download_path, "install_prepend"))
         self.install_prepend_special = self.read_script_file(os.path.join(self.download_path, "install_prepend_special"))
         self.install_prepend_special2 = self.read_script_file(os.path.join(self.download_path, "install_prepend_special2"))
+        self.install_prepend_32 = self.read_script_file(os.path.join(self.download_path, "install_prepend_32"))
+        self.install_prepend_special_32 = self.read_script_file(os.path.join(self.download_path, "install_prepend_special_32"))
         if os.path.isfile(os.path.join(self.download_path, "make_install_append")):
             os.rename(os.path.join(self.download_path, "make_install_append"), os.path.join(self.download_path, "install_append"))
         if os.path.isfile(os.path.join(self.download_path, "make_install_append_special")):

@@ -1551,10 +1551,10 @@ class Specfile(object):
         # time.time() returns a float, but we only need second-precision
         self._write_strip("export SOURCE_DATE_EPOCH={}".format(int(time.time())))
         self._write_strip("rm -rf %{buildroot}")
-        self.write_install_prepend()
         self.write_license_files()
 
         if self.config.config_opts["32bit"]:
+            self.write_install_prepend("32bit")
             if self.config.install_macro_32:
                 self._write_strip("## install_macro_32 start")
                 for line in self.config.install_macro_32:
@@ -1577,6 +1577,7 @@ class Specfile(object):
                 self._write_strip("fi")
                 self._write_strip("popd")
             if self.config.config_opts["build_special_32"]:
+                self.write_install_prepend("build_special_32")
                 if self.config.install_macro_build_special_32:
                     self._write_strip("## install_macro_build_special_32 start")
                     for line in self.config.install_macro_build_special_32:
@@ -1636,31 +1637,30 @@ class Specfile(object):
                     self._write_strip("popd")
 
             if self.config.config_opts["build_special"]:
+                self.write_install_prepend("special")
                 if self.config.install_macro_build_special:
-                    self.write_install_prepend("special")
                     self._write("## install_macro_build_special start\n")
                     for line in self.config.install_macro_build_special:
                         self._write("{}\n".format(line))
                     self._write("## install_macro_build_special end\n")
                 else:
-                    self.write_install_prepend("special")
                     self._write_strip("pushd ../build-special/" + self.config.subdir)
                     self._write_strip("%make_install_special {}\n".format(self.config.extra_make_install_special))
                     self._write_strip("popd")
 
             if self.config.config_opts["build_special2"]:
+                self.write_install_prepend("special2")
                 if self.config.install_macro_build_special2:
-                    self.write_install_prepend("special2")
                     self._write_strip("## install_macro_build_special2 start")
                     for line in self.config.install_macro_build_special2:
                         self._write("{}\n".format(line))
                     self._write_strip("## install_macro_build_special2 end")
                 else:
-                    self.write_install_prepend("special2")
                     self._write_strip("pushd ../build-special2/" + self.config.subdir)
                     self._write_strip("%make_install_special2 {}\n".format(self.config.extra_make_install_special2))
                     self._write_strip("popd")
 
+            self.write_install_prepend()
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
             if self.config.install_macro:
@@ -1750,16 +1750,26 @@ class Specfile(object):
             for line in self.config.install_prepend:
                 self._write("{}\n".format(line))
             self._write_strip("## install_prepend end")
-        if self.config.install_prepend_special and build_type == "special":
+        elif self.config.install_prepend_special and build_type == "special":
             self._write_strip("## install_prepend_special content")
             for line in self.config.install_prepend_special:
                 self._write("{}\n".format(line))
             self._write_strip("## install_prepend_special end")
-        if self.config.install_prepend_special2 and build_type == "special2":
+        elif self.config.install_prepend_special2 and build_type == "special2":
             self._write_strip("## install_prepend_special2 content")
             for line in self.config.install_prepend_special2:
                 self._write("{}\n".format(line))
             self._write_strip("## install_prepend_special2 end")
+        elif self.config.install_prepend_32 and build_type == "32bit":
+            self._write_strip("## install_prepend_32 content")
+            for line in self.config.install_prepend_32:
+                self._write("{}\n".format(line))
+            self._write_strip("## install_prepend_32 end")
+        elif self.config.install_prepend_special_32 and build_type == "build_special_32":
+            self._write_strip("## install_prepend_special_32 content")
+            for line in self.config.install_prepend_special_32:
+                self._write("{}\n".format(line))
+            self._write_strip("## install_prepend_special_32 end")
 
     def write_install_append(self):
         """Write out any custom supplied commands at the very end of the %install section."""
