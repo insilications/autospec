@@ -725,9 +725,9 @@ def package(
 
         if (short_circuit == None):
             examine_abi(conf.download_path, content.name)
-            if os.path.exists("/var/lib/rpm"):
-                print("\nGenerating whatrequires\n")
-                pkg_scan.get_whatrequires(content.name, conf.yum_conf)
+            #if os.path.exists("/var/lib/rpm"):
+                #print("\nGenerating whatrequires\n")
+                #pkg_scan.get_whatrequires(content.name, conf.yum_conf)
 
             write_out(conf.download_path + "/release", content.release + "\n")
 
@@ -752,9 +752,9 @@ def package(
 
         elif (short_circuit == "binary"):
             examine_abi(conf.download_path, content.name)
-            if os.path.exists("/var/lib/rpm"):
-                print("\nGenerating whatrequires\n")
-                pkg_scan.get_whatrequires(content.name, conf.yum_conf)
+            #if os.path.exists("/var/lib/rpm"):
+                #print("\nGenerating whatrequires\n")
+                #pkg_scan.get_whatrequires(content.name, conf.yum_conf)
 
             #write_out(conf.download_path + "/release", content.release + "\n")
 
