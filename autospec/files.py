@@ -541,6 +541,7 @@ class FileManager(object):
                 (r"^/usr/lib/rpm[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*$", "main"),
                 (r"^/usr/lib64/libncurses\+\+w?\.so\.6(?:\.2)?$", "lib-plusplus"),
                 (r"^/usr/lib64/lib(?:ncurses\.so\.6(?:\.2)?|(?:panel|tinfo|form|menu)\.so\.6(?:\.2)?)$", "lib-narrow"),
+                (r"^/usr/share/man.*$", "docs"),
                 (r"^/usr/share/terminfo/i/ibm.*$", "data-rare")]
             for pat_args in patterns_ncurses:
                 if self.file_pat_match(filename, *pat_args):
