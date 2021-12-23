@@ -2990,7 +2990,7 @@ class Specfile(object):
                     for line in self.config.cmake_macro:
                         self._write("{}\n".format(line))
                 else:
-                    self._write_strip("%cmake {} {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_64))
+                    self._write_strip(f"%cmake {self.config.cmake_srcdir} {self.extra_cmake} {self.extra_cmake_64}")
                 self.write_make_line()
                 self._write_strip("\n")
                 self.write_profile_payload_content(pattern="cmake", build_type=None)
@@ -3011,9 +3011,7 @@ class Specfile(object):
                     for line in self.config.cmake_macro:
                         self._write("{}\n".format(line))
                 elif self.config.extra_cmake_pgo:
-                    self._write_strip("%cmake {} {}".format(self.config.cmake_srcdir, self.extra_cmake_pgo))
-                else:
-                    self._write_strip("%cmake {} {} {}".format(self.config.cmake_srcdir, self.extra_cmake, self.extra_cmake_64))
+                    self._write_strip(f"%cmake {self.config.cmake_srcdir} {self.extra_cmake_pgo}")
                 self.write_make_line()
                 self._write_strip("fi")
                 self._write_strip("popd")
