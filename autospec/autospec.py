@@ -441,6 +441,7 @@ def package(
     if util.debugging:
         print_debug(f"url 1: {url}")
     new_archives_from_git = []
+    name_re_escaped = re.escape(name)
     # Download the source from git if necessary
     if download_from_git:
         giturl = url
@@ -451,7 +452,7 @@ def package(
             print_debug(f"url 2: {url}")
             print_debug(f"BRANCH 2: {branch}")
         # filename_re = re.compile(r"^{}{}".format(name, r"(-|-.)(\d+)(\.\d+)+\.tar\.gz"))
-        filename_re = re.compile(r"^{}{}".format(name, r"-.*\.tar\.gz"))
+        filename_re = re.compile(r"^{}{}".format(name_re_escaped, r"-.*\.tar\.gz"))
         if os.path.basename(os.getcwd()) == name:
             package_path = "./"
             if util.debugging:
@@ -530,7 +531,8 @@ def package(
             fileslist = []
             download_file_full_path = ""
             arch_name = os.path.splitext(os.path.basename(new_arch_url))[0]
-            filename_re = re.compile(r"^{}{}".format(arch_name, r"-.*\.tar\.gz"))
+            arch_name_re_escaped = re.escape(name)
+            filename_re = re.compile(r"^{}{}".format(arch_name_re_escaped, r"-.*\.tar\.gz"))
             if util.debugging:
                 print_debug(f"\n\narch_name: {arch_name}")
             if os.path.basename(os.getcwd()) == name:
