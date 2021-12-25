@@ -1554,6 +1554,7 @@ class Specfile(object):
         self.write_license_files()
 
         if self.config.config_opts["32bit"]:
+            self.write_32bit_exports()
             self.write_install_prepend("32bit")
             if self.config.install_macro_32:
                 self._write_strip("## install_macro_32 start")
@@ -1577,6 +1578,7 @@ class Specfile(object):
                 self._write_strip("fi")
                 self._write_strip("popd")
             if self.config.config_opts["build_special_32"]:
+                self.write_32bit_exports()
                 self.write_install_prepend("build_special_32")
                 if self.config.install_macro_build_special_32:
                     self._write_strip("## install_macro_build_special_32 start")
@@ -1637,6 +1639,8 @@ class Specfile(object):
                     self._write_strip("popd")
 
             if self.config.config_opts["build_special"]:
+                self.write_variables()
+                self._write(f"{self.get_profile_use_flags()}")
                 self.write_install_prepend("special")
                 if self.config.install_macro_build_special:
                     self._write("## install_macro_build_special start\n")
@@ -1649,6 +1653,8 @@ class Specfile(object):
                     self._write_strip("popd")
 
             if self.config.config_opts["build_special2"]:
+                self.write_variables()
+                self._write(f"{self.get_profile_use_flags()}")
                 self.write_install_prepend("special2")
                 if self.config.install_macro_build_special2:
                     self._write_strip("## install_macro_build_special2 start")
@@ -1660,6 +1666,8 @@ class Specfile(object):
                     self._write_strip("%make_install_special2 {}\n".format(self.config.extra_make_install_special2))
                     self._write_strip("popd")
 
+            self.write_variables()
+            self._write(f"{self.get_profile_use_flags()}")
             self.write_install_prepend()
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
@@ -1872,6 +1880,8 @@ class Specfile(object):
             self._write_strip("pushd " + self.config.subdir)
 
         if self.config.config_opts["32bit"]:
+            self.write_32bit_exports()
+            self.write_install_prepend("32bit")
             if self.config.install_macro_32:
                 self._write_strip("## install_macro_32 start")
                 for line in self.config.install_macro_32:
@@ -1937,6 +1947,9 @@ class Specfile(object):
                     self._write_strip("popd")
 
             if self.config.config_opts["build_special"]:
+                self.write_variables()
+                self._write(f"{self.get_profile_use_flags()}")
+                self.write_install_prepend("special")
                 if self.config.install_macro_build_special:
                     self._write_strip("## install_macro_build_special start\n")
                     for line in self.config.install_macro_build_special:
@@ -1950,6 +1963,9 @@ class Specfile(object):
                         self._write_strip("%make_install_special {} || :\n".format(self.config.extra_make_install_special))
                     self._write_strip("popd")
 
+            self.write_variables()
+            self._write(f"{self.get_profile_use_flags()}")
+            self.write_install_prepend()
             if self.config.install_macro:
                 self._write_strip("## install_macro start")
                 for line in self.config.install_macro:
@@ -2153,7 +2169,7 @@ class Specfile(object):
             if self.config.configure_macro_pgo:
                 if self.config.subdir:
                     self._write_strip(f"pushd {self.config.subdir}")
-                self._write("{}".format(self.get_profile_use_flags()))
+                self._write(f"{self.get_profile_use_flags()}")
                 for line in self.config.configure_macro_pgo:
                     self._write("{}\n".format(line))
                 self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
@@ -2163,7 +2179,7 @@ class Specfile(object):
             elif self.config.configure_macro:
                 if self.config.subdir:
                     self._write_strip(f"pushd {self.config.subdir}")
-                self._write("{}".format(self.get_profile_use_flags()))
+                self._write(f"{self.get_profile_use_flags()}")
                 for line in self.config.configure_macro:
                     self._write("{}\n".format(line))
                 self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
@@ -2182,7 +2198,7 @@ class Specfile(object):
             if self.config.configure_macro:
                 if self.config.subdir:
                     self._write_strip(f"pushd {self.config.subdir}")
-                self._write("{}".format(self.get_profile_use_flags()))
+                self._write(f"{self.get_profile_use_flags()}")
                 self.write_build_append()
                 for line in self.config.configure_macro:
                     self._write("{}\n".format(line))
@@ -2210,7 +2226,7 @@ class Specfile(object):
                 if self.config.configure_macro_special_pgo:
                     if self.config.subdir:
                         self._write_strip(f"pushd {self.config.subdir}")
-                    self._write("{}".format(self.get_profile_use_flags()))
+                    self._write(f"{self.get_profile_use_flags()}")
                     self.write_build_append()
                     for line in self.config.configure_macro_special_pgo:
                         self._write("{}\n".format(line))
@@ -2221,7 +2237,7 @@ class Specfile(object):
                 elif self.config.configure_macro_special:
                     if self.config.subdir:
                         self._write_strip(f"pushd {self.config.subdir}")
-                    self._write("{}".format(self.get_profile_use_flags()))
+                    self._write(f"{self.get_profile_use_flags()}")
                     self.write_build_append()
                     for line in self.config.configure_macro_special:
                         self._write("{}\n".format(line))
@@ -2243,7 +2259,7 @@ class Specfile(object):
                     if self.config.subdir:
                         self._write_strip(f"pushd {self.config.subdir}")
                     self.write_build_append()
-                    self._write("{}".format(self.get_profile_use_flags()))
+                    self._write(f"{self.get_profile_use_flags()}")
                     for line in self.config.configure_macro_special:
                         self._write("{}\n".format(line))
                     self.write_make_line(build32=False, build_type="special", pgo=False, pattern=None)
@@ -2270,7 +2286,7 @@ class Specfile(object):
                 if self.config.configure_macro_special2_pgo:
                     if self.config.subdir:
                         self._write_strip(f"pushd {self.config.subdir}")
-                    self._write("{}".format(self.get_profile_use_flags()))
+                    self._write(f"{self.get_profile_use_flags()}")
                     for line in self.config.configure_macro_special2_pgo:
                         self._write("{}\n".format(line))
                     self.write_make_line(build32=False, build_type="special2", pgo=True, pattern=None)
@@ -2280,7 +2296,7 @@ class Specfile(object):
                 elif self.config.configure_macro_special2:
                     if self.config.subdir:
                         self._write_strip(f"pushd {self.config.subdir}")
-                    self._write("{}".format(self.get_profile_use_flags()))
+                    self._write(f"{self.get_profile_use_flags()}")
                     for line in self.config.configure_macro_special2:
                         self._write("{}\n".format(line))
                     self.write_make_line(build32=False, build_type="special2", pgo=True, pattern=None)
@@ -2299,7 +2315,7 @@ class Specfile(object):
                 if self.config.configure_macro_special2:
                     if self.config.subdir:
                         self._write_strip(f"pushd {self.config.subdir}")
-                    self._write("{}".format(self.get_profile_use_flags()))
+                    self._write(f"{self.get_profile_use_flags()}")
                     for line in self.config.configure_macro_special2:
                         self._write("{}\n".format(line))
                     self.write_make_line(build32=False, build_type="special2", pgo=False, pattern=None)
