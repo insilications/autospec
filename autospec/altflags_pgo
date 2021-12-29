@@ -84,3 +84,4 @@ export QT_IM_MODULE="cedilla"
 export FREETYPE_PROPERTIES="truetype:interpreter-version=40"
 export PLASMA_USE_QT_SCALING=1
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
+export GSETTINGS_SCHEMA_DIR="/usr/share/glib-2.0/schemas"

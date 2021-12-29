@@ -973,7 +973,7 @@ class Specfile(object):
         if self.content.gcov_file:
             flags = list(filter((lto).__ne__, flags))
             flags.extend(["-O3", "-fauto-profile=%{{SOURCE{0}}}".format(self.source_index[self.config.sources["gcov"][0]])])
-        if (flags or self.config.config_opts["broken_c++"]) and not self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"]:
+        if (flags or self.config.config_opts["broken_c++"]) and not self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["altflags_pgo_ext"]:
             flags = sorted(list(set(flags)))
             self._write_strip('export CFLAGS="$CFLAGS {0} "\n'.format(" ".join(flags)))
             self._write_strip('export FCFLAGS="$FFLAGS {0} "\n'.format(" ".join(flags)))
@@ -1175,6 +1175,38 @@ class Specfile(object):
                 # close the open quote from CXXFLAGS export and add newline
                 self._write('"\n')
         if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+            genflags = []
+            useflags = []
+            genflags.extend(
+                ["-fprofile-generate", "-fprofile-dir=/var/tmp/pgo", "-fprofile-update=atomic", "-fprofile-abs-path", "-fprofile-arcs", "-ftest-coverage", "--coverage", "-fprofile-partial-training"]
+            )
+            useflags.extend(["-fprofile-use", "-fprofile-dir=/var/tmp/pgo", "-fprofile-correction", "-fprofile-partial-training"])
+            if self.config.altflags_pgof and self.config.altflags_pgof[0]:
+                self._write_strip("## altflags_pgof content")
+                for line in self.config.altflags_pgof:
+                    self._write("{}\n".format(line))
+                self._write_strip("## altflags_pgof end")
+            elif self.config.altflags_pgo and self.config.altflags_pgo[0]:
+                self._write_strip("## altflags_pgo content")
+                for line in self.config.altflags_pgo:
+                    self._write("{}\n".format(line))
+                self._write_strip("## altflags_pgo end")
+            else:
+                self._write_strip("## altflags_pgo content")
+                self._write_strip("## pgo generate")
+                self._write_strip('export CFLAGS_GENERATE="$CFLAGS {0} "\n'.format(" ".join(genflags)))
+                self._write_strip('export FCFLAGS_GENERATE="$FCFLAGS {0} "\n'.format(" ".join(genflags)))
+                self._write_strip('export FFLAGS_GENERATE="$FFLAGS {0} "\n'.format(" ".join(genflags)))
+                self._write_strip('export CXXFLAGS_GENERATE="$CXXFLAGS {0} "\n'.format(" ".join(genflags)))
+                self._write_strip('export LDFLAGS_GENERATE="$LDFLAGS {0} "\n'.format(" ".join(genflags)))
+                self._write_strip("## pgo use")
+                self._write_strip('export CFLAGS_USE="$CFLAGS {0} "\n'.format(" ".join(useflags)))
+                self._write_strip('export FCFLAGS_USE="$FCFLAGS {0} "\n'.format(" ".join(useflags)))
+                self._write_strip('export FFLAGS_USE="$FFLAGS {0} "\n'.format(" ".join(useflags)))
+                self._write_strip('export CXXFLAGS_USE="$CXXFLAGS {0} "\n'.format(" ".join(useflags)))
+                self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
+                self._write_strip("## altflags_pgo end")
+        if self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
             genflags = []
             useflags = []
             genflags.extend(
@@ -1989,11 +2021,23 @@ class Specfile(object):
                 'export ASMFLAGS="${ASMFLAGS_GENERATE}"\n'
                 'export LIBS="${LIBS_GENERATE}"\n'
             )
+        elif self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["fsalt1"]:
+            return (
+                'export CFLAGS="${CFLAGS_GENERATE}"\n'
+                'export CXXFLAGS="${CXXFLAGS_GENERATE}"\n'
+                'export FFLAGS="${FFLAGS_GENERATE}"\n'
+                'export FCFLAGS="${FCFLAGS_GENERATE}"\n'
+                'export LDFLAGS="${LDFLAGS_GENERATE}"\n'
+                'export ASMFLAGS="${ASMFLAGS_GENERATE}"\n'
+                'export LIBS="${LIBS_GENERATE}"\n'
+            )
         return ""
 
     def get_profile_use_flags(self):
         """Return profile generate flags if proper configuration is set. Otherwise an empty string is returned."""
         if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+            return 'export CFLAGS="${CFLAGS_USE}"\n' 'export CXXFLAGS="${CXXFLAGS_USE}"\n' 'export FFLAGS="${FFLAGS_USE}"\n' 'export FCFLAGS="${FCFLAGS_USE}"\n' 'export LDFLAGS="${LDFLAGS_USE}"\n' 'export ASMFLAGS="${ASMFLAGS_USE}"\n' 'export LIBS="${LIBS_USE}"\n'
+        elif self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["fsalt1"]:
             return 'export CFLAGS="${CFLAGS_USE}"\n' 'export CXXFLAGS="${CXXFLAGS_USE}"\n' 'export FFLAGS="${FFLAGS_USE}"\n' 'export FCFLAGS="${FCFLAGS_USE}"\n' 'export LDFLAGS="${LDFLAGS_USE}"\n' 'export ASMFLAGS="${ASMFLAGS_USE}"\n' 'export LIBS="${LIBS_USE}"\n'
         return ""
 
@@ -3620,6 +3664,213 @@ class Specfile(object):
                     self._write_strip("\n")
                     if self.config.subdir:
                         self._write_strip("popd")
+
+        elif self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+
+            self.write_variables()
+            init = f"{self.get_profile_generate_flags()}"
+            post = f"{self.get_profile_use_flags()}"
+
+            if self.config.configure_macro:
+                if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                    if init:
+                        self._write_strip(init)
+                    self.write_build_append()
+                    self._write_strip("echo PGO Phase 1")
+                    if self.config.subdir:
+                        self._write_strip("pushd " + self.config.subdir)
+                    for line in self.config.configure_macro:
+                        self._write("{}\n".format(line))
+                    self.write_trystatic()
+                    self.write_make_prepend(build32=False)
+                    if self.config.make_macro:
+                        self._write_strip("## make_macro start")
+                        for line in self.config.make_macro:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro end")
+                    else:
+                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                    self._write_strip("echo PGO Phase 2")
+                    self.write_variables()
+                    if post:
+                        self._write_strip(post)
+                    if self.config.configure_macro_pgo:
+                        for line in self.config.configure_macro_pgo:
+                            self._write("{}\n".format(line))
+                    else:
+                        for line in self.config.configure_macro:
+                            self._write("{}\n".format(line))
+                    self.write_trystatic()
+                    self.write_make_prepend(build32=False)
+                    if self.config.make_macro_pgo:
+                        self._write_strip("## make_macro_pgo start")
+                        for line in self.config.make_macro_pgo:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro_pgo end")
+                    elif self.config.make_macro:
+                        self._write_strip("## make_macro start")
+                        for line in self.config.make_macro:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro end")
+                    else:
+                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                if self.config.subdir:
+                    self._write_strip("popd")
+            else:
+                if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                    if init:
+                        self._write_strip(init)
+                    self.write_build_append()
+                    self._write_strip("echo PGO Phase 1")
+                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+                    self.write_trystatic()
+                    self.write_make_prepend(build32=False)
+                    if self.config.make_macro:
+                        self._write_strip("## make_macro start")
+                        for line in self.config.make_macro:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro end")
+                    else:
+                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                    self._write_strip("echo PGO Phase 2")
+                    if post:
+                        self._write_strip(post)
+                    if self.config.extra_configure_pgo or self.config.extra_configure64_pgo:
+                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
+                    elif self.config.extra_configure or self.config.extra_configure64:
+                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+                    self.write_trystatic()
+                    self.write_make_prepend(build32=False)
+                    if self.config.make_macro_pgo:
+                        self._write_strip("## make_macro_pgo start")
+                        for line in self.config.make_macro_pgo:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro_pgo end")
+                    elif self.config.make_macro:
+                        self._write_strip("## make_macro start")
+                        for line in self.config.make_macro:
+                            self._write("{}\n".format(line))
+                        self._write_strip("## make_macro end")
+                    else:
+                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                if self.config.subdir:
+                    self._write_strip("popd")
+
+
+            if self.config.config_opts["build_special"]:
+                self.write_variables()
+                self._write_strip("pushd ../build-special/" + self.config.subdir)
+                init = f"{self.get_profile_generate_flags()}"
+                post = f"{self.get_profile_use_flags()}"
+
+                if self.config.configure_macro_special:
+
+                    if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                        if init:
+                            self._write_strip(init)
+                        self.write_build_append()
+                        self._write_strip("echo PGO Phase 1")
+
+                        for line in self.config.configure_macro_special:
+                            self._write("{}\n".format(line))
+                        self.write_trystatic()
+                        self.write_make_prepend(build32=False)
+                        if self.config.make_macro_special:
+                            self._write_strip("## make_macro_special start")
+                            for line in self.config.make_macro_special:
+                                self._write("{}\n".format(line))
+                            self._write_strip("## make_macro_special end")
+                        else:
+                            self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir\n")
+
+                    elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                        self._write_strip("echo PGO Phase 2")
+
+                        self.write_variables()
+                        if post:
+                            self._write_strip(post)
+                        if self.config.configure_macro_special_pgo:
+                            for line in self.config.configure_macro_special_pgo:
+                                self._write("{}\n".format(line))
+                        else:
+                            for line in self.config.configure_macro_special:
+                                self._write("{}\n".format(line))
+                        self.write_trystatic()
+                        self.write_make_prepend(build32=False)
+                        if self.config.make_macro_special_pgo:
+                            self._write_strip("## make_macro_special_pgo start")
+                            for line in self.config.make_macro_special_pgo:
+                                self._write("{}\n".format(line))
+                            self._write_strip("## make_macro_special_pgo end")
+                        elif self.config.make_macro_special:
+                            self._write_strip("## make_macro_special start")
+                            for line in self.config.make_macro_special:
+                                self._write("{}\n".format(line))
+                            self._write_strip("## make_macro_special end")
+                        else:
+                            self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+
+                    if self.config.subdir:
+                        self._write_strip("popd")
+
+                else:
+
+                    if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                        if init:
+                            self._write_strip(init)
+                        self.write_build_append()
+                        self._write_strip("echo PGO Phase 1")
+
+                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
+                        self.write_trystatic()
+                        self.write_make_prepend(build32=False)
+                        if self.config.make_macro_special:
+                            self._write_strip("## make_macro_special start")
+                            for line in self.config.make_macro_special:
+                                self._write("{}\n".format(line))
+                            self._write_strip("## make_macro_special end")
+                        elif self.config.make_macro:
+                            self._write_strip("## make_macro start")
+                            for line in self.config.make_macro:
+                                self._write("{}\n".format(line))
+                            self._write_strip("## make_macro end")
+                        else:
+                            self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir\n")
+
+                    elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                        self._write_strip("echo PGO Phase 2")
+
+                        if post:
+                            self._write_strip(post)
+                        if self.config.extra_configure_special_pgo:
+                            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special_pgo))
+                        elif self.config.extra_configure_special:
+                            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
+                        self.write_trystatic()
+                        self.write_make_prepend(build32=False)
+                        if self.config.make_macro_special_pgo:
+                            self._write_strip("## make_macro_special_pgo start")
+                            for line in self.config.make_macro_special_pgo:
+                                self._write("{}\n".format(line))
+                            self._write_strip("## make_macro_special_pgo end")
+                        elif self.config.make_macro_special:
+                            self._write_strip("## make_macro_special start")
+                            for line in self.config.make_macro_special:
+                                self._write("{}\n".format(line))
+                            self._write_strip("## make_macro_special end")
+                        elif self.config.make_macro:
+                            self._write_strip("## make_macro start")
+                            for line in self.config.make_macro:
+                                self._write("{}\n".format(line))
+                            self._write_strip("## make_macro end")
+                        else:
+                            self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+
+                    if self.config.subdir:
+                        self._write_strip("popd")
+
         else:
             self.write_variables()
             if self.config.subdir:

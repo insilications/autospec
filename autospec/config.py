@@ -280,6 +280,8 @@ class Config(object):
             "build_special_32": "configure 32bits build with special options",
             "autogen_simple": "enable a simpler autogen macro",
             "ruby_pattern_from_gemspec": "enable ruby build from gemspec",
+            "altflags_pgo_ext": "alternative pgo flags for profiling outside chroot",
+            "altflags_pgo_ext_phase": "alternative pgo flags for profiling outside chroot phase",
         }
         # simple_pattern_pkgconfig patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -600,6 +602,12 @@ class Config(object):
         # default alternative pgo flags for new things
         config_f["autospec"]["altflags_pgo"] = "false"
 
+        # default alternative pgo flags for profiling outside chroot
+        config_f["autospec"]["altflags_pgo_ext"] = "false"
+
+        # default alternative pgo flags for profiling outside chroot phase"
+        config_f["autospec"]["altflags_pgo_ext_phase"] = "false"
+
         # default alternative pgo flags for new things
         config_f["autospec"]["altflags_pgo_32"] = "false"
 
@@ -720,6 +728,14 @@ class Config(object):
 
         if config_f["autospec"].get("altflags_pgo") == "true" and config_f["autospec"].get("fsalt1") == "true":
             print_fatal("altflags_pgo and fsalt1 options cannot both be set to true")
+            sys.exit(1)
+
+        if config_f["autospec"].get("altflags_pgo_ext") == "true" and config_f["autospec"].get("fsalt1") == "true":
+            print_fatal("altflags_pgo_ext and fsalt1 options cannot both be set to true")
+            sys.exit(1)
+
+        if config_f["autospec"].get("altflags_pgo") == "true" and config_f["autospec"].get("altflags_pgo_ext") == "true":
+            print_fatal("altflags_pgo and altflags_pgo_ext options cannot both be set to true")
             sys.exit(1)
 
         if config_f["autospec"].get("altflags_pgo_32") == "true" and config_f["autospec"].get("fsalt1_32") == "true":

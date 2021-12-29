@@ -108,6 +108,13 @@ class Build(object):
         elif config.config_opts.get("custom_bashrc") and config.custom_bashrc_file and os.path.isfile(config.custom_bashrc_file):
             shutil.copy2(config.custom_bashrc_file, builddir_home_dst)
 
+    def copy_system_pgo(self, mock_dir, content_name):
+        """Copy system pgo profiles to chroot."""
+        system_pgo_dir_dst = f"{mock_dir}/clear-{content_name}/root/var/tmp/pgo"
+        system_pgo_dir_src = "/var/tmp/pgo"
+        if os.path.isdir(system_pgo_dir_src):
+            shutil.copytree(system_pgo_dir_src, system_pgo_dir_dst, dirs_exist_ok=True)
+
     def write_python_flags_fix(self, mock_dir, content_name, config):
         """Patch python to use custom flags."""
         python_dir_dst = f"{mock_dir}/clear-{content_name}/root/usr/lib/python3.9"
@@ -429,6 +436,9 @@ class Build(object):
         if self.short_circuit == "prep":
             self.write_normal_bashrc(mock_dir, content.name, config)
             # self.write_python_flags_fix(mock_dir, content.name, config)
+
+        if self.short_circuit == "prep" and config.config_opts.get("altflags_pgo_ext") and config.config_opts.get("altflags_pgo_ext_phase"):
+            self.copy_system_pgo(mock_dir, content.name)
 
         # sanity check the build log
         if not os.path.exists(config.download_path + "/results/build.log"):
