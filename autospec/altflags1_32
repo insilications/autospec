@@ -20,4 +20,4 @@ unset LD_LIBRARY_PATH
 unset LIBRARY_PATH
 unset CPATH="/usr/local/cuda/include"
 #
-export PATH="/usr/lib64/ccache/bin:/usr/local/cuda/bin:/usr/nvidia/bin:/usr/bin/haswell:/usr/bin:/usr/sbin"
+export PATH="/usr/lib64/ccache/bin:/usr/local/cuda/bin:/usr/local/nvidia/bin:/usr/bin/haswell:/usr/bin:/usr/sbin"
