@@ -638,7 +638,7 @@ class Specfile(object):
             self._write_strip("## ccache stats")
             self._write_strip("ccache -s || : \n")
             self._write_strip("## ccache stats")
-        if pgo is True:
+        if pgo is True and not self.config.config_opts["altflags_pgo_ext"]:
             self._write_strip("fi")
 
     def write_install_openmpi(self):
@@ -992,6 +992,7 @@ class Specfile(object):
             and not self.need_avx512_flags
             and not self.config.config_opts["fsalt1"]
             and not self.config.config_opts["altflags_pgo"]
+            and not self.config.config_opts["altflags_pgo_ext"]
         ):
             genflags = []
             useflags = []
@@ -1315,7 +1316,7 @@ class Specfile(object):
         init2 = ""
         post = ""
         self._write_strip("if [ ! -f statuspgo ]; then")
-        self._write_strip("echo PGO Phase 1")
+        self._write("\necho PGO Phase 1\n")
         if pattern == "configure" and build_type == "special":
             if self.config.configure_macro_special:
                 if use_subdir and self.config.subdir:
@@ -1665,7 +1666,13 @@ class Specfile(object):
 
             if self.config.config_opts["build_special"]:
                 self.write_variables()
-                self._write(f"{self.get_profile_use_flags()}")
+                if self.config.config_opts["altflags_pgo_ext"]:
+                    if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                        self._write(f"{self.get_profile_generate_flags()}")
+                    elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                        self._write(f"{self.get_profile_use_flags()}")
+                else:
+                    self._write(f"{self.get_profile_use_flags()}")
                 self.write_install_prepend("special")
                 if self.config.install_macro_build_special:
                     self._write("## install_macro_build_special start\n")
@@ -1679,7 +1686,13 @@ class Specfile(object):
 
             if self.config.config_opts["build_special2"]:
                 self.write_variables()
-                self._write(f"{self.get_profile_use_flags()}")
+                if self.config.config_opts["altflags_pgo_ext"]:
+                    if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                        self._write(f"{self.get_profile_generate_flags()}")
+                    elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                        self._write(f"{self.get_profile_use_flags()}")
+                else:
+                    self._write(f"{self.get_profile_use_flags()}")
                 self.write_install_prepend("special2")
                 if self.config.install_macro_build_special2:
                     self._write_strip("## install_macro_build_special2 start")
@@ -1692,7 +1705,13 @@ class Specfile(object):
                     self._write_strip("popd")
 
             self.write_variables()
-            self._write(f"{self.get_profile_use_flags()}")
+            if self.config.config_opts["altflags_pgo_ext"]:
+                if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                    self._write(f"{self.get_profile_generate_flags()}")
+                elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                    self._write(f"{self.get_profile_use_flags()}")
+            else:
+                self._write(f"{self.get_profile_use_flags()}")
             self.write_install_prepend()
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
@@ -2662,39 +2681,60 @@ class Specfile(object):
         """Write build pattern for autogen packages."""
         self.write_prep()
         self.write_lang_c(export_epoch=True)
+        self.write_build_prepend()
         self.write_variables()
         self._write_strip(r"sd -r '\s--dirty\s' ' ' .")
         self._write_strip(r"sd -r 'git describe' 'git describe --abbrev=0' .")
         if self.config.config_opts["disable_maintainer"]:
             self._write_strip(r"sd --flags mi '^AC_INIT\((.*\n.*\)|.*\))' '$0\nAM_MAINTAINER_MODE([disable])' configure.ac")
-
         if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
             self.write_profile_payload(pattern="autogen", build_type=None)
-            if self.config.extra_configure_pgo or self.config.extra_configure64_pgo:
+            self.write_build_append()
+            if self.config.config_opts.get("autogen_simple"):
+                self._write_strip(f"{self.get_profile_use_flags()} %autogen_simple {self.config.extra_configure_pgo} {self.config.extra_configure64_pgo}")
+            else:
+                self._write_strip(f"{self.get_profile_use_flags()} %autogen {self.config.extra_configure_pgo} {self.config.extra_configure64_pgo}")
+            self.write_make_line(build32=False, build_type=None, pgo=True, pattern="autogen")
+        elif self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+            if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                self._write("\necho PGO Phase 1\n")
+                if self.config.subdir:
+                    self._write_strip("pushd " + self.config.subdir)
+                #init = f"{self.get_profile_generate_flags()}"
+                #init2 = ""
+                self.write_build_append()
+                self._write_strip(self.get_profile_generate_flags())
                 if self.config.config_opts.get("autogen_simple"):
-                    self._write_strip("{0}%autogen_simple {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
+                    #init2 = f"%autogen_simple {self.config.extra_configure} {self.config.extra_configure64}"
+                    self._write_strip(f"%autogen_simple {self.config.extra_configure} {self.config.extra_configure64}")
                 else:
-                    self._write_strip("{0}%autogen {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
-            elif self.config.extra_configure or self.config.extra_configure64:
+                    #init2 = f"%autogen {self.config.extra_configure} {self.config.extra_configure64}"
+                    self._write_strip(f"%autogen {self.config.extra_configure} {self.config.extra_configure64}")
+                self.write_make_line(build32=False, build_type=None, pgo=False, pattern="autogen")
+                if self.config.profile_payload:
+                    self.write_profile_payload_content(pattern="autogen", build_type=None)
+            elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                self._write("\necho PGO Phase 2\n")
+                if self.config.subdir:
+                    self._write_strip("pushd " + self.config.subdir)
+                self.write_build_append()
                 if self.config.config_opts.get("autogen_simple"):
-                    self._write_strip("{0}%autogen_simple {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure, self.config.extra_configure64))
+                    self._write_strip(f"{self.get_profile_use_flags()} %autogen_simple {self.config.extra_configure_pgo} {self.config.extra_configure64_pgo}")
                 else:
-                    self._write_strip("{0}%autogen {1} {2} ".format(self.get_profile_use_flags(), self.config.extra_configure, self.config.extra_configure64))
-            self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
-            self._write_strip("\n")
+                    self._write_strip(f"{self.get_profile_use_flags()} %autogen {self.config.extra_configure_pgo} {self.config.extra_configure64_pgo}")
+                    self.write_make_line(build32=False, build_type=None, pgo=True, pattern="autogen")
         else:
+            self.write_build_append()
             if self.config.config_opts.get("autogen_simple"):
                 self._write_strip("%autogen_simple {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
             else:
                 self._write_strip("%autogen {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
             self.write_make_line(build32=False, build_type=None, pgo=False, pattern=None)
-            self._write_strip("\n")
 
         if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
             self.write_build_prepend32()
             self.write_32bit_exports()
-            self.write_build_append()
             if self.config.config_opts.get("autogen_simple"):
                 self._write_strip("%autogen_simple {0} {1} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32))
             else:
@@ -2712,6 +2752,7 @@ class Specfile(object):
                 self._write_strip(r"sd --flags mi '^AC_INIT\((.*\n.*\)|.*\))' '$0\nAM_MAINTAINER_MODE([disable])' configure.ac")
             if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
                 self.write_profile_payload(pattern="autogen", build_type="special")
+                self.write_build_append()
                 if self.config.config_opts.get("autogen_simple"):
                     self._write_strip("{0}%autogen_simple {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special_pgo))
                 else:
@@ -2719,6 +2760,7 @@ class Specfile(object):
                 self.write_make_line(build32=False, build_type="special", pgo=True, pattern=None)
                 self._write_strip("popd")
             else:
+                self.write_build_append()
                 if self.config.config_opts.get("autogen_simple"):
                     self._write_strip("%autogen_simple {0} ".format(self.config.extra_configure_special))
                 else:
@@ -3036,7 +3078,7 @@ class Specfile(object):
                 init = f"{self.get_profile_generate_flags()}"
                 post = f"{self.get_profile_use_flags()}"
                 self._write_strip("if [ ! -f statuspgo ]; then")
-                self._write_strip("echo PGO Phase 1")
+                self._write("\necho PGO Phase 1\n")
                 if init:
                     self._write_strip(init)
                 if self.config.cmake_macro:
@@ -3088,7 +3130,7 @@ class Specfile(object):
                     init = f"{self.get_profile_generate_flags()}"
                     post = f"{self.get_profile_use_flags()}"
                     self._write_strip("if [ ! -f statuspgo.special ]; then")
-                    self._write_strip("echo PGO Phase 1")
+                    self._write("\necho PGO Phase 1\n")
                     if init:
                         self._write_strip(init)
                     if self.config.cmake_macro_special:
@@ -3455,7 +3497,7 @@ class Specfile(object):
             init = f"{self.get_profile_generate_flags()}"
             post = f"{self.get_profile_use_flags()}"
             self._write_strip("if [ ! -f statuspgo ]; then")
-            self._write_strip("echo PGO Phase 1")
+            self._write("\necho PGO Phase 1\n")
             if init:
                 self._write_strip(init)
             self.write_build_append()
@@ -3559,7 +3601,7 @@ class Specfile(object):
                 init = f"{self.get_profile_generate_flags()}"
                 post = f"{self.get_profile_use_flags()}"
                 self._write_strip("if [ ! -f statuspgo ]; then")
-                self._write_strip("echo PGO Phase 1")
+                self._write("\necho PGO Phase 1\n")
                 if init:
                     self._write_strip(init)
                 self.write_build_append()
@@ -3676,7 +3718,7 @@ class Specfile(object):
                     if init:
                         self._write_strip(init)
                     self.write_build_append()
-                    self._write_strip("echo PGO Phase 1")
+                    self._write("\necho PGO Phase 1\n")
                     if self.config.subdir:
                         self._write_strip("pushd " + self.config.subdir)
                     for line in self.config.configure_macro:
@@ -3695,7 +3737,7 @@ class Specfile(object):
                         if self.config.custom_clean_pgo:
                             self._write_strip("{}\n".format(self.config.custom_clean_pgo))
                 elif self.config.config_opts["altflags_pgo_ext_phase"]:
-                    self._write_strip("echo PGO Phase 2")
+                    self._write("\necho PGO Phase 2\n")
                     self.write_variables()
                     if post:
                         self._write_strip(post)
@@ -3726,7 +3768,7 @@ class Specfile(object):
                     if init:
                         self._write_strip(init)
                     self.write_build_append()
-                    self._write_strip("echo PGO Phase 1")
+                    self._write("\necho PGO Phase 1\n")
                     self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
                     self.write_trystatic()
                     self.write_make_prepend(build32=False)
@@ -3740,7 +3782,7 @@ class Specfile(object):
                     if self.config.profile_payload:
                         self.write_profile_payload_content(pattern="meson", build_type=None)
                 elif self.config.config_opts["altflags_pgo_ext_phase"]:
-                    self._write_strip("echo PGO Phase 2")
+                    self._write("\necho PGO Phase 2\n")
                     if post:
                         self._write_strip(post)
                     if self.config.extra_configure_pgo or self.config.extra_configure64_pgo:
@@ -3777,7 +3819,7 @@ class Specfile(object):
                         if init:
                             self._write_strip(init)
                         self.write_build_append()
-                        self._write_strip("echo PGO Phase 1")
+                        self._write("\necho PGO Phase 1\n")
 
                         for line in self.config.configure_macro_special:
                             self._write("{}\n".format(line))
@@ -3792,7 +3834,7 @@ class Specfile(object):
                             self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir\n")
 
                     elif self.config.config_opts["altflags_pgo_ext_phase"]:
-                        self._write_strip("echo PGO Phase 2")
+                        self._write("\necho PGO Phase 2\n")
 
                         self.write_variables()
                         if post:
@@ -3827,7 +3869,7 @@ class Specfile(object):
                         if init:
                             self._write_strip(init)
                         self.write_build_append()
-                        self._write_strip("echo PGO Phase 1")
+                        self._write("\necho PGO Phase 1\n")
 
                         self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
                         self.write_trystatic()
@@ -3846,7 +3888,7 @@ class Specfile(object):
                             self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir\n")
 
                     elif self.config.config_opts["altflags_pgo_ext_phase"]:
-                        self._write_strip("echo PGO Phase 2")
+                        self._write("\necho PGO Phase 2\n")
 
                         if post:
                             self._write_strip(post)
@@ -3980,7 +4022,7 @@ class Specfile(object):
             init = f"{self.get_profile_generate_flags()}"
             post = f"{self.get_profile_use_flags()}"
             self._write_strip("if [ ! -f statuspgo ]; then")
-            self._write_strip("echo PGO Phase 1")
+            self._write("\necho PGO Phase 1\n")
             if init:
                 self._write_strip(init)
             self.write_build_append()
@@ -4090,7 +4132,7 @@ class Specfile(object):
                 init = f"{self.get_profile_generate_flags()}"
                 post = f"{self.get_profile_use_flags()}"
                 self._write_strip("if [ ! -f statuspgo ]; then")
-                self._write_strip("echo PGO Phase 1")
+                self._write("\necho PGO Phase 1\n")
                 if init:
                     self._write_strip(init)
                 self.write_build_append()
