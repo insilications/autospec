@@ -93,8 +93,8 @@ class Build(object):
         self.file_restart = 0
         self.uniqueext = ''
         self.warned_about = set()
-        self.mock_dir = str()
-        self.short_circuit = str()
+        self.mock_dir = ""
+        self.short_circuit = ""
         self.patch_name_line = re.compile(r'^Patch #[0-9]+ \((.*)\):$')
         self.patch_fail_line = re.compile(r'^Skipping patch.$')
 
@@ -108,12 +108,62 @@ class Build(object):
         elif config.config_opts.get("custom_bashrc") and config.custom_bashrc_file and os.path.isfile(config.custom_bashrc_file):
             shutil.copy2(config.custom_bashrc_file, builddir_home_dst)
 
-    def copy_system_pgo(self, mock_dir, content_name):
+    def copy_from_system_pgo(self, mock_dir, content_name):
         """Copy system pgo profiles to chroot."""
         system_pgo_dir_dst = f"{mock_dir}/clear-{content_name}/root/var/tmp/pgo"
         system_pgo_dir_src = "/var/tmp/pgo"
         if os.path.isdir(system_pgo_dir_src):
             shutil.copytree(system_pgo_dir_src, system_pgo_dir_dst, dirs_exist_ok=True)
+
+    def copy_to_system_pgo(self, mock_dir, content_name):
+        """Copy chroot profiles to system pgo."""
+        system_pgo_dir_src = f"{mock_dir}/clear-{content_name}/root/var/tmp/pgo"
+        system_pgo_dir_dst = "/var/tmp/pgo"
+        system_pgo_dir_dst_backup = "/var/tmp/pgo1"
+        if os.path.isdir(system_pgo_dir_src):
+            if any(os.scandir(system_pgo_dir_src)):
+                if os.path.isdir(system_pgo_dir_dst):
+                    if any(os.scandir(system_pgo_dir_dst)):
+                        backup = 1
+                        while (os.path.isdir(system_pgo_dir_dst_backup)):
+                            backup += 1
+                            system_pgo_dir_dst_backup = f"/var/tmp/pgo{backup}"
+                        os.rename(system_pgo_dir_dst, system_pgo_dir_dst_backup)
+                shutil.copytree(system_pgo_dir_src, system_pgo_dir_dst, dirs_exist_ok=True)
+
+    def save_system_pgo(self, mock_dir, content_name, config):
+        """Copy chroot profiles to system pgo."""
+        root_dir_src = f"{mock_dir}/clear-{content_name}/root"
+        system_pgo_dir_src = f"{mock_dir}/clear-{content_name}/root/var/tmp/pgo"
+        system_pgo_dir_dst = f"{config.download_path}/pgo.tar.gz"
+        system_gitignore = f"{config.download_path}/.gitignore"
+        tar_cmd = f"tar --directory={root_dir_src} --create --file=- var/tmp/pgo/ | pigz -9 -p 16 > {system_pgo_dir_dst}"
+        if os.path.isdir(system_pgo_dir_src):
+            if any(os.scandir(system_pgo_dir_src)):
+                if os.path.isfile(system_pgo_dir_dst):
+                    os.remove(system_pgo_dir_dst)
+                try:
+                    process = subprocess.run(
+                        tar_cmd,
+                        check=True,
+                        shell=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        text=True,
+                        universal_newlines=True,
+                    )
+                except subprocess.CalledProcessError as err:
+                    print_fatal(f"Unable to archive {system_pgo_dir_src} in {system_pgo_dir_dst} from {tar_cmd}: {err}")
+                    sys.exit(1)
+
+                append_new_gitrule = True
+                with util.open_auto(system_gitignore, "r+") as gitignore:
+                    for line in gitignore:
+                        if "!pgo.tar.gz" in line:
+                            append_new_gitrule = False
+                            break
+                    if append_new_gitrule:
+                        gitignore.write("!pgo.tar.gz\n")
 
     def write_python_flags_fix(self, mock_dir, content_name, config):
         """Patch python to use custom flags."""
@@ -369,6 +419,11 @@ class Build(object):
                     print("RPM install build successful")
                     self.success = 1
 
+        if self.success == 1 and self.short_circuit == "build" and config.config_opts.get("altflags_pgo_ext"):
+            if config.config_opts.get("altflags_pgo_ext_phase"):
+                self.save_system_pgo(self.mock_dir, content.name, config)
+            else:
+                self.copy_to_system_pgo(self.mock_dir, content.name)
 
     def package(self, filemanager, mockconfig, mockopts, config, requirements, content, mock_dir, short_circuit, cleanup=False):
         """Run main package build routine."""
@@ -386,7 +441,7 @@ class Build(object):
         else:
             cleanup_flag = "--no-cleanup-after"
 
-        print("{0} mock chroot at {1}/clear-{2}".format(content.name, mock_dir, self.uniqueext))
+        print("{0} mock chroot at {1}/clear-{2}".format(content.name, self.mock_dir, self.uniqueext))
 
         if self.round == 1:
             shutil.rmtree('{}/results'.format(config.download_path), ignore_errors=True)
@@ -434,11 +489,11 @@ class Build(object):
                         cwd=config.download_path)
 
         if self.short_circuit == "prep":
-            self.write_normal_bashrc(mock_dir, content.name, config)
+            self.write_normal_bashrc(self.mock_dir, content.name, config)
             # self.write_python_flags_fix(mock_dir, content.name, config)
 
         if self.short_circuit == "prep" and config.config_opts.get("altflags_pgo_ext") and config.config_opts.get("altflags_pgo_ext_phase"):
-            self.copy_system_pgo(mock_dir, content.name)
+            self.copy_from_system_pgo(self.mock_dir, content.name)
 
         # sanity check the build log
         if not os.path.exists(config.download_path + "/results/build.log"):

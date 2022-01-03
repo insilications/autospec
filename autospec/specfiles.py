@@ -3690,6 +3690,10 @@ class Specfile(object):
                         self._write_strip("## make_macro end")
                     else:
                         self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                    if self.config.profile_payload:
+                        self.write_profile_payload_content(pattern="meson", build_type=None)
+                        if self.config.custom_clean_pgo:
+                            self._write_strip("{}\n".format(self.config.custom_clean_pgo))
                 elif self.config.config_opts["altflags_pgo_ext_phase"]:
                     self._write_strip("echo PGO Phase 2")
                     self.write_variables()
@@ -3733,6 +3737,8 @@ class Specfile(object):
                         self._write_strip("## make_macro end")
                     else:
                         self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                    if self.config.profile_payload:
+                        self.write_profile_payload_content(pattern="meson", build_type=None)
                 elif self.config.config_opts["altflags_pgo_ext_phase"]:
                     self._write_strip("echo PGO Phase 2")
                     if post:

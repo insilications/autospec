@@ -486,10 +486,9 @@ def git_archive_all(path, name, url, branch, force_module, force_fullclone, conf
                     cwd=path,
                 )
             except subprocess.CalledProcessError as err:
-                if is_fatal:
-                    remove_clone_archive(path, clone_path, is_fatal)
-                    print_fatal(f"Unable to archive {clone_path} in {clone_file} from {url}: {err}")
-                    sys.exit(1)
+                remove_clone_archive(path, clone_path, is_fatal)
+                print_fatal(f"Unable to archive {clone_path} in {clone_file} from {url}: {err}")
+                sys.exit(1)
 
             remove_clone_archive(path, clone_path, is_fatal)
             return absolute_url_file

@@ -1463,7 +1463,7 @@ class Config(object):
         self.cargo_update = self.read_script_file(os.path.join(self.download_path, "cargo_update"))
         self.service_restart = self.read_conf_file(os.path.join(self.download_path, "service_restart"))
 
-        if self.config_opts["altflags_pgo"] or self.config_opts["pgo"]:
+        if self.config_opts["altflags_pgo"] or self.config_opts["altflags_pgo_ext"]:
             self.profile_payload = self.read_script_file(os.path.join(self.download_path, "profile_payload"))
             self.profile_payload_special = self.read_script_file(os.path.join(self.download_path, "profile_payload_special"))
             self.profile_payload_special2 = self.read_script_file(os.path.join(self.download_path, "profile_payload_special2"))
