@@ -694,10 +694,10 @@ def package(
 
         mock_chroot = f"{mock_dir}/clear-{package.uniqueext}/root/builddir/build/BUILDROOT/{content.name}-{content.version}-{content.release}.x86_64"
         if filemanager.clean_directories(mock_chroot):
-            if util.debugging:
-                print_debug(f"filemanager.clean_directories({mock_chroot})")
             # directories added to the blacklist, need to re-run
             package.must_restart += 1
+            if util.debugging:
+                print_debug(f"filemanager.clean_directories({mock_chroot})")
 
         if package.round > 20 or (package.must_restart == 0 and package.file_restart == 0):
             break

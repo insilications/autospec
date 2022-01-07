@@ -453,7 +453,7 @@ class Build(object):
             "--buildsrpm",
             "--sources=./",
             f"--spec={content.name}.spec",
-            f"--uniqueext={self.uniqueext}-src",
+            f"--uniqueext={self.uniqueext}",
             "--result=results/",
             cleanup_flag,
             mockopts,
