@@ -2729,7 +2729,7 @@ class Specfile(object):
                 self._write_strip("%autogen_simple {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
             else:
                 self._write_strip("%autogen {0} {1}".format(self.config.extra_configure, self.config.extra_configure64))
-            self.write_make_line(build32=False, build_type=None, pgo=False, pattern=None)
+            self.write_make_line(build32=False, build_type=None, pgo=False, pattern="autogen")
 
         if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
@@ -2739,7 +2739,7 @@ class Specfile(object):
                 self._write_strip("%autogen_simple {0} {1} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32))
             else:
                 self._write_strip("%autogen {0} {1} --libdir=/usr/lib32 --build=i686-generic-linux-gnu --host=i686-generic-linux-gnu --target=i686-clr-linux-gnu".format(self.config.extra_configure, self.config.extra_configure32))
-            self.write_make_line(build32=True, build_type=None, pgo=False, pattern=None)
+            self.write_make_line(build32=True, build_type=None, pgo=False, pattern="autogen")
             self._write_strip("popd")
 
         if self.config.config_opts["build_special"]:
@@ -2757,8 +2757,32 @@ class Specfile(object):
                     self._write_strip("{0}%autogen_simple {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special_pgo))
                 else:
                     self._write_strip("{0}%autogen {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special_pgo))
-                self.write_make_line(build32=False, build_type="special", pgo=True, pattern=None)
+                self.write_make_line(build32=False, build_type="special", pgo=True, pattern="autogen")
                 self._write_strip("popd")
+            elif self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                    self._write("\necho PGO Phase 1\n")
+                    if self.config.subdir:
+                        self._write_strip("pushd " + self.config.subdir)
+                    self.write_build_append()
+                    self._write_strip(self.get_profile_generate_flags())
+                    if self.config.config_opts.get("autogen_simple"):
+                        self._write_strip(f"%autogen_simple {self.config.extra_configure_special}")
+                    else:
+                        self._write_strip(f"%autogen {self.config.extra_configure_special}")
+                    self.write_make_line(build32=False, build_type="special", pgo=False, pattern="autogen")
+                    if self.config.profile_payload:
+                        self.write_profile_payload_content(pattern="autogen", build_type="special")
+                elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                    self._write("\necho PGO Phase 2\n")
+                    if self.config.subdir:
+                        self._write_strip("pushd " + self.config.subdir)
+                    self.write_build_append()
+                    if self.config.config_opts.get("autogen_simple"):
+                        self._write_strip(f"{self.get_profile_use_flags()} %autogen_simple {self.config.extra_configure_special_pgo}")
+                    else:
+                        self._write_strip(f"{self.get_profile_use_flags()} %autogen {self.config.extra_configure_special_pgo}")
+                        self.write_make_line(build32=False, build_type="special", pgo=True, pattern="autogen")
             else:
                 self.write_build_append()
                 if self.config.config_opts.get("autogen_simple"):
