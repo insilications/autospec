@@ -263,7 +263,7 @@ def main():
         print(f"Created default mock license file")
 
     mock_dir_pattern = re.compile(r"(?:\-\-config-opts=basedir=)([a-zA-Z0-9\.\_\+\-\/]*)")
-    short_circuit_pattern = re.compile(r"(\-\-short-circuit=)(install|b(?:inary|uild)|prep)")
+    short_circuit_pattern = re.compile(r"(?:\-\-short-circuit=)([a-zA-Z-]+)")
     if util.debugging:
         print_debug(f"args.mock_config: {args.mock_config}")
         print_debug(f"args.mock_opts: {args.mock_opts}")
@@ -280,7 +280,7 @@ def main():
             print_debug(f"mock_dir: {mock_dir}")
     short_circuit_match = short_circuit_pattern.search(args.mock_opts)
     if (short_circuit_match):
-        short_circuit = short_circuit_match.group(2)
+        short_circuit = short_circuit_match.group(1)
         if util.debugging:
             print_debug(f"short_circuit: {short_circuit}")
     else:
@@ -678,7 +678,7 @@ def package(
         util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/SRPMS/")
         util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/BUILD/")
         util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/var/tmp/pgo/")
-    if short_circuit == "install":
+    if short_circuit == "install" or short_circuit == "install-build":
         util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/RPMS/")
     while 1:
         package.package(
@@ -704,8 +704,8 @@ def package(
 
         save_mock_logs(conf.download_path, package.round)
 
-    if short_circuit == None or short_circuit == "install":
-        check.check_regression(conf.download_path, conf.config_opts["skip_tests"])
+    #if short_circuit is None or short_circuit == "install" or short_circuit == "install-build":
+        #check.check_regression(conf.download_path, conf.config_opts["skip_tests"])
 
     #conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
     #conf.create_reqs_cache(content.version, requirements.reqs_cache)
@@ -725,7 +725,7 @@ def package(
             except Exception:
                 pass
 
-        if (short_circuit == None):
+        if (short_circuit is None):
             examine_abi(conf.download_path, content.name)
             #if os.path.exists("/var/lib/rpm"):
                 #print("\nGenerating whatrequires\n")
@@ -752,7 +752,7 @@ def package(
             ## record logcheck output
             #logcheck(conf.download_path)
 
-        elif (short_circuit == "binary"):
+        elif (short_circuit == "binary" or short_circuit == "install-build"):
             examine_abi(conf.download_path, content.name)
             #if os.path.exists("/var/lib/rpm"):
                 #print("\nGenerating whatrequires\n")

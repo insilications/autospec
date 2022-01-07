@@ -348,7 +348,7 @@ class Build(object):
             if patch_name:
                 if self.patch_fail_line.search(line):
                     self.must_restart += config.remove_backport_patch(patch_name)
-            if self.short_circuit != "prep" and self.short_circuit != "binary":
+            if (self.short_circuit != "prep" and self.short_circuit != "binary"):
                 for pat in config.pkgconfig_pats:
                     self.simple_pattern_pkgconfig(line, *pat, config.config_opts.get('32bit'), requirements)
 
@@ -404,7 +404,10 @@ class Build(object):
                 if self.short_circuit == "binary":
                     print("RPM binary build successful")
                     self.success = 1
-                elif self.short_circuit == None:
+                elif self.short_circuit == "install-build":
+                    print("RPM install-build successful")
+                    self.success = 1
+                elif self.short_circuit is None:
                     print("RPM build successful")
                     self.success = 1
 
@@ -418,8 +421,11 @@ class Build(object):
                 elif self.short_circuit == "install":
                     print("RPM install build successful")
                     self.success = 1
+                elif self.short_circuit == "install-build":
+                    print("RPM install-build successful")
+                    self.success = 1
 
-        if self.success == 1 and self.short_circuit == "build" and config.config_opts.get("altflags_pgo_ext"):
+        if (self.success == 1 and self.short_circuit == "build" and config.config_opts.get("altflags_pgo_ext")):
             if config.config_opts.get("altflags_pgo_ext_phase"):
                 self.save_system_pgo(self.mock_dir, content.name, config)
             else:
