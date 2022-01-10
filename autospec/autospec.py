@@ -281,8 +281,7 @@ def main():
     short_circuit_match = short_circuit_pattern.search(args.mock_opts)
     if (short_circuit_match):
         short_circuit = short_circuit_match.group(1)
-        if util.debugging:
-            print_debug(f"short_circuit: {short_circuit}")
+        print_info(f"short_circuit: {short_circuit}")
     else:
         short_circuit = None
 
