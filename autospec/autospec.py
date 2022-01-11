@@ -39,10 +39,78 @@ import specdescription
 import specfiles
 import tarball
 import util
+import shutil
+import subprocess
 from util import binary_in_path, print_fatal, write_out, print_debug, print_warning, print_info
 
 sys.path.append(os.path.dirname(__file__))
 
+
+#link-new-rpms: require-pkg-repo-dir
+	#mkdir -p ${PKG_REPO_DIR}/rpms
+	#rm -f ${PKG_REPO_DIR}/rpms/*.rpm
+	# \;
+	#rm -f ${PKG_REPO_DIR}/rpms/*.src.rpm
+def link_new_rpms(download_path):
+    mkdir_cmd = f"mkdir -p {download_path}/rpms"
+    try:
+        process = subprocess.run(
+            mkdir_cmd,
+            check=True,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            universal_newlines=True,
+        )
+    except subprocess.CalledProcessError as err:
+        print_fatal(f"Error: {mkdir_cmd} in {download_path}: {err}")
+        sys.exit(1)
+
+    rmdir_rpm_cmd = f"rm -f {download_path}/rpms/*.rpm"
+    try:
+        process = subprocess.run(
+            rmdir_rpm_cmd,
+            check=True,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            universal_newlines=True,
+        )
+    except subprocess.CalledProcessError as err:
+        print_fatal(f"Error: {rmdir_rpm_cmd} in {download_path}: {err}")
+        sys.exit(1)
+
+    ln_cmd = f"find {download_path}/results -maxdepth 1 -name '*.rpm' -exec ln {{}} {download_path}/rpms/ \;"
+    try:
+        process = subprocess.run(
+            ln_cmd,
+            check=True,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            universal_newlines=True,
+        )
+    except subprocess.CalledProcessError as err:
+        print_fatal(f"Error: {ln_cmd} in {download_path}: {err}")
+        sys.exit(1)
+
+    rmdir_srcrpm_cmd = f"rm -f {download_path}/rpms/*.src.rpm"
+    try:
+        process = subprocess.run(
+            rmdir_srcrpm_cmd,
+            check=True,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            universal_newlines=True,
+        )
+    except subprocess.CalledProcessError as err:
+        print_fatal(f"Error: {rmdir_srcrpm_cmd} in {download_path}: {err}")
+        sys.exit(1)
 
 def str_to_bool(s):
     """Create helper function to convert srt to true Bool."""
@@ -246,6 +314,9 @@ def main():
         "-ffc", "--force_fullclone", action="store", dest="force_fullclone", default=None, help="Force full clone from git",
     )
     parser.add_argument(
+        "-dfr", "--do_file_restart", action="store_false", dest="do_file_restart", default=True, help="Disable file_restart mechanism",
+    )
+    parser.add_argument(
         "-dbg", "--debug", action="store_true", dest="debug", default=False, help="Enable debugging",
     )
 
@@ -328,6 +399,9 @@ def main():
         if util.debugging:
             print_debug("args.force_fullclone: {}".format(str(str_to_bool(args.force_fullclone))))
             print_debug("force_fullclone: {}".format(str(force_fullclone)))
+
+    do_file_restart = args.do_file_restart
+    print_debug(f"do_file_restart: {do_file_restart}")
 
     redownload_from_git = args.redownload_from_git
     redownload_archive = args.redownload_archive
@@ -421,17 +495,17 @@ def main():
     if args.prep_only:
         os.makedirs("workingdir", exists_ok=True)
         package(
-            args, url, name, archives, archives_from_git, "./workingdir", download_from_git, branch, redownload_from_git, redownload_archive, force_module, force_fullclone, mock_dir, short_circuit,
+            args, url, name, archives, archives_from_git, "./workingdir", download_from_git, branch, redownload_from_git, redownload_archive, force_module, force_fullclone, mock_dir, short_circuit, do_file_restart,
         )
     else:
         with tempfile.TemporaryDirectory() as workingdir:
             package(
-                args, url, name, archives, archives_from_git, workingdir, download_from_git, branch, redownload_from_git, redownload_archive, force_module, force_fullclone, mock_dir, short_circuit,
+                args, url, name, archives, archives_from_git, workingdir, download_from_git, branch, redownload_from_git, redownload_archive, force_module, force_fullclone, mock_dir, short_circuit, do_file_restart,
             )
 
 
 def package(
-    args, url, name, archives, archives_from_git, workingdir, download_from_git, branch, redownload_from_git, redownload_archive, force_module, force_fullclone, mock_dir, short_circuit,
+    args, url, name, archives, archives_from_git, workingdir, download_from_git, branch, redownload_from_git, redownload_archive, force_module, force_fullclone, mock_dir, short_circuit, do_file_restart,
 ):
     """Entry point for building a package with autospec."""
     conf = config.Config(args.target)
@@ -676,13 +750,19 @@ def package(
     if short_circuit == "prep":
         util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/SRPMS/")
         util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/BUILD/")
-        util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/var/tmp/pgo/")
-    if short_circuit == "install" or short_circuit == "install-build":
+        #util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/var/tmp/pgo/")
+    if short_circuit == "install":
         util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/RPMS/")
     while 1:
         package.package(
-            filemanager, args.mock_config, args.mock_opts, conf, requirements, content,mock_dir, short_circuit, args.cleanup
+            filemanager, args.mock_config, args.mock_opts, conf, requirements, content,mock_dir, short_circuit, do_file_restart, args.cleanup,
         )
+        if (short_circuit != package.short_circuit):
+            print_info(f"short_circuit: {short_circuit}")
+            print_info(f"package.short_circuit: {package.short_circuit}")
+            short_circuit = package.short_circuit
+            print_info(f"new short_circuit: {short_circuit}")
+
         filemanager.load_specfile_information(specfile, content)
         filemanager.load_specfile(specfile)
         specfile.write_spec()
@@ -698,12 +778,16 @@ def package(
             if util.debugging:
                 print_debug(f"filemanager.clean_directories({mock_chroot})")
 
-        if package.round > 20 or (package.must_restart == 0 and package.file_restart == 0):
-            break
+        if do_file_restart:
+            if package.round > 20 or (package.must_restart == 0 and package.file_restart == 0):
+                break
+        else:
+            if (package.round > 20 or package.must_restart == 0):
+                break
 
         save_mock_logs(conf.download_path, package.round)
 
-    #if short_circuit is None or short_circuit == "install" or short_circuit == "install-build":
+    #if short_circuit is None or short_circuit == "install":
         #check.check_regression(conf.download_path, conf.config_opts["skip_tests"])
 
     #conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
@@ -751,7 +835,7 @@ def package(
             ## record logcheck output
             #logcheck(conf.download_path)
 
-        elif (short_circuit == "binary" or short_circuit == "install-build"):
+        elif (short_circuit == "binary"):
             examine_abi(conf.download_path, content.name)
             #if os.path.exists("/var/lib/rpm"):
                 #print("\nGenerating whatrequires\n")
@@ -765,6 +849,8 @@ def package(
                 git.commit_to_git(conf, content.name, package.success)
             else:
                 print("To commit your changes, git add the relevant files and run 'git commit -F commitmsg'")
+
+            link_new_rpms(conf.download_path)
 
 
 if __name__ == "__main__":

@@ -25,7 +25,6 @@ import shutil
 import sys
 import subprocess
 import util
-import shutil
 from util import call, write_out, print_fatal, print_debug, print_info, scantree
 
 def cleanup_req(s: str) -> str:
@@ -95,6 +94,7 @@ class Build(object):
         self.warned_about = set()
         self.mock_dir = ""
         self.short_circuit = ""
+        self.do_file_restart = True
         self.patch_name_line = re.compile(r'^Patch #[0-9]+ \((.*)\):$')
         self.patch_fail_line = re.compile(r'^Skipping patch.$')
 
@@ -133,8 +133,8 @@ class Build(object):
 
     def save_system_pgo(self, mock_dir, content_name, config):
         """Copy chroot profiles to system pgo."""
-        root_dir_src = f"{mock_dir}/clear-{content_name}/root"
-        system_pgo_dir_src = f"{mock_dir}/clear-{content_name}/root/var/tmp/pgo"
+        root_dir_src = "/"
+        system_pgo_dir_src = "/var/tmp/pgo"
         system_pgo_dir_dst = f"{config.download_path}/pgo.tar.gz"
         system_gitignore = f"{config.download_path}/.gitignore"
         tar_cmd = f"tar --directory={root_dir_src} --create --file=- var/tmp/pgo/ | pigz -9 -p 16 > {system_pgo_dir_dst}"
@@ -164,6 +164,40 @@ class Build(object):
                             break
                     if append_new_gitrule:
                         gitignore.write("!pgo.tar.gz\n")
+
+    #def save_system_pgo(self, mock_dir, content_name, config):
+        #"""Copy chroot profiles to system pgo."""
+        #root_dir_src = f"{mock_dir}/clear-{content_name}/root"
+        #system_pgo_dir_src = f"{mock_dir}/clear-{content_name}/root/var/tmp/pgo"
+        #system_pgo_dir_dst = f"{config.download_path}/pgo.tar.gz"
+        #system_gitignore = f"{config.download_path}/.gitignore"
+        #tar_cmd = f"tar --directory={root_dir_src} --create --file=- var/tmp/pgo/ | pigz -9 -p 16 > {system_pgo_dir_dst}"
+        #if os.path.isdir(system_pgo_dir_src):
+            #if any(os.scandir(system_pgo_dir_src)):
+                #if os.path.isfile(system_pgo_dir_dst):
+                    #os.remove(system_pgo_dir_dst)
+                #try:
+                    #process = subprocess.run(
+                        #tar_cmd,
+                        #check=True,
+                        #shell=True,
+                        #stdout=subprocess.PIPE,
+                        #stderr=subprocess.STDOUT,
+                        #text=True,
+                        #universal_newlines=True,
+                    #)
+                #except subprocess.CalledProcessError as err:
+                    #print_fatal(f"Unable to archive {system_pgo_dir_src} in {system_pgo_dir_dst} from {tar_cmd}: {err}")
+                    #sys.exit(1)
+
+                #append_new_gitrule = True
+                #with util.open_auto(system_gitignore, "r+") as gitignore:
+                    #for line in gitignore:
+                        #if "!pgo.tar.gz" in line:
+                            #append_new_gitrule = False
+                            #break
+                    #if append_new_gitrule:
+                        #gitignore.write("!pgo.tar.gz\n")
 
     def write_python_flags_fix(self, mock_dir, content_name, config):
         """Patch python to use custom flags."""
@@ -387,15 +421,14 @@ class Build(object):
                 # exclude blank lines from consideration...
                 file = line.strip()
                 if file and file[0] == "/":
-                    print(f"file: {file}")
                     filemanager.push_file(file, content.name)
+                    print(f"file: {file}")
 
             if line.startswith("Sorry: TabError: inconsistent use of tabs and spaces in indentation"):
                 print(line)
                 returncode = 99
 
-            nvr = f"{content.name}-{content.version}-{content.release}"
-            match = f"File not found: /builddir/build/BUILDROOT/{nvr}.x86_64/"
+            match = f"File not found: /builddir/build/BUILDROOT/{content.name}-{content.version}-{content.release}.x86_64/"
             if match in line:
                 missing_file = "/" + line.split(match)[1].strip()
                 filemanager.remove_file(missing_file)
@@ -403,9 +436,6 @@ class Build(object):
             if line.startswith("Executing(%clean") and returncode == 0:
                 if self.short_circuit == "binary":
                     print("RPM binary build successful")
-                    self.success = 1
-                elif self.short_circuit == "install-build":
-                    print("RPM install-build successful")
                     self.success = 1
                 elif self.short_circuit is None:
                     print("RPM build successful")
@@ -421,18 +451,16 @@ class Build(object):
                 elif self.short_circuit == "install":
                     print("RPM install build successful")
                     self.success = 1
-                elif self.short_circuit == "install-build":
-                    print("RPM install-build successful")
-                    self.success = 1
 
         if (self.success == 1 and self.short_circuit == "build" and config.config_opts.get("altflags_pgo_ext")):
             if config.config_opts.get("altflags_pgo_ext_phase"):
                 self.save_system_pgo(self.mock_dir, content.name, config)
-            else:
-                self.copy_to_system_pgo(self.mock_dir, content.name)
+            #else:
+                #self.copy_to_system_pgo(self.mock_dir, content.name)
 
-    def package(self, filemanager, mockconfig, mockopts, config, requirements, content, mock_dir, short_circuit, cleanup=False):
+    def package(self, filemanager, mockconfig, mockopts, config, requirements, content, mock_dir, short_circuit, do_file_restart, cleanup=False):
         """Run main package build routine."""
+        self.do_file_restart = do_file_restart
         self.mock_dir = mock_dir
         self.short_circuit = short_circuit
         self.round += 1
@@ -485,9 +513,12 @@ class Build(object):
             mockopts,
         ]
 
-        if not cleanup and self.must_restart == 0 and self.file_restart > 0 and set(filemanager.excludes) == set(filemanager.manual_excludes):
-            cmd_args.append("--no-clean")
-            cmd_args.append("--short-circuit=binary")
+        if self.do_file_restart:
+            if not cleanup and self.must_restart == 0 and self.file_restart > 0 and set(filemanager.excludes) == set(filemanager.manual_excludes):
+                cmd_args.append("--no-clean")
+                cmd_args.append("--short-circuit=binary")
+                self.short_circuit = "binary"
+                print_info("Will --short-circuit=binary")
 
         ret = util.call(" ".join(cmd_args),
                         logfile=f"{config.download_path}/results/mock_build.log",
@@ -498,8 +529,8 @@ class Build(object):
             self.write_normal_bashrc(self.mock_dir, content.name, config)
             # self.write_python_flags_fix(mock_dir, content.name, config)
 
-        if self.short_circuit == "prep" and config.config_opts.get("altflags_pgo_ext") and config.config_opts.get("altflags_pgo_ext_phase"):
-            self.copy_from_system_pgo(self.mock_dir, content.name)
+        #if self.short_circuit == "prep" and config.config_opts.get("altflags_pgo_ext") and config.config_opts.get("altflags_pgo_ext_phase"):
+            #self.copy_from_system_pgo(self.mock_dir, content.name)
 
         # sanity check the build log
         if not os.path.exists(config.download_path + "/results/build.log"):

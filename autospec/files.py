@@ -94,7 +94,10 @@ class FileManager(object):
                 g = self.attrs[filename][2]
                 filename = "%attr({0},{1},{2}) {3}".format(mod, u, g, filename)
             self.packages[package].add(filename)
-            self.package.file_restart += 1
+            if self.package.do_file_restart:
+                self.package.file_restart += 1
+            else:
+                self.package.must_restart += 1
             if not self.newfiles_printed:
                 print("  New %files content found")
                 self.newfiles_printed = True
@@ -115,7 +118,10 @@ class FileManager(object):
                 g = self.attrs[filename][2]
                 filename = "%attr({0},{1},{2}) {3}".format(mod, u, g, filename)
             self.subpackages[package].add(filename)
-            self.package.must_restart += 1
+            if self.package.do_file_restart:
+                self.package.file_restart += 1
+            else:
+                self.package.must_restart += 1
             if not self.newfiles_printed:
                 print("  New %files content found")
                 self.newfiles_printed = True
@@ -838,7 +844,7 @@ class FileManager(object):
         for pkg in self.subpackages:
             if filename in self.subpackages[pkg]:
                 self.subpackages[pkg].remove(filename)
-                print("File no longer present in {}: {}".format(pkg, filename))
+                print("File no longer present in subpackage {}: {}".format(pkg, filename))
                 hit = True
         if hit:
             self.files_blacklist.add(filename)
