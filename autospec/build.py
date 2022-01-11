@@ -115,11 +115,11 @@ class Build(object):
         if os.path.isdir(system_pgo_dir_src):
             shutil.copytree(system_pgo_dir_src, system_pgo_dir_dst, dirs_exist_ok=True)
 
-    def copy_to_system_pgo(self, mock_dir, content_name):
+    def copy_to_system_pgo(self, mock_dir, content_name, config):
         """Copy chroot profiles to system pgo."""
-        system_pgo_dir_src = f"{mock_dir}/clear-{content_name}/root/var/tmp/pgo"
-        system_pgo_dir_dst = "/var/tmp/pgo"
-        system_pgo_dir_dst_backup = "/var/tmp/pgo1"
+        system_pgo_dir_src = "/var/tmp/pgo"
+        system_pgo_dir_dst = f"{config.download_path}/pgo"
+        system_pgo_dir_dst_backup = f"{config.download_path}/pgo1"
         if os.path.isdir(system_pgo_dir_src):
             if any(os.scandir(system_pgo_dir_src)):
                 if os.path.isdir(system_pgo_dir_dst):
@@ -127,9 +127,25 @@ class Build(object):
                         backup = 1
                         while (os.path.isdir(system_pgo_dir_dst_backup)):
                             backup += 1
-                            system_pgo_dir_dst_backup = f"/var/tmp/pgo{backup}"
+                            system_pgo_dir_dst_backup = f"{config.download_path}/pgo{backup}"
                         os.rename(system_pgo_dir_dst, system_pgo_dir_dst_backup)
                 shutil.copytree(system_pgo_dir_src, system_pgo_dir_dst, dirs_exist_ok=True)
+
+    #def copy_to_system_pgo(self, mock_dir, content_name):
+        #"""Copy chroot profiles to system pgo."""
+        #system_pgo_dir_src = f"{mock_dir}/clear-{content_name}/root/var/tmp/pgo"
+        #system_pgo_dir_dst = "/var/tmp/pgo"
+        #system_pgo_dir_dst_backup = "/var/tmp/pgo1"
+        #if os.path.isdir(system_pgo_dir_src):
+            #if any(os.scandir(system_pgo_dir_src)):
+                #if os.path.isdir(system_pgo_dir_dst):
+                    #if any(os.scandir(system_pgo_dir_dst)):
+                        #backup = 1
+                        #while (os.path.isdir(system_pgo_dir_dst_backup)):
+                            #backup += 1
+                            #system_pgo_dir_dst_backup = f"/var/tmp/pgo{backup}"
+                        #os.rename(system_pgo_dir_dst, system_pgo_dir_dst_backup)
+                #shutil.copytree(system_pgo_dir_src, system_pgo_dir_dst, dirs_exist_ok=True)
 
     def save_system_pgo(self, mock_dir, content_name, config):
         """Copy chroot profiles to system pgo."""
@@ -452,11 +468,11 @@ class Build(object):
                     print("RPM install build successful")
                     self.success = 1
 
-        if (self.success == 1 and self.short_circuit == "build" and config.config_opts.get("altflags_pgo_ext")):
+        if self.success == 1 and self.short_circuit == "build" and config.config_opts.get("altflags_pgo_ext"):
             if config.config_opts.get("altflags_pgo_ext_phase"):
                 self.save_system_pgo(self.mock_dir, content.name, config)
-            #else:
-                #self.copy_to_system_pgo(self.mock_dir, content.name)
+            else:
+                self.copy_to_system_pgo(self.mock_dir, content.name, config)
 
     def package(self, filemanager, mockconfig, mockopts, config, requirements, content, mock_dir, short_circuit, do_file_restart, cleanup=False):
         """Run main package build routine."""
@@ -514,10 +530,14 @@ class Build(object):
         ]
 
         if self.do_file_restart:
-            if not cleanup and self.must_restart == 0 and self.file_restart > 0 and set(filemanager.excludes) == set(filemanager.manual_excludes):
+            if self.must_restart == 0 and self.file_restart > 0 and set(filemanager.excludes) == set(filemanager.manual_excludes):
                 cmd_args.append("--no-clean")
                 cmd_args.append("--short-circuit=binary")
                 self.short_circuit = "binary"
+                print_info("Will --short-circuit=binary")
+            elif self.short_circuit == "binary":
+                cmd_args.append("--no-clean")
+                cmd_args.append("--short-circuit=binary")
                 print_info("Will --short-circuit=binary")
 
         ret = util.call(" ".join(cmd_args),

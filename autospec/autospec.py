@@ -780,7 +780,14 @@ def package(
 
         if do_file_restart:
             if package.round > 20 or (package.must_restart == 0 and package.file_restart == 0):
-                break
+                if (short_circuit == "install"):
+                    print_info(f"short_circuit: {short_circuit}")
+                    print_info(f"package.short_circuit: {package.short_circuit}")
+                    short_circuit = "binary"
+                    print_info(f"new short_circuit: {short_circuit}")
+                    continue
+                else:
+                    break
         else:
             if (package.round > 20 or package.must_restart == 0):
                 break

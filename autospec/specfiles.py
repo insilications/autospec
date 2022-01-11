@@ -2722,7 +2722,7 @@ class Specfile(object):
                     self._write_strip(f"{self.get_profile_use_flags()} %autogen_simple {self.config.extra_configure_pgo} {self.config.extra_configure64_pgo}")
                 else:
                     self._write_strip(f"{self.get_profile_use_flags()} %autogen {self.config.extra_configure_pgo} {self.config.extra_configure64_pgo}")
-                    self.write_make_line(build32=False, build_type=None, pgo=True, pattern="autogen")
+                self.write_make_line(build32=False, build_type=None, pgo=True, pattern="autogen")
         else:
             self.write_build_append()
             if self.config.config_opts.get("autogen_simple"):
