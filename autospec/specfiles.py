@@ -3538,7 +3538,7 @@ class Specfile(object):
                         self._write("{}\n".format(line))
                     self._write_strip("## make_macro end")
                 else:
-                    self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                    self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                 self.write_profile_payload_content(pattern="meson", build_type=None)
                 if self.config.custom_clean_pgo:
                     self._write_strip("{}\n".format(self.config.custom_clean_pgo))
@@ -3570,12 +3570,12 @@ class Specfile(object):
                         self._write("{}\n".format(line))
                     self._write_strip("## make_macro end")
                 else:
-                    self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                    self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                 self._write_strip("fi\n")
                 if self.config.subdir:
                     self._write_strip("popd")
             else:
-                self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+                self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
                 self.write_trystatic()
                 self.write_make_prepend(build32=False)
                 if self.config.make_macro:
@@ -3584,7 +3584,7 @@ class Specfile(object):
                         self._write("{}\n".format(line))
                     self._write_strip("## make_macro end")
                 else:
-                    self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                    self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                 self._write_strip("\n")
                 self.write_profile_payload_content(pattern="meson", build_type=None)
                 if self.config.custom_clean_pgo:
@@ -3598,9 +3598,9 @@ class Specfile(object):
                 if post:
                     self._write_strip(post)
                 if self.config.extra_configure_pgo or self.config.extra_configure64_pgo:
-                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
+                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
                 elif self.config.extra_configure or self.config.extra_configure64:
-                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
                 self.write_trystatic()
                 self.write_make_prepend(build32=False)
                 if self.config.make_macro_pgo:
@@ -3614,7 +3614,7 @@ class Specfile(object):
                         self._write("{}\n".format(line))
                     self._write_strip("## make_macro end")
                 else:
-                    self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                    self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                 self._write_strip("fi\n")
                 if self.config.subdir:
                     self._write_strip("popd")
@@ -3640,7 +3640,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro_special end")
                     else:
-                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir\n")
+                        self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                     self.write_profile_payload_content(pattern="meson", build_type="special")
                     if self.config.custom_clean_pgo:
                         self._write_strip("{}\n".format(self.config.custom_clean_pgo))
@@ -3672,12 +3672,12 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro_special end")
                     else:
-                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                        self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                     self._write_strip("fi\n")
                     if self.config.subdir:
                         self._write_strip("popd")
                 else:
-                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
+                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
                     self.write_trystatic()
                     self.write_make_prepend(build32=False)
                     if self.config.make_macro_special:
@@ -3691,7 +3691,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro end")
                     else:
-                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir\n")
+                        self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                     self.write_profile_payload_content(pattern="meson", build_type="special")
                     if self.config.custom_clean_pgo:
                         self._write_strip("{}\n".format(self.config.custom_clean_pgo))
@@ -3704,9 +3704,9 @@ class Specfile(object):
                     if post:
                         self._write_strip(post)
                     if self.config.extra_configure_special_pgo:
-                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special_pgo))
+                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special_pgo))
                     elif self.config.extra_configure_special:
-                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
+                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
                     self.write_trystatic()
                     self.write_make_prepend(build32=False)
                     if self.config.make_macro_special_pgo:
@@ -3725,7 +3725,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro end")
                     else:
-                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                        self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                     self._write_strip("fi")
                     self._write_strip("\n")
                     if self.config.subdir:
@@ -3755,7 +3755,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro end")
                     else:
-                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                        self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                     if self.config.profile_payload:
                         self.write_profile_payload_content(pattern="meson", build_type=None)
                         if self.config.custom_clean_pgo:
@@ -3784,7 +3784,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro end")
                     else:
-                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                        self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                 if self.config.subdir:
                     self._write_strip("popd")
             else:
@@ -3793,7 +3793,7 @@ class Specfile(object):
                         self._write_strip(init)
                     self.write_build_append()
                     self._write("\necho PGO Phase 1\n")
-                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+                    self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
                     self.write_trystatic()
                     self.write_make_prepend(build32=False)
                     if self.config.make_macro:
@@ -3802,7 +3802,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro end")
                     else:
-                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                        self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                     if self.config.profile_payload:
                         self.write_profile_payload_content(pattern="meson", build_type=None)
                 elif self.config.config_opts["altflags_pgo_ext_phase"]:
@@ -3810,9 +3810,9 @@ class Specfile(object):
                     if post:
                         self._write_strip(post)
                     if self.config.extra_configure_pgo or self.config.extra_configure64_pgo:
-                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
+                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure_pgo, self.config.extra_configure64_pgo))
                     elif self.config.extra_configure or self.config.extra_configure64:
-                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
                     self.write_trystatic()
                     self.write_make_prepend(build32=False)
                     if self.config.make_macro_pgo:
@@ -3826,7 +3826,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro end")
                     else:
-                        self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                        self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                 if self.config.subdir:
                     self._write_strip("popd")
 
@@ -3855,7 +3855,7 @@ class Specfile(object):
                                 self._write("{}\n".format(line))
                             self._write_strip("## make_macro_special end")
                         else:
-                            self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir\n")
+                            self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
 
                     elif self.config.config_opts["altflags_pgo_ext_phase"]:
                         self._write("\necho PGO Phase 2\n")
@@ -3882,7 +3882,7 @@ class Specfile(object):
                                 self._write("{}\n".format(line))
                             self._write_strip("## make_macro_special end")
                         else:
-                            self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                            self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
 
                     if self.config.subdir:
                         self._write_strip("popd")
@@ -3895,7 +3895,7 @@ class Specfile(object):
                         self.write_build_append()
                         self._write("\necho PGO Phase 1\n")
 
-                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
+                        self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
                         self.write_trystatic()
                         self.write_make_prepend(build32=False)
                         if self.config.make_macro_special:
@@ -3909,7 +3909,7 @@ class Specfile(object):
                                 self._write("{}\n".format(line))
                             self._write_strip("## make_macro end")
                         else:
-                            self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir\n")
+                            self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
 
                     elif self.config.config_opts["altflags_pgo_ext_phase"]:
                         self._write("\necho PGO Phase 2\n")
@@ -3917,9 +3917,9 @@ class Specfile(object):
                         if post:
                             self._write_strip(post)
                         if self.config.extra_configure_special_pgo:
-                            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special_pgo))
+                            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special_pgo))
                         elif self.config.extra_configure_special:
-                            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
+                            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
                         self.write_trystatic()
                         self.write_make_prepend(build32=False)
                         if self.config.make_macro_special_pgo:
@@ -3938,7 +3938,7 @@ class Specfile(object):
                                 self._write("{}\n".format(line))
                             self._write_strip("## make_macro end")
                         else:
-                            self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                            self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
 
                     if self.config.subdir:
                         self._write_strip("popd")
@@ -3947,7 +3947,7 @@ class Specfile(object):
             self.write_variables()
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
-            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
+            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure64))
             self.write_trystatic()
             self.write_make_prepend(build32=False)
             if self.config.make_macro:
@@ -3956,19 +3956,19 @@ class Specfile(object):
                     self._write("{}\n".format(line))
                 self._write_strip("## make_macro end")
             else:
-                self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+                self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
                 self._write_strip("\n")
             if self.config.subdir:
                 self._write_strip("popd")
 
         if self.config.config_opts["use_avx2"]:
-            self._write_strip('CFLAGS="$CFLAGS -m64 -march=native -mtune=native" CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native" LDFLAGS="$LDFLAGS LIBS="$LIBS" -m64 -march=native -mtune=native" meson --libdir=lib64/haswell --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddiravx2'.format(self.config.extra_configure, self.config.extra_configure64))
+            self._write_strip('CFLAGS="$CFLAGS -m64 -march=native -mtune=native" CXXFLAGS="$CXXFLAGS -m64 -march=native -mtune=native" LDFLAGS="$LDFLAGS LIBS="$LIBS" -m64 -march=native -mtune=native" meson --libdir=lib64/haswell --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddiravx2'.format(self.config.extra_configure, self.config.extra_configure64))
             self.write_trystatic()
             self.write_make_prepend(build32=False)
-            self._write_strip("ninja --verbose %{?_smp_mflags} -C builddiravx2")
+            self._write("ninja --verbose %{?_smp_mflags} -C builddiravx2\n\n")
             if self.config.config_opts['use_avx512']:
-                self._write_strip('CFLAGS="$CFLAGS -m64 -march=skylake-avx512" CXXFLAGS="$CXXFLAGS -m64 -march=skylake-avx512" LDFLAGS="$LDFLAGS LIBS="$LIBS" -m64 -march=skylake-avx512" meson --libdir=lib64/haswell/avx512_1 --prefix=/usr --buildtype=plain {0} {1} builddiravx512'.format(self.config.extra_configure, self.config.extra_configure64))
-                self._write_strip('ninja -v -C builddiravx512')
+                self._write_strip('CFLAGS="$CFLAGS -m64 -march=skylake-avx512" CXXFLAGS="$CXXFLAGS -m64 -march=skylake-avx512" LDFLAGS="$LDFLAGS LIBS="$LIBS" -m64 -march=skylake-avx512" meson --libdir=lib64/haswell/avx512_1 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain {0} {1} builddiravx512'.format(self.config.extra_configure, self.config.extra_configure64))
+                self._write('ninja -v -C builddiravx512\n\n')
                 if self.config.subdir:
                     self._write_strip("popd")
         if self.config.config_opts["32bit"]:
@@ -3976,10 +3976,10 @@ class Specfile(object):
             self.write_build_prepend32()
             self.write_32bit_exports()
             self.write_build_append()
-            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib32 --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure32))
+            self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib32 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} {1} builddir'.format(self.config.extra_configure, self.config.extra_configure32))
             self.write_trystatic()
             self.write_make_prepend(build32=True)
-            self._write_strip("ninja --verbose %{?_smp_mflags} -C builddir")
+            self._write("ninja --verbose %{?_smp_mflags} -C builddir\n\n")
             self._write_strip("popd")
 
         self.write_build_append()
@@ -3990,7 +3990,7 @@ class Specfile(object):
         self.write_license_files()
         if self.config.config_opts["32bit"]:
             self._write_strip("pushd ../build32/" + self.config.subdir)
-            self._write_strip("DESTDIR=%{buildroot} ninja -C builddir install")
+            self._write("DESTDIR=%{buildroot} ninja -C builddir install\n\n")
             self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
             self._write_strip("then")
             self._write_strip("    pushd %{buildroot}/usr/lib32/pkgconfig\n")
@@ -4007,18 +4007,18 @@ class Specfile(object):
         if self.config.config_opts['use_avx512']:
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
-            self._write_strip('DESTDIR=%{buildroot} ninja -C builddiravx512 install')
+            self._write('DESTDIR=%{buildroot} ninja -C builddiravx512 install\n\n')
             if self.config.subdir:
                 self._write_strip("popd")
         if self.config.config_opts["use_avx2"]:
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
-            self._write_strip("DESTDIR=%{buildroot} ninja -C builddiravx2 install")
+            self._write("DESTDIR=%{buildroot} ninja -C builddiravx2 install\n\n")
             if self.config.subdir:
                 self._write_strip("popd")
         if self.config.config_opts["build_special"]:
             self._write_strip("pushd ../build-special/" + self.config.subdir)
-            self._write_strip("DESTDIR=%{buildroot} ninja -C builddir install")
+            self._write("DESTDIR=%{buildroot} ninja -C builddir install\n\n")
             self._write_strip("popd")
             if self.config.subdir:
                 self._write_strip("popd")
@@ -4030,7 +4030,7 @@ class Specfile(object):
         else:
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
-            self._write_strip("DESTDIR=%{buildroot} ninja -C builddir install")
+            self._write("DESTDIR=%{buildroot} ninja -C builddir install\n\n")
             if self.config.subdir:
                 self._write_strip("popd")
         self.write_find_lang()
