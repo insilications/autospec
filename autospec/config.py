@@ -828,7 +828,7 @@ class Config(object):
             lines = lines[1:]
         # Remove any trailing whitespace and newlines. The newlines are later
         # restored by writer functions.
-        return [line.rstrip() for line in lines]
+        return [line.rstrip() for line in lines if not line.strip().startswith("#!")]
 
     def setup_patterns(self, path=None):
         """Read each pattern configuration file and assign to the appropriate variable."""
