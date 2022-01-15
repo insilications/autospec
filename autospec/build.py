@@ -76,9 +76,10 @@ def get_mock_cmd():
     """Set mock command to use sudo as needed."""
     # Some distributions (e.g. Fedora) use consolehelper to run mock,
     # while others (e.g. Clear Linux) expect the user run it via sudo.
-    if os.path.basename(os.path.realpath('/usr/bin/mock')) == 'consolehelper':
-        return 'PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /usr/bin/mock'
-    return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /usr/bin/mock'
+    if sys.executable == "/usr/bin/python":
+        return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /usr/bin/mock'
+    else:
+        return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /home/boni/.local/pypy-venv/bin/python --jit vec=1,vec_all=1,max_unroll_recursion=14,disable_unrolling=300 /home/boni/.local/pypy-venv/bin/mock'
 
 
 class Build(object):

@@ -401,7 +401,6 @@ def main():
             print_debug("force_fullclone: {}".format(str(force_fullclone)))
 
     do_file_restart = args.do_file_restart
-    print_debug(f"do_file_restart: {do_file_restart}")
 
     redownload_from_git = args.redownload_from_git
     redownload_archive = args.redownload_archive
