@@ -79,7 +79,7 @@ def get_mock_cmd():
     if sys.executable == "/usr/bin/python":
         return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /usr/bin/mock'
     else:
-        return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /home/boni/.local/pypy-venv/bin/python --jit vec=1,vec_all=1,max_unroll_recursion=14,disable_unrolling=300 /home/boni/.local/pypy-venv/bin/mock'
+        return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /home/boni/.local/pypy-venv/bin/python --jit max_unroll_recursion=16,disable_unrolling=300 /home/boni/.local/pypy-venv/bin/mock'
 
 
 class Build(object):
@@ -535,7 +535,7 @@ class Build(object):
                 cmd_args.append("--no-clean")
                 cmd_args.append("--short-circuit=binary")
                 self.short_circuit = "binary"
-                print_info("Will --short-circuit=binary")
+                print_info("Will --short-circuit=binary: self.must_restart == 0")
             elif self.short_circuit == "binary":
                 cmd_args.append("--no-clean")
                 cmd_args.append("--short-circuit=binary")

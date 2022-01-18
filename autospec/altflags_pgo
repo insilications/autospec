@@ -91,4 +91,3 @@ export QT_ENABLE_HIGHDPI_SCALING=0
 export QT_FONT_DPI=88
 export GTK_USE_PORTAL=1
 export DESKTOP_SESSION=plasma
-export GSETTINGS_SCHEMA_DIR="/usr/share/glib-2.0/schemas"
