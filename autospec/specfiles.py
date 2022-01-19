@@ -1442,7 +1442,7 @@ class Specfile(object):
                 self._write_strip("## install_macro_32 end")
             else:
                 self._write("pushd ../build32/" + self.config.subdir)
-                self._write("%buildtcl_script_install {} {}".format(self.config.extra_make_install, self.config.extra_make32_install))
+                self._write(f"%buildtcl_script_install {self.config.extra_make32_install}")
                 self._write("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
                 self._write("then")
                 self._write("    pushd %{buildroot}/usr/lib32/pkgconfig\n")
@@ -1491,7 +1491,7 @@ class Specfile(object):
                 self._write("{}\n".format(line))
             self._write_strip("## install_macro end")
         else:
-            self._write_strip("%buildtcl_script_install {}\n".format(self.config.extra_make_install))
+            self._write_strip(f"%buildtcl_script_install {self.config.extra_make_install}\n")
 
         if self.config.subdir:
             self._write_strip("popd")
@@ -1515,7 +1515,7 @@ class Specfile(object):
                 self._write_strip("## install_macro_32 end")
             else:
                 self._write_strip("pushd ../build32/" + self.config.subdir)
-                self._write_strip("%buildtcl_configure_install {} {}".format(self.config.extra_make_install, self.config.extra_make32_install))
+                self._write_strip(f"%buildtcl_configure_install {self.config.extra_make32_install}")
                 self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
                 self._write_strip("then")
                 self._write("    pushd %{buildroot}/usr/lib32/pkgconfig\n")
@@ -1589,7 +1589,7 @@ class Specfile(object):
                 self._write_strip("## install_macro_32 end")
             else:
                 self._write_strip("pushd ../build32/" + self.config.subdir)
-                self._write_strip("%make_install32 {} {}".format(self.config.extra_make_install, self.config.extra_make32_install))
+                self._write_strip(f"%make_install32 {self.config.extra_make32_install}")
                 self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
                 self._write_strip("then")
                 self._write("    pushd %{buildroot}/usr/lib32/pkgconfig\n")
@@ -1614,9 +1614,9 @@ class Specfile(object):
                 else:
                     self._write_strip("pushd ../build-special-32/" + self.config.subdir)
                     if self.config.extra_make_install_special_32:
-                        self._write_strip("%make_install32 {} {}".format(self.config.extra_make_install, self.config.extra_make_install_special_32))
+                        self._write_strip(f"%make_install32 {self.config.extra_make_install_special_32}")
                     else:
-                        self._write_strip("%make_install32 {} {}".format(self.config.extra_make_install, self.config.extra_make32_install))
+                        self._write_strip(f"%make_install32 {self.config.extra_make32_install}")
                     self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
                     self._write_strip("then")
                     self._write("    pushd %{buildroot}/usr/lib32/pkgconfig\n")
@@ -1934,9 +1934,9 @@ class Specfile(object):
             else:
                 self._write_strip("pushd clr-build32")
                 if self.config.config_opts["use_ninja"]:
-                    self._write_strip("%ninja_install32 {} {}".format(self.config.extra_make_install, self.config.extra_make32_install))
+                    self._write_strip(f"%ninja_install32 {self.config.extra_make32_install}")
                 else:
-                    self._write_strip("%make_install32 {} {}".format(self.config.extra_make_install, self.config.extra_make32_install))
+                    self._write_strip(f"%make_install32 {self.config.extra_make32_install}")
                 self._write_strip("if [ -d  %{buildroot}/usr/lib32/pkgconfig ]")
                 self._write_strip("then")
                 self._write("    pushd %{buildroot}/usr/lib32/pkgconfig\n")
