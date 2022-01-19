@@ -2220,8 +2220,9 @@ class Specfile(object):
         self.write_lang_c(export_epoch=True)
         self.write_build_prepend()
         self.write_variables()
-        self.write_profile_payload(pattern="configure", build_type=None)
+
         if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+            self.write_profile_payload(pattern="configure", build_type=None)
             if self.config.configure_macro_pgo:
                 if self.config.subdir:
                     self._write_strip(f"pushd {self.config.subdir}")
@@ -2250,6 +2251,45 @@ class Specfile(object):
                 if self.config.subdir:
                     self._write_strip("popd")
                 self._write_strip("\n")
+        elif self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+            if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                self._write("\necho PGO Phase 1\n")
+                if self.config.configure_macro:
+                    if self.config.subdir:
+                        self._write_strip("pushd " + self.config.subdir)
+                    self._write_strip(f"{self.get_profile_generate_flags()}")
+                    self.write_build_append()
+                    for line in self.config.configure_macro:
+                        self._write("{}\n".format(line))
+                else:
+                    if self.config.subdir:
+                        self._write_strip("pushd " + self.config.subdir)
+                    self.write_build_append()
+                    self._write_strip(f"{self.get_profile_generate_flags()}%configure {self.config.extra_configure64}")
+                self.write_make_line(build32=False, build_type=None, pgo=False, pattern="configure")
+                self._write_strip("\n")
+                self.write_profile_payload_content(pattern="configure", build_type=None)
+                self._write_strip("\nfind . -type f,l -name '*.gcno' -delete -print || :\n")
+                if self.config.subdir:
+                    self._write_strip("popd")
+            elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                self._write("\necho PGO Phase 2\n")
+                if self.config.configure_macro_pgo:
+                    if self.config.subdir:
+                        self._write_strip("pushd " + self.config.subdir)
+                    self._write_strip(f"{self.get_profile_use_flags()}")
+                    self.write_build_append()
+                    for line in self.config.configure_macro_pgo:
+                        self._write("{}\n".format(line))
+                else:
+                    if self.config.subdir:
+                        self._write_strip("pushd " + self.config.subdir)
+                    self.write_build_append()
+                    self._write_strip(f"{self.get_profile_use_flags()}%configure {self.config.extra_configure_pgo}")
+                self.write_make_line(build32=False, build_type=None, pgo=True, pattern="configure")
+                self._write_strip("\n")
+                if self.config.subdir:
+                    self._write_strip("popd")
         else:
             if self.config.configure_macro:
                 if self.config.subdir:
@@ -2276,9 +2316,9 @@ class Specfile(object):
             self._write_strip("pushd ../build-special/")
             self.write_build_prepend()
             self.write_variables()
-            self.write_profile_payload(pattern="configure", build_type="special")
 
             if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                self.write_profile_payload(pattern="configure", build_type="special")
                 if self.config.configure_macro_special_pgo:
                     if self.config.subdir:
                         self._write_strip(f"pushd {self.config.subdir}")
@@ -2310,6 +2350,47 @@ class Specfile(object):
                     if self.config.subdir:
                         self._write_strip("popd")
                     self._write_strip("popd\n")
+
+            elif self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                    self._write("\necho PGO Phase 1\n")
+                    if self.config.configure_macro_special:
+                        if self.config.subdir:
+                            self._write_strip("pushd " + self.config.subdir)
+                        self._write_strip(f"{self.get_profile_generate_flags()}")
+                        self.write_build_append()
+                        for line in self.config.configure_macro_special:
+                            self._write("{}\n".format(line))
+                    else:
+                        if self.config.subdir:
+                            self._write_strip("pushd " + self.config.subdir)
+                        self.write_build_append()
+                        self._write_strip(f"{self.get_profile_generate_flags()}%configure {self.config.extra_configure_special}")
+                    self.write_make_line(build32=False, build_type="special", pgo=False, pattern="configure")
+                    self._write_strip("\n")
+                    self.write_profile_payload_content(pattern="configure", build_type="special")
+                    self._write_strip("\nfind . -type f,l -name '*.gcno' -delete -print || :\n")
+                    if self.config.subdir:
+                        self._write_strip("popd")
+                elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                    self._write("\necho PGO Phase 2\n")
+                    if self.config.configure_macro_special_pgo:
+                        if self.config.subdir:
+                            self._write_strip("pushd " + self.config.subdir)
+                        self._write_strip(f"{self.get_profile_use_flags()}")
+                        self.write_build_append()
+                        for line in self.config.configure_macro_special_pgo:
+                            self._write("{}\n".format(line))
+                    else:
+                        if self.config.subdir:
+                            self._write_strip("pushd " + self.config.subdir)
+                        self.write_build_append()
+                        self._write_strip(f"{self.get_profile_use_flags()}%configure {self.config.extra_configure_special_pgo}")
+                    self.write_make_line(build32=False, build_type="special", pgo=True, pattern="configure")
+                    self._write_strip("\n")
+                    if self.config.subdir:
+                        self._write_strip("popd")
+
             else:
                 if self.config.configure_macro_special:
                     if self.config.subdir:
@@ -2336,9 +2417,9 @@ class Specfile(object):
             self._write_strip("pushd ../build-special2/" + self.config.subdir)
             self.write_build_prepend()
             self.write_variables()
-            self.write_profile_payload(pattern="configure", build_type="special2")
 
             if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                self.write_profile_payload(pattern="configure", build_type="special2")
                 if self.config.configure_macro_special2_pgo:
                     if self.config.subdir:
                         self._write_strip(f"pushd {self.config.subdir}")
