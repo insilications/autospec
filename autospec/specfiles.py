@@ -81,7 +81,7 @@ class Specfile(object):
         self.cargo_install_assets : List[Tuple[str, str, str]] = list()
         self.mock_dir : str = mock_dir
         self.short_circuit : str = short_circuit
-		self.setuid = []
+        self.setuid = []
 
     def read_file(self, path):
         """Read full file at path.

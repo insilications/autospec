@@ -858,7 +858,7 @@ class FileManager(object):
         specfile.locales = self.locales
         specfile.file_maps = self.file_maps
         specfile.cargo_install_assets = self.cargo_install_assets
-		specfile.setuid = self.setuid
+        specfile.setuid = self.setuid
 
     def load_specfile_information(self, specfile, content):
         """Load a specfile instance to gather build information."""
