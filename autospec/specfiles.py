@@ -1992,7 +1992,13 @@ class Specfile(object):
 
             if self.config.config_opts["build_special"]:
                 self.write_variables()
-                self._write(f"{self.get_profile_use_flags()}")
+                if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                    self._write(f"{self.get_profile_use_flags()}")
+                elif self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                    if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                        self._write(f"{self.get_profile_generate_flags()}")
+                    elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                        self._write(f"{self.get_profile_use_flags()}")
                 self.write_install_prepend("special")
                 if self.config.install_macro_build_special:
                     self._write_strip("## install_macro_build_special start\n")
@@ -2008,7 +2014,13 @@ class Specfile(object):
                     self._write_strip("popd")
 
             self.write_variables()
-            self._write(f"{self.get_profile_use_flags()}")
+            if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                self._write(f"{self.get_profile_use_flags()}")
+            elif self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                    self._write(f"{self.get_profile_generate_flags()}")
+                elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                    self._write(f"{self.get_profile_use_flags()}")
             self.write_install_prepend()
             if self.config.install_macro:
                 self._write_strip("## install_macro start")
@@ -3179,7 +3191,9 @@ class Specfile(object):
             self._write_strip("mkdir -p clr-build")
             self._write_strip("pushd clr-build")
             if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                self.write_build_prepend()
                 self.write_variables()
+                self.write_build_append()
                 init = f"{self.get_profile_generate_flags()}"
                 post = f"{self.get_profile_use_flags()}"
                 self._write_strip("if [ ! -f statuspgo ]; then")
@@ -3215,8 +3229,39 @@ class Specfile(object):
                 self.write_make_line()
                 self._write_strip("fi")
                 self._write_strip("popd")
+            elif self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                    self.write_build_prepend()
+                    self.write_variables()
+                    self.write_build_append()
+                    self._write("\necho PGO Phase 1\n")
+                    if self.config.cmake_macro:
+                        for line in self.config.cmake_macro:
+                            self._write("{}\n".format(line))
+                    else:
+                        self._write_strip(f"{self.get_profile_generate_flags()} %cmake {self.config.cmake_srcdir} {self.extra_cmake} {self.extra_cmake_64}")
+                    self.write_make_line(build32=False, build_type=None, pgo=None, pattern=None)
+                    self.write_profile_payload_content(pattern="cmake", build_type=None)
+                    self._write_strip("popd")
+                elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                    self.write_build_prepend()
+                    self.write_variables()
+                    self.write_build_append()
+                    self._write("\necho PGO Phase 2\n")
+                    if self.config.cmake_macro_pgo:
+                        for line in self.config.cmake_macro_pgo:
+                            self._write("{}\n".format(line))
+                    elif self.config.cmake_macro:
+                        for line in self.config.cmake_macro:
+                            self._write("{}\n".format(line))
+                    elif self.config.extra_cmake_pgo:
+                        self._write_strip(f"{self.get_profile_use_flags()} %cmake {self.config.cmake_srcdir} {self.extra_cmake_pgo}")
+                    self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
+                    self._write_strip("popd")
             else:
+                self.write_build_prepend()
                 self.write_variables()
+                self.write_build_append()
                 if self.config.cmake_macro:
                     for line in self.config.cmake_macro:
                         self._write("{}\n".format(line))
@@ -3232,6 +3277,7 @@ class Specfile(object):
                     self._write_strip("pushd clr-build-special")
                     self.write_build_prepend()
                     self.write_variables()
+                    self.write_build_append()
                     init = f"{self.get_profile_generate_flags()}"
                     post = f"{self.get_profile_use_flags()}"
                     self._write_strip("if [ ! -f statuspgo.special ]; then")
@@ -3266,11 +3312,44 @@ class Specfile(object):
                     self.write_make_line()
                     self._write_strip("fi")
                     self._write_strip("popd")
+
+                elif self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                    if not self.config.config_opts["altflags_pgo_ext_phase"]:
+                        self._write_strip("mkdir -p clr-build-special")
+                        self._write_strip("pushd clr-build-special")
+                        self.write_build_prepend()
+                        self.write_variables()
+                        self.write_build_append()
+                        self._write("\necho PGO Phase 1\n")
+                        if self.config.cmake_macro_special:
+                            for line in self.config.cmake_macro_special:
+                                self._write("{}\n".format(line))
+                        else:
+                            self._write_strip(f"{self.get_profile_generate_flags()} %cmake {self.config.cmake_srcdir} {self.extra_cmake_special}")
+                        self.write_make_line(build32=False, build_type="special", pgo=None, pattern=None)
+                        self.write_profile_payload_content(pattern="cmake", build_type="special")
+                        self._write_strip("popd")
+                    elif self.config.config_opts["altflags_pgo_ext_phase"]:
+                        self._write_strip("mkdir -p clr-build-special")
+                        self._write_strip("pushd clr-build-special")
+                        self.write_build_prepend()
+                        self.write_variables()
+                        self.write_build_append()
+                        self._write("\necho PGO Phase 2\n")
+                        if self.config.cmake_macro_special:
+                            for line in self.config.cmake_macro_special:
+                                self._write("{}\n".format(line))
+                        elif self.config.extra_cmake_special_pgo:
+                            self._write_strip(f"{self.get_profile_use_flags()} %cmake {self.config.cmake_srcdir} {self.extra_cmake_special_pgo}")
+                        self.write_make_line(build32=False, build_type="special", pgo=True, pattern=None)
+                        self._write_strip("popd")
+
                 else:
                     self._write_strip("mkdir -p clr-build-special")
                     self._write_strip("pushd clr-build-special")
                     self.write_build_prepend()
                     self.write_variables()
+                    self.write_build_append()
                     if self.config.cmake_macro_special:
                         for line in self.config.cmake_macro_special:
                             self._write("{}\n".format(line))
@@ -4562,3 +4641,4 @@ class Specfile(object):
             # Add the filename as-is
             quoted += filename
         return quoted
+
