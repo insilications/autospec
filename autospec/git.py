@@ -91,8 +91,8 @@ def git_describe_custom_re(clone_path, conf):
     git_describe_cmd1_result = process.stdout
 
     if git_describe_cmd1_result:
-        if util.debugging:
-            print_debug(f"conf.custom_git_re2: {conf.custom_git_re2}")
+        #if util.debugging:
+            #print_debug(f"conf.custom_git_re2: {conf.custom_git_re2}")
         git_describe_cmd2_re1_pre = r"{0}".format(conf.custom_git_re2)
         git_describe_cmd2_re1 = re.Pattern
         try:
@@ -103,8 +103,8 @@ def git_describe_custom_re(clone_path, conf):
         print_info(f"Custom git regex 2: {git_describe_cmd2_re1.pattern}")
         git_describe_cmd2_re1_result = git_describe_cmd2_re1.search(git_describe_cmd1_result)
         if git_describe_cmd2_re1_result:
-            if util.debugging:
-                print_debug(f"{git_describe_cmd2_re1_result.group(1)}.{git_describe_cmd2_re1_result.group(2)}.{git_describe_cmd2_re1_result.group(3)}.{git_describe_cmd2_re1_result.group(4)}.{git_describe_cmd2_re1_result.group(5)}.{git_describe_cmd2_re1_result.group(6)}.{git_describe_cmd2_re1_result.group(7)}")
+            #if util.debugging:
+                #print_debug(f"{git_describe_cmd2_re1_result.group(1)}.{git_describe_cmd2_re1_result.group(2)}.{git_describe_cmd2_re1_result.group(3)}.{git_describe_cmd2_re1_result.group(4)}.{git_describe_cmd2_re1_result.group(5)}.{git_describe_cmd2_re1_result.group(6)}.{git_describe_cmd2_re1_result.group(7)}")
             if git_describe_cmd2_re1_result.group(1):
                 outputVersion1 = f"{git_describe_cmd2_re1_result.group(1)}"
             if git_describe_cmd2_re1_result.group(2):
@@ -138,8 +138,8 @@ def git_describe(clone_path):
         git_describe_cmd2_re1 = re.compile(r"(?:^(?:[a-zA-Z]+[0-9]?[a-zA-Z0-9]*[\-]+)?|^(?:[vV]+)?)(0|[1-9]\d*)(?:\.|\_)(0|[1-9]\d*)?(?:(?:\.|\_)(0|[1-9]\d*))?(?:(?:\.|\_)(0|[1-9]\d*))?((?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*))*)?(?:\-((?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*))*))?([a-zA-Z0-9\_\.\-]+)?", re.MULTILINE)
         git_describe_cmd2_re1_result = git_describe_cmd2_re1.search(git_describe_cmd1_result)
         if git_describe_cmd2_re1_result:
-            if util.debugging:
-                print_debug(f"{git_describe_cmd2_re1_result.group(1)}.{git_describe_cmd2_re1_result.group(2)}.{git_describe_cmd2_re1_result.group(3)}.{git_describe_cmd2_re1_result.group(4)}.{git_describe_cmd2_re1_result.group(5)}.{git_describe_cmd2_re1_result.group(6)}.{git_describe_cmd2_re1_result.group(7)}")
+            #if util.debugging:
+                #print_debug(f"{git_describe_cmd2_re1_result.group(1)}.{git_describe_cmd2_re1_result.group(2)}.{git_describe_cmd2_re1_result.group(3)}.{git_describe_cmd2_re1_result.group(4)}.{git_describe_cmd2_re1_result.group(5)}.{git_describe_cmd2_re1_result.group(6)}.{git_describe_cmd2_re1_result.group(7)}")
             if git_describe_cmd2_re1_result.group(1):
                 outputVersion1 = f"{git_describe_cmd2_re1_result.group(1)}"
             if git_describe_cmd2_re1_result.group(2):
@@ -176,14 +176,14 @@ def git_ls_remote_custom_re(remote_url_cmd, clone_path, path, conf):
     if git_ls_remote_cmd1_result:
         git_ls_remote_cmd1_re1 = re.compile(r"(?<=refs\/tags\/).*", re.MULTILINE)
         git_ls_remote_cmd1_re1_result = git_ls_remote_cmd1_re1.findall(git_ls_remote_cmd1_result)
-        if util.debugging:
-            if git_ls_remote_cmd1_re1_result:
-                for r in git_ls_remote_cmd1_re1_result:
-                    print_debug(r)
+        #if util.debugging:
+            #if git_ls_remote_cmd1_re1_result:
+                #for r in git_ls_remote_cmd1_re1_result:
+                    #print_debug(r)
 
         if git_ls_remote_cmd1_re1_result:
-            if util.debugging:
-                    print_debug(f"conf.custom_git_re: {conf.custom_git_re2}")
+            #if util.debugging:
+                    #print_debug(f"conf.custom_git_re: {conf.custom_git_re2}")
             git_ls_remote_cmd1_re4_pre = r"{0}".format(conf.custom_git_re2)
             git_ls_remote_cmd1_re4 = re.Pattern
             try:
@@ -194,8 +194,8 @@ def git_ls_remote_custom_re(remote_url_cmd, clone_path, path, conf):
             for r in git_ls_remote_cmd1_re1_result:
                 git_ls_remote_cmd1_re4_result = git_ls_remote_cmd1_re4.search(r)
                 if git_ls_remote_cmd1_re4_result:
-                    if util.debugging:
-                        print_debug(f"{git_ls_remote_cmd1_re4_result.group(1)}.{git_ls_remote_cmd1_re4_result.group(2)}.{git_ls_remote_cmd1_re4_result.group(3)}.{git_ls_remote_cmd1_re4_result.group(4)}.{git_ls_remote_cmd1_re4_result.group(5)}.{git_ls_remote_cmd1_re4_result.group(6)}.{git_ls_remote_cmd1_re4_result.group(7)}")
+                    #if util.debugging:
+                        #print_debug(f"{git_ls_remote_cmd1_re4_result.group(1)}.{git_ls_remote_cmd1_re4_result.group(2)}.{git_ls_remote_cmd1_re4_result.group(3)}.{git_ls_remote_cmd1_re4_result.group(4)}.{git_ls_remote_cmd1_re4_result.group(5)}.{git_ls_remote_cmd1_re4_result.group(6)}.{git_ls_remote_cmd1_re4_result.group(7)}")
                     if git_ls_remote_cmd1_re4_result.group(1):
                         outputVersionPre = f"{git_ls_remote_cmd1_re4_result.group(1)}"
                     if git_ls_remote_cmd1_re4_result.group(2):
@@ -206,8 +206,8 @@ def git_ls_remote_custom_re(remote_url_cmd, clone_path, path, conf):
                         outputVersionPre = f"{outputVersionPre}.{git_ls_remote_cmd1_re4_result.group(4)}"
                     if git_ls_remote_cmd1_re4_result.group(5):
                         outputVersionPre = f"{outputVersionPre}{git_ls_remote_cmd1_re4_result.group(5)}"
-                    if util.debugging:
-                        print_debug(f"outputVersionPre: {outputVersionPre}")
+                    #if util.debugging:
+                        #print_debug(f"outputVersionPre: {outputVersionPre}")
                     git_ls_remote_cmd1_re1_result_pre_sort.append(outputVersionPre)
             if git_ls_remote_cmd1_re1_result_pre_sort:
                 git_ls_remote_cmd1_re1_result_sorted = natsort.natsorted(git_ls_remote_cmd1_re1_result_pre_sort, key=lambda x: x.replace('.', '~')+'z')
@@ -238,17 +238,17 @@ def git_ls_remote(remote_url_cmd, clone_path, path, conf):
     if git_ls_remote_cmd1_result:
         git_ls_remote_cmd1_re1 = re.compile(r"(?<=refs\/tags\/).*", re.MULTILINE)
         git_ls_remote_cmd1_re1_result = git_ls_remote_cmd1_re1.findall(git_ls_remote_cmd1_result)
-        if util.debugging:
-            if git_ls_remote_cmd1_re1_result:
-                for r in git_ls_remote_cmd1_re1_result:
-                    print_debug(r)
+        #if util.debugging:
+            #if git_ls_remote_cmd1_re1_result:
+                #for r in git_ls_remote_cmd1_re1_result:
+                    #print_debug(r)
 
         if git_ls_remote_cmd1_re1_result:
             git_ls_remote_cmd1_re2_result_delete = []
             default_re = r"(?:^\d{8,8})|(?:^[a-zA-Z]+[-_.]+[a-zA-Z]+)"
             if conf.custom_git_re:
-                if util.debugging:
-                    print_debug(f"conf.custom_git_re: {conf.custom_git_re}")
+                #if util.debugging:
+                    #print_debug(f"conf.custom_git_re: {conf.custom_git_re}")
                 git_ls_remote_cmd1_re2_pre = r"{default_re}|{custom_re}".format(default_re=default_re, custom_re=conf.custom_git_re)
                 git_ls_remote_cmd1_re2 = re.Pattern
                 try:
@@ -259,44 +259,44 @@ def git_ls_remote(remote_url_cmd, clone_path, path, conf):
                 print_info(f"Custom git regex: {git_ls_remote_cmd1_re2.pattern}")
             else:
                 git_ls_remote_cmd1_re2 = re.compile(default_re, re.MULTILINE)
-            if util.debugging:
-                print_debug("Reverse: '{git_ls_remote_cmd1_re2}':")
+            #if util.debugging:
+                #print_debug("Reverse: '{git_ls_remote_cmd1_re2}':")
             for i, r in enumerate(git_ls_remote_cmd1_re1_result):
                 git_ls_remote_cmd1_re2_result = git_ls_remote_cmd1_re2.search(r)
                 if git_ls_remote_cmd1_re2_result:
-                    if util.debugging:
-                        print_debug(f"Delete: {i} - {r}")
+                    #if util.debugging:
+                        #print_debug(f"Delete: {i} - {r}")
                     git_ls_remote_cmd1_re2_result_delete.append(i)
             for d in sorted(git_ls_remote_cmd1_re2_result_delete, reverse=True):
                 del git_ls_remote_cmd1_re1_result[d]
-            if util.debugging:
-                for r in git_ls_remote_cmd1_re1_result:
-                    print_debug(r)
+            #if util.debugging:
+                #for r in git_ls_remote_cmd1_re1_result:
+                    #print_debug(r)
 
         if git_ls_remote_cmd1_re1_result:
             git_ls_remote_cmd1_re3_result_delete = []
             git_ls_remote_cmd1_re3 = re.compile(r"(?:^(?:[a-zA-Z]+[0-9]?[a-zA-Z0-9]*[\-]+)?|^(?:[vV]+)?)(0|[1-9]\d*)(?:\.|\_)(0|[1-9]\d*)?(?:(?:\.|\_)(0|[1-9]\d*))?(?:(?:\.|\_)(0|[1-9]\d*))?((?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*))*)?(?:\-((?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*))*))?([a-zA-Z0-9\_\.\-]+)?", re.MULTILINE)
-            if util.debugging:
-                print_debug("'(?:^(?:[a-zA-Z]+[0-9]?[a-zA-Z0-9]*[\-]+)?|^(?:[vV]+)?)(0|[1-9]\d*)(?:\.|\_)(0|[1-9]\d*)?(?:(?:\.|\_)(0|[1-9]\d*))?(?:(?:\.|\_)(0|[1-9]\d*))?((?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*))*)?(?:\-((?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*))*))?([a-zA-Z0-9\_\.\-]+)?':")
+            #if util.debugging:
+                #print_debug("'(?:^(?:[a-zA-Z]+[0-9]?[a-zA-Z0-9]*[\-]+)?|^(?:[vV]+)?)(0|[1-9]\d*)(?:\.|\_)(0|[1-9]\d*)?(?:(?:\.|\_)(0|[1-9]\d*))?(?:(?:\.|\_)(0|[1-9]\d*))?((?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*))*)?(?:\-((?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*))*))?([a-zA-Z0-9\_\.\-]+)?':")
             for i, r in enumerate(git_ls_remote_cmd1_re1_result):
                 git_ls_remote_cmd1_re3_result = git_ls_remote_cmd1_re3.search(r)
                 if not git_ls_remote_cmd1_re3_result:
-                    if util.debugging:
-                        print_debug(f"Delete: {i} - {r}")
+                    #if util.debugging:
+                        #print_debug(f"Delete: {i} - {r}")
                     git_ls_remote_cmd1_re3_result_delete.append(i)
             for d in sorted(git_ls_remote_cmd1_re3_result_delete, reverse=True):
                 del git_ls_remote_cmd1_re1_result[d]
-            if util.debugging:
-                for r in git_ls_remote_cmd1_re1_result:
-                    print_debug(r)
+            #if util.debugging:
+                #for r in git_ls_remote_cmd1_re1_result:
+                    #print_debug(r)
 
         if git_ls_remote_cmd1_re1_result:
             git_ls_remote_cmd1_re4 = re.compile(r"(?:^(?:[a-zA-Z]+[0-9]?[a-zA-Z0-9]*[\-]+)?|^(?:[vV]+)?)(0|[1-9]\d*)(?:\.|\_)(0|[1-9]\d*)?(?:(?:\.|\_)(0|[1-9]\d*))?(?:(?:\.|\_)(0|[1-9]\d*))?((?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*))*)?(?:\-((?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*))*))?([a-zA-Z0-9\_\.\-]+)?", re.MULTILINE)
             for r in git_ls_remote_cmd1_re1_result:
                 git_ls_remote_cmd1_re4_result = git_ls_remote_cmd1_re4.search(r)
                 if git_ls_remote_cmd1_re4_result:
-                    if util.debugging:
-                        print_debug(f"{git_ls_remote_cmd1_re4_result.group(1)}.{git_ls_remote_cmd1_re4_result.group(2)}.{git_ls_remote_cmd1_re4_result.group(3)}.{git_ls_remote_cmd1_re4_result.group(4)}.{git_ls_remote_cmd1_re4_result.group(5)}.{git_ls_remote_cmd1_re4_result.group(6)}.{git_ls_remote_cmd1_re4_result.group(7)}")
+                    #if util.debugging:
+                        #print_debug(f"{git_ls_remote_cmd1_re4_result.group(1)}.{git_ls_remote_cmd1_re4_result.group(2)}.{git_ls_remote_cmd1_re4_result.group(3)}.{git_ls_remote_cmd1_re4_result.group(4)}.{git_ls_remote_cmd1_re4_result.group(5)}.{git_ls_remote_cmd1_re4_result.group(6)}.{git_ls_remote_cmd1_re4_result.group(7)}")
                     if git_ls_remote_cmd1_re4_result.group(1):
                         outputVersionPre = f"{git_ls_remote_cmd1_re4_result.group(1)}"
                     if git_ls_remote_cmd1_re4_result.group(2):
@@ -307,8 +307,8 @@ def git_ls_remote(remote_url_cmd, clone_path, path, conf):
                         outputVersionPre = f"{outputVersionPre}.{git_ls_remote_cmd1_re4_result.group(4)}"
                     if git_ls_remote_cmd1_re4_result.group(5):
                         outputVersionPre = f"{outputVersionPre}{git_ls_remote_cmd1_re4_result.group(5)}"
-                    if util.debugging:
-                        print_debug(f"outputVersionPre: {outputVersionPre}")
+                    #if util.debugging:
+                        #print_debug(f"outputVersionPre: {outputVersionPre}")
                     git_ls_remote_cmd1_re1_result_pre_sort.append(outputVersionPre)
             if git_ls_remote_cmd1_re1_result_pre_sort:
                 git_ls_remote_cmd1_re1_result_sorted = natsort.natsorted(git_ls_remote_cmd1_re1_result_pre_sort, key=lambda x: x.replace('.', '~')+'z')
@@ -382,8 +382,8 @@ def find_version_git(url, clone_path, path, conf):
 
     if not outputVersionFinal:
         print_info("Need to use date")
-        if util.debugging:
-            print_debug(f"git_tag_version_cmd4: {git_tag_version_cmd4}")
+        #if util.debugging:
+            #print_debug(f"git_tag_version_cmd4: {git_tag_version_cmd4}")
         process = subprocess.run(
             git_tag_version_cmd4,
             check=False,
@@ -525,6 +525,7 @@ def git_archive_all(path, name, url, branch, force_module, force_fullclone, conf
                     remove_clone_archive(path, clone_path, is_fatal)
                     print_fatal(f"Unable to archive {clone_path} in {clone_file} from {url}: {err}")
                     sys.exit(1)
+
             return absolute_url_file
         else:
             print_fatal(f"Unable to archive {clone_path} in {clone_file} from {url}")

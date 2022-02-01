@@ -493,7 +493,12 @@ class Content(object):
             #print(f"self.gem_subdir: {self.gem_subdir}")
         # set global path with tarball_prefix
         self.path = os.path.join(self.base_path, self.tarball_prefix)
-        #print(f"self.path: {self.path} - self.base_path: {self.base_path} - self.tarball_prefix: {self.tarball_prefix}")
+        #if util.debugging:
+            #print_debug(f"tarball.py - self.url: {self.url}")
+            #print_debug(f"tarball.py - self.path: {self.path}")
+            #print_debug(f"tarball.py - self.base_path: {self.base_path}")
+            #print_debug(f"tarball.py - self.tarball_prefix: {self.tarball_prefix}")
+        #print()
         # Now that the metadata has been collected print the header
         self.print_header()
         # Download and process extra sources: archives, go archives and

@@ -45,12 +45,6 @@ from util import binary_in_path, print_fatal, write_out, print_debug, print_warn
 
 sys.path.append(os.path.dirname(__file__))
 
-
-#link-new-rpms: require-pkg-repo-dir
-	#mkdir -p ${PKG_REPO_DIR}/rpms
-	#rm -f ${PKG_REPO_DIR}/rpms/*.rpm
-	# \;
-	#rm -f ${PKG_REPO_DIR}/rpms/*.src.rpm
 def link_new_rpms(download_path):
     mkdir_cmd = f"mkdir -p {download_path}/rpms"
     try:
@@ -688,6 +682,8 @@ def package(
     filemanager = files.FileManager(conf, package, mock_dir, short_circuit)
     if util.debugging:
         print_debug(f"url 4: {url}")
+        print_debug(f"archives 4: {archives}")
+        print_debug(f"new_archives_from_git 4: {new_archives_from_git}")
     content = tarball.Content(url, name, args.version, archives, conf, workingdir, giturl, download_from_git, branch, new_archives_from_git, force_module, force_fullclone)
     content.process(filemanager)
     conf.create_versions(content.multi_version)
