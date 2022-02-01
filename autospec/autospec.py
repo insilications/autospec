@@ -291,7 +291,7 @@ def main():
         default=[],
         nargs="*",
         help="git URL for additional archives, the location for"
-        " the sources to be extacted to and the branch to download"
+        " the sources to be extracted to and the branch to download"
         " from, with master as the default (e.g."
         " http://example.com/downloads/dependency.tar.gz"
         " /directory/relative/to/extract/root master "
