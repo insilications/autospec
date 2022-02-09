@@ -1366,12 +1366,12 @@ class Specfile(object):
             if use_subdir and self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
             init = f"{self.get_profile_generate_flags()}"
-            init = f"%reconfigure {self.config.extra_configure_special2}"
+            init2 = f"%reconfigure {self.config.extra_configure_special2}"
         elif pattern == "configure_ac" and build_type is None:
             if use_subdir and self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
             init = f"{self.get_profile_generate_flags()}"
-            init2 = f"%reconfigure {self.config.extra_configure} {self.config.extra_configure64}"
+            init2 = f"%reconfigure {self.config.extra_configure64}"
         elif pattern == "autogen" and build_type == "special":
             if use_subdir and self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
@@ -2603,7 +2603,7 @@ class Specfile(object):
                     self._write_strip("popd")
                 self._write_strip("\n")
         else:
-            self.write_profile_payload("configure_ac")
+            self.write_profile_payload(pattern="configure_ac", build_type=None)
             if self.config.configure_macro:
                 if self.config.subdir:
                     self._write_strip("pushd " + self.config.subdir)
@@ -2635,10 +2635,10 @@ class Specfile(object):
             self._write_strip(r"sd -r 'git describe' 'git describe --abbrev=0' .")
             if self.config.config_opts["disable_maintainer"]:
                 self._write_strip(r"sd --flags mi '^AC_INIT\((.*\n.*\)|.*\))' '$0\nAM_MAINTAINER_MODE([disable])' configure.ac")
-            self.write_profile_payload("configure_ac", "special")
+            self.write_profile_payload(pattern="configure_ac", build_type="special")
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
-            self._write_strip("{0}%reconfigure {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special))
+            self._write_strip("{0}%reconfigure {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special_pgo))
             if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
                 self.write_make_line(build32=False, build_type="special", pgo=True, pattern=None)
             else:
@@ -2653,7 +2653,7 @@ class Specfile(object):
             self.write_variables()
             if self.config.config_opts["disable_maintainer"]:
                 self._write_strip(r"sd --flags mi '^AC_INIT\((.*\n.*\)|.*\))' '$0\nAM_MAINTAINER_MODE([disable])' configure.ac")
-            self.write_profile_payload("configure_ac", "special2")
+            self.write_profile_payload(pattern="configure_ac", build_type="special2")
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
             self._write_strip("{0}%reconfigure {1} ".format(self.get_profile_use_flags(), self.config.extra_configure_special2))
