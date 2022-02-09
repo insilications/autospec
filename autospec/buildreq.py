@@ -693,17 +693,9 @@ class Requirements(object):
             lines = f.readlines()
 
         for line in lines:
-            # don't add the test section
-            if clean_python_req(line) == '[test]':
+            if '[' in line:
                 break
-            if clean_python_req(line) == "[testing]":
-                break
-            if clean_python_req(line) == '[dev]':
-                break
-            if clean_python_req(line) == '[doc]':
-                break
-            if clean_python_req(line) == '[docs]':
-                break
+            clean_line = clean_python_req(line)
             if 'pytest' in line:
                 continue
             if clean_line:
