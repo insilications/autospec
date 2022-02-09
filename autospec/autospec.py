@@ -567,7 +567,7 @@ def package(
         arch_submodule = []
         arch_forcefullclone = []
         if util.debugging:
-            print_debug(f"\n\nARCHIVES_GIT 2: {archives_from_git}\n")
+            print_debug(f"ARCHIVES_GIT 2: {archives_from_git}")
             print_debug(f"archives in options.conf: {archives}\n\n")
         archives_re = re.compile(r"^file:\/\/")
         index_f = []
@@ -582,7 +582,7 @@ def package(
             del archives[index_f[x] : index_f[x] + 2]
 
         if util.debugging:
-            print_debug(f"\n\narchives in options.conf: {archives}")
+            print_debug(f"archives in options.conf: {archives}")
 
         for aurl, dest, br, sm, ffc in zip(archives_from_git[::5], archives_from_git[1::5], archives_from_git[2::5], archives_from_git[3::5], archives_from_git[4::5]):
             arch_url.append(aurl)
@@ -591,16 +591,16 @@ def package(
             arch_submodule.append(sm)
             arch_forcefullclone.append(ffc)
             if util.debugging:
-                print_debug(f"\nFOR ZIP {arch_url[-1]} - {arch_destination[-1]} - {arch_branch[-1]} - {arch_submodule[-1]} - {arch_forcefullclone[-1]}")
+                print_debug(f"FOR ZIP {arch_url[-1]} - {arch_destination[-1]} - {arch_branch[-1]} - {arch_submodule[-1]} - {arch_forcefullclone[-1]}")
         for index, new_arch_url in enumerate(arch_url, start=0):
             found_file = False
             fileslist = []
             download_file_full_path = ""
             arch_name = os.path.splitext(os.path.basename(new_arch_url))[0]
-            arch_name_re_escaped = re.escape(name)
+            arch_name_re_escaped = re.escape(arch_name)
             filename_re = re.compile(r"^{}{}".format(arch_name_re_escaped, r"-.*\.tar\.gz"))
             if util.debugging:
-                print_debug(f"\n\narch_name: {arch_name}")
+                print_debug(f"arch_name: {arch_name}")
             if os.path.basename(os.getcwd()) == name:
                 package_path = "./"
                 if util.debugging:
