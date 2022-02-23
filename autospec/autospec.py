@@ -717,12 +717,12 @@ def package(
 
     if short_circuit == "prep" or short_circuit is None:
         requirements.scan_for_configure(_dir, content.name, conf)
-    specdescription.scan_for_description(content.name, _dir, conf.license_translations, conf.license_blacklist)
-    # Start one directory higher so we scan *all* versions for licenses
-    license.scan_for_licenses(os.path.dirname(_dir), conf, content.name)
-    commitmessage.scan_for_changes(conf.download_path, _dir, conf.transforms)
-    conf.add_sources(archives, content)
-    check.scan_for_tests(_dir, conf, requirements, content)
+        specdescription.scan_for_description(content.name, _dir, conf.license_translations, conf.license_blacklist)
+        # Start one directory higher so we scan *all* versions for licenses
+        license.scan_for_licenses(os.path.dirname(_dir), conf, content.name)
+        commitmessage.scan_for_changes(conf.download_path, _dir, conf.transforms)
+        conf.add_sources(archives, content)
+        check.scan_for_tests(_dir, conf, requirements, content)
 
     #
     # Now, we have enough to write out a specfile, and try to build it.
@@ -738,8 +738,9 @@ def package(
         pkg_integrity.check(url, conf, interactive=interactive_mode)
         pkg_integrity.load_specfile(specfile)
 
-    conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
-    # conf.create_reqs_cache(content.version, requirements.reqs_cache)
+    if short_circuit == "prep" or short_circuit is None:
+        conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
+        # conf.create_reqs_cache(content.version, requirements.reqs_cache)
     specfile.write_spec()
     filemanager.load_specfile_information(specfile, content)
     if short_circuit == "prep":
