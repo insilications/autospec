@@ -61,16 +61,14 @@ def cleanup_req(s: str) -> str:
     s = s.strip()
     return s
 
-
-def check_for_warning_pattern(line):
-    """Print warning if a line matches against a warning list."""
-    warning_patterns = [
-        "march=native"
-    ]
-    for pat in warning_patterns:
-        if pat in line:
-            util.print_warning("Build log contains: {}".format(pat))
-
+#def check_for_warning_pattern(line):
+    #"""Print warning if a line matches against a warning list."""
+    #warning_patterns = [
+        #"march=native"
+    #]
+    #for pat in warning_patterns:
+        #if pat in line:
+            #util.print_warning("Build log contains: {}".format(pat))
 
 def get_mock_cmd():
     """Set mock command to use sudo as needed."""
@@ -79,8 +77,7 @@ def get_mock_cmd():
     if sys.executable == "/usr/bin/python":
         return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /usr/bin/mock'
     else:
-        return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /home/boni/.local/pypy-venv/bin/python --jit max_unroll_recursion=16,disable_unrolling=300 /home/boni/.local/pypy-venv/bin/mock'
-
+        return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /home/boni/.local/pypy-venv/bin/python --jit max_unroll_recursion=16,disable_unrolling=300,vec_all=1,vec=1 /home/boni/.local/pypy-venv/bin/mock'
 
 class Build(object):
     """Manage package builds."""
@@ -98,6 +95,14 @@ class Build(object):
         self.do_file_restart = True
         self.patch_name_line = re.compile(r'^Patch #[0-9]+ \((.*)\):$')
         self.patch_fail_line = re.compile(r'^Skipping patch.$')
+
+    def write_cargo_config(self, mock_dir, content_name, config):
+        """Write cargo config.toml to package .cargo builddir home directory."""
+        config_home_dst = f"{mock_dir}/clear-{content_name}/root/builddir/.cargo/config.toml"
+        cargo_config_file = "/aot/build/clearlinux/projects/autospec/autospec/config.toml"
+
+        if os.path.isfile(cargo_config_file):
+            shutil.copy2(cargo_config_file, config_home_dst)
 
     def write_normal_bashrc(self, mock_dir, content_name, config):
         """Write normal bashrc to package builddir home directory."""
@@ -430,7 +435,7 @@ class Build(object):
             if infiles == 0 and "Installed (but unpackaged) file(s) found:" in line:
                 infiles = 1
                 filemanager.fix_broken_pkg_config_versioning(content.name)
-                if config.config_opts["altcargo1"]:
+                if config.config_opts["altcargo1"] or config.config_opts["altcargo_pgo"]:
                     filemanager.write_cargo_find_install_assets(content.name)
             # elif infiles == 1 and "not matching the package arch" not in line:
             elif infiles == 1:
@@ -438,7 +443,7 @@ class Build(object):
                 file = line.strip()
                 if file and file[0] == "/":
                     filemanager.push_file(file, content.name)
-                    print(f"file: {file}")
+                    print(file)
 
             if line.startswith("Sorry: TabError: inconsistent use of tabs and spaces in indentation"):
                 print(line)
@@ -547,6 +552,8 @@ class Build(object):
 
         if self.short_circuit == "prep":
             self.write_normal_bashrc(self.mock_dir, content.name, config)
+            if config.config_opts.get("altcargo1") or config.config_opts.get("altcargo_pgo"):
+                self.write_cargo_config(self.mock_dir, content.name, config)
             # self.write_python_flags_fix(mock_dir, content.name, config)
 
         #if self.short_circuit == "prep" and config.config_opts.get("altflags_pgo_ext") and config.config_opts.get("altflags_pgo_ext_phase"):

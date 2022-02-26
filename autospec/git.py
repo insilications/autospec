@@ -592,6 +592,9 @@ def commit_to_git(config, name, success):
     call("git add used_libs32", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add testresults", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add profile_payload", check=False, stderr=subprocess.DEVNULL, cwd=path)
+    call("git add profile_payload_special", check=False, stderr=subprocess.DEVNULL, cwd=path)
+    call("git add profile_payload_special2", check=False, stderr=subprocess.DEVNULL, cwd=path)
+    call("git add profile_payload_bolt", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add options.conf", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add configure_misses", check=False, stderr=subprocess.DEVNULL, cwd=path)
     call("git add whatrequires", check=False, stderr=subprocess.DEVNULL, cwd=path)
@@ -631,6 +634,7 @@ def commit_to_git(config, name, success):
         "*.mod",
         "*.swp",
         ".repo-index",
+        ".reposrc-index",
         "*.log",
         "build.log.round*",
         "*.tar.*",

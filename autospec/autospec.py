@@ -41,15 +41,16 @@ import tarball
 import util
 import shutil
 import subprocess
+import download
 from util import binary_in_path, print_fatal, write_out, print_debug, print_warning, print_info
 
 sys.path.append(os.path.dirname(__file__))
 
-def link_new_rpms(download_path):
-    mkdir_cmd = f"mkdir -p {download_path}/rpms"
+def link_new_rpms_here():
+    make_cmd = f"make link-new-rpms-here"
     try:
         process = subprocess.run(
-            mkdir_cmd,
+            make_cmd,
             check=True,
             shell=True,
             stdout=subprocess.PIPE,
@@ -58,53 +59,9 @@ def link_new_rpms(download_path):
             universal_newlines=True,
         )
     except subprocess.CalledProcessError as err:
-        print_fatal(f"Error: {mkdir_cmd} in {download_path}: {err}")
+        print_fatal(f"Error: {make_cmd}: {err}")
         sys.exit(1)
 
-    rmdir_rpm_cmd = f"rm -f {download_path}/rpms/*.rpm"
-    try:
-        process = subprocess.run(
-            rmdir_rpm_cmd,
-            check=True,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            universal_newlines=True,
-        )
-    except subprocess.CalledProcessError as err:
-        print_fatal(f"Error: {rmdir_rpm_cmd} in {download_path}: {err}")
-        sys.exit(1)
-
-    ln_cmd = f"find {download_path}/results -maxdepth 1 -name '*.rpm' -exec ln {{}} {download_path}/rpms/ \;"
-    try:
-        process = subprocess.run(
-            ln_cmd,
-            check=True,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            universal_newlines=True,
-        )
-    except subprocess.CalledProcessError as err:
-        print_fatal(f"Error: {ln_cmd} in {download_path}: {err}")
-        sys.exit(1)
-
-    rmdir_srcrpm_cmd = f"rm -f {download_path}/rpms/*.src.rpm"
-    try:
-        process = subprocess.run(
-            rmdir_srcrpm_cmd,
-            check=True,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            universal_newlines=True,
-        )
-    except subprocess.CalledProcessError as err:
-        print_fatal(f"Error: {rmdir_srcrpm_cmd} in {download_path}: {err}")
-        sys.exit(1)
 
 def str_to_bool(s):
     """Create helper function to convert srt to true Bool."""
@@ -559,6 +516,7 @@ def package(
                 print_debug(f"giturl 12: {giturl}")
     else:
         giturl = ""
+        url = download.do_curl_get_effective_url(url)
 
     if archives_from_git:
         arch_url = []
@@ -671,7 +629,7 @@ def package(
         if util.debugging:
             print_debug(f"new_archives_from_git: {new_archives_from_git}\n")
 
-    check_requirements(args.git)
+    #check_requirements(args.git)
     conf.detect_build_from_url(url)
     package = build.Build()
 
@@ -741,12 +699,12 @@ def package(
     if short_circuit == "prep" or short_circuit is None:
         conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
         # conf.create_reqs_cache(content.version, requirements.reqs_cache)
+
     specfile.write_spec()
     filemanager.load_specfile_information(specfile, content)
     if short_circuit == "prep":
         util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/SRPMS/")
         util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/BUILD/")
-        #util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/var/tmp/pgo/")
     if short_circuit == "install":
         util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/RPMS/")
     while 1:
@@ -819,19 +777,19 @@ def package(
             write_out(conf.download_path + "/release", content.release + "\n")
 
             # record logcheck output
-            logcheck(conf.download_path)
+            #logcheck(conf.download_path)
 
-            if args.git:
-                print("\nTrying to guess the commit message\n")
-                commitmessage.guess_commit_message(pkg_integrity.IMPORTED, conf, content)
-                git.commit_to_git(conf, content.name, package.success)
+            #if args.git:
+                #print("\nTrying to guess the commit message\n")
+                #commitmessage.guess_commit_message(pkg_integrity.IMPORTED, conf, content)
+                #git.commit_to_git(conf, content.name, package.success)
 
         elif (short_circuit == "prep"):
             write_out(conf.download_path + "/release", content.release + "\n")
 
-        elif (short_circuit == "build"):
+        #elif (short_circuit == "build"):
             # record logcheck output
-            logcheck(conf.download_path)
+            #logcheck(conf.download_path)
 
         #elif (short_circuit == "install"):
             ## record logcheck output
@@ -845,14 +803,13 @@ def package(
 
             #write_out(conf.download_path + "/release", content.release + "\n")
 
-            if args.git:
-                print("\nTrying to guess the commit message\n")
-                commitmessage.guess_commit_message(pkg_integrity.IMPORTED, conf, content)
-                git.commit_to_git(conf, content.name, package.success)
-            else:
-                print("To commit your changes, git add the relevant files and run 'git commit -F commitmsg'")
-
-            link_new_rpms(conf.download_path)
+            #if args.git:
+                #print("\nTrying to guess the commit message\n")
+                #commitmessage.guess_commit_message(pkg_integrity.IMPORTED, conf, content)
+                #git.commit_to_git(conf, content.name, package.success)
+            #else:
+                #print("To commit your changes, git add the relevant files and run 'git commit -F commitmsg'")
+            link_new_rpms_here()
 
 
 if __name__ == "__main__":

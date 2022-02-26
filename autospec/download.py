@@ -24,6 +24,30 @@ from io import BytesIO
 import pycurl
 from util import print_fatal
 
+def do_curl_get_effective_url(url):
+    """
+    Perform a curl operation for `url` and return the effective filename
+    """
+    c = pycurl.Curl()
+    c.setopt(c.URL, url)
+    c.setopt(c.FOLLOWLOCATION, True)
+    c.setopt(c.AUTOREFERER, True)
+    c.setopt(c.NOBODY, True)
+    c.setopt(c.FAILONERROR, True)
+    c.setopt(c.CONNECTTIMEOUT, 10)
+    c.setopt(c.TIMEOUT, 600)
+    effective_url = ""
+    try:
+        c.perform()
+        effective_url = c.getinfo(pycurl.EFFECTIVE_URL)
+    except pycurl.error as e:
+        print_fatal(f"Unable to fetch effective filename {url}: {e}")
+        sys.exit(1)
+        return None
+    finally:
+        c.close()
+
+    return effective_url
 
 def do_curl(url, dest=None, post=None, is_fatal=False):
     """

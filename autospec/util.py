@@ -30,6 +30,23 @@ os_paths = None
 debugging : bool = False
 
 
+def call_fast(command, cwd=None, check=True):
+    """Subprocess.call fast convenience wrapper."""
+    returncode = 1
+
+    full_args = {
+        "args": shlex.split(command),
+        "universal_newlines": True,
+        "cwd": cwd,
+    }
+
+    returncode = subprocess.call(**full_args)
+    if check and returncode != 0:
+        raise subprocess.CalledProcessError(returncode, full_args["args"], None)
+
+    return returncode
+
+
 def scantree(path):
     """Recursively yield DirEntry objects for given directory."""
     for entry in os.scandir(path):

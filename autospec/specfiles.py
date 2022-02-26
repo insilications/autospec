@@ -121,6 +121,10 @@ class Specfile(object):
         if self.config.config_opts.get("keepstatic"):
             self._write("%define keepstatic 1\n")
 
+        if self.config.config_opts.get("keepbuildroot"):
+            self._write("%define keepbuildroot 1\n")
+            self._write("%define __spec_install_pre %{___build_pre} %{nil}\n")
+
         # general package header
         self.write_nvr()
         self.write_sources()
@@ -449,8 +453,6 @@ class Specfile(object):
         self.write_service_restart()
         self.write_exclude_deletes()
         self.write_install_append()
-        if self.config.config_opts["altcargo1"]:
-            self.write_cargo_assets()
         # elf move is last is copying content already
         # installed bits to their individual buildroots
         # maybe need a new install_append_last file
@@ -758,16 +760,19 @@ class Specfile(object):
                     # Make it up
                     archive_prefix = os.path.splitext(os.path.basename(archive))[0]
                 self._write_strip("cp -a %{{_builddir}}/{0}/* %{{_builddir}}/{1}/{2}".format(archive_prefix, self.content.tarball_prefix, destination))
-        if self.config.config_opts["altcargo1"]:
+
+        if self.config.config_opts["altcargo1"] or self.config.config_opts["altcargo_pgo"]:
             self._write_strip("export CARGO_NET_GIT_FETCH_WITH_CLI=true")
             self._write_strip("export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt")
             self._write_strip("export CARGO_HTTP_CAINFO=/var/cache/ca-certs/anchors/ca-certificates.crt")
             self._write_strip("cargo update --verbose")
-            self._write_strip("## cargo_update content")
-            for line in self.config.cargo_update:
-                self._write("{}\n".format(line))
-            self._write_strip("## cargo_update end")
+            if self.config.cargo_update and self.config.cargo_update[0]:
+                self._write_strip("## cargo_update content")
+                for line in self.config.cargo_update:
+                    self._write("{}\n".format(line))
+                self._write_strip("## cargo_update end")
             self._write_strip("cargo fetch --verbose")
+
         self.apply_patches()
         if self.config.default_pattern == "distutils3" or self.config.default_pattern == "pyproject":
             self._write_strip("pushd ..")
@@ -855,12 +860,12 @@ class Specfile(object):
                 self._write_strip("unset LINKFLAGS")
                 self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 self._write_strip('export ASFLAGS="--32"')
-                self._write_strip('export CFLAGS="-O2 -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
-                self._write_strip('export ASMFLAGS="-O2 -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
-                self._write_strip('export CXXFLAGS="-O2 -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
-                self._write_strip('export FCFLAGS="-O2 -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
-                self._write_strip('export FFLAGS="-O2 -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
-                self._write_strip('export LDFLAGS="-O2 -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export CFLAGS="-O2 -pipe -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export ASMFLAGS="-O2 -pipe -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export CXXFLAGS="-O2 -fvisibility-inlines-hidden -pipe -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export FCFLAGS="-O2 -fvisibility-inlines-hidden -pipe -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export FFLAGS="-O2 -fvisibility-inlines-hidden -pipe -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export LDFLAGS="-O2 -pipe -march=native -mtune=native -m32 -mstackrealign"')
             else:
                 self._write_strip("export AR=gcc-ar")
                 self._write_strip("export RANLIB=gcc-ranlib")
@@ -877,12 +882,12 @@ class Specfile(object):
                 self._write_strip("unset LINKFLAGS")
                 self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 self._write_strip('export ASFLAGS="--32"')
-                self._write_strip('export CFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
-                self._write_strip('export ASMFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
-                self._write_strip('export CXXFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
-                self._write_strip('export FCFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
-                self._write_strip('export FFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
-                self._write_strip('export LDFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -fPIC -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export CFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export ASMFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export CXXFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export FCFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export FFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -march=native -mtune=native -m32 -mstackrealign"')
+                self._write_strip('export LDFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -march=native -mtune=native -m32 -mstackrealign"')
 
     def write_variables(self):
         """Write variable exports to spec file."""
@@ -973,7 +978,7 @@ class Specfile(object):
         if self.content.gcov_file:
             flags = list(filter((lto).__ne__, flags))
             flags.extend(["-O3", "-fauto-profile=%{{SOURCE{0}}}".format(self.source_index[self.config.sources["gcov"][0]])])
-        if (flags or self.config.config_opts["broken_c++"]) and not self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["altflags_pgo_ext"]:
+        if (flags or self.config.config_opts["broken_c++"]) and not self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altcargo1"] and not self.config.config_opts["altcargo_pgo"]:
             flags = sorted(list(set(flags)))
             self._write_strip('export CFLAGS="$CFLAGS {0} "\n'.format(" ".join(flags)))
             self._write_strip('export FCFLAGS="$FFLAGS {0} "\n'.format(" ".join(flags)))
@@ -993,6 +998,8 @@ class Specfile(object):
             and not self.config.config_opts["fsalt1"]
             and not self.config.config_opts["altflags_pgo"]
             and not self.config.config_opts["altflags_pgo_ext"]
+            and not self.config.config_opts["altcargo1"]
+            and not self.config.config_opts["altcargo_pgo"]
         ):
             genflags = []
             useflags = []
@@ -1057,7 +1064,6 @@ class Specfile(object):
                         "-fno-pie",
                         "-fno-PIE",
                         "-fno-PIC",
-                        "-fpic",
                         "-fuse-ld=bfd",
                         "-fno-stack-protector",
                         "-O3",
@@ -1108,7 +1114,6 @@ class Specfile(object):
                         "-fno-pie",
                         "-fno-PIE",
                         "-fno-PIC",
-                        "-fpic",
                         "-fuse-ld=bfd",
                         "-fno-stack-protector",
                         "-O3",
@@ -1142,7 +1147,6 @@ class Specfile(object):
                         "-fno-pie",
                         "-fno-PIE",
                         "-fno-PIC",
-                        "-fpic",
                         "-fuse-ld=bfd",
                         "-fno-stack-protector",
                         "-Wl,-O2",
@@ -1239,6 +1243,17 @@ class Specfile(object):
                 self._write_strip('export CXXFLAGS_USE="$CXXFLAGS {0} "\n'.format(" ".join(useflags)))
                 self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
                 self._write_strip("## altflags_pgo end")
+        if self.config.config_opts["altcargo_pgo"] and not self.config.config_opts["altcargo1"] and not self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+            if self.config.altflagsrust_pgof and self.config.altflagsrust_pgof[0]:
+                self._write_strip("## altflagsrust_pgof content")
+                for line in self.config.altflagsrust_pgof:
+                    self._write("{}\n".format(line))
+                self._write_strip("## altflagsrust_pgof end")
+            elif self.config.altflagsrust_pgo and self.config.altflagsrust_pgo[0]:
+                self._write_strip("## altflagsrust_pgo content")
+                for line in self.config.altflagsrust_pgo:
+                    self._write("{}\n".format(line))
+                self._write_strip("## altflagsrust_pgo end")
 
     def write_check(self):
         """Write check section to spec file."""
@@ -1416,13 +1431,14 @@ class Specfile(object):
             self._write_strip("{}\n".format(self.config.custom_clean_pgo))
         else:
             self._write_strip("\nmake clean || :\n")
+        if use_subdir and self.config.subdir:
+            self._write_strip("popd")
         self._write_strip("echo USED > statuspgo")
         self._write_strip("fi")
         self._write_strip("if [ -f statuspgo ]; then")
         self._write_strip("echo PGO Phase 2\n")
 
-        if use_subdir and self.config.subdir:
-            self._write_strip("popd")
+
         if post:
             self._write_strip(post)
 
@@ -1853,17 +1869,6 @@ class Specfile(object):
             self._write_strip('/usr/bin/elf-move.py avx2 %{buildroot}-v3 %{buildroot} %{buildroot}/usr/share/clear/filemap/filemap-%{name}' + skips)
         if self.config.config_opts['use_avx512']:
             self._write_strip('/usr/bin/elf-move.py avx512 %{buildroot} %{buildroot}/usr/share/clear/optimized-elf/ %{buildroot}/usr/share/clear/filemap/filemap-%{name}')
-
-    def write_cargo_assets(self):
-        """Write out install assets found by filemanager.write_cargo_find_install_assets."""
-        self._write_strip("## Cargo install assets")
-        if self.cargo_install_assets:
-            for i, install_cmd in enumerate(self.cargo_install_assets):
-            #for (install_cmd1, install_cmd2) in self.cargo_install_assets:
-                #self._write_strip(install_cmd1)
-                #self._write_strip(install_cmd2)
-                self._write_strip(install_cmd[0])
-                self._write_strip(install_cmd[1])
 
     def write_exclude_deletes(self):
         """Write out deletes for excluded files."""
@@ -3498,86 +3503,135 @@ class Specfile(object):
         self._write_strip("\n")
         self.write_make_install()
 
+    def get_profile_generate_flags_cargo(self):
+        """Return profile generate flags for altcargo_pgo."""
+        self._write(
+            'export CFLAGS="${CFLAGS_GENERATE}"\n'
+            'export CXXFLAGS="${CXXFLAGS_GENERATE}"\n'
+            'export LDFLAGS="${LDFLAGS_GENERATE}"\n'
+            'export CFLAGS_x86_64_unknown_linux_gnu="${CFLAGS_x86_64_unknown_linux_gnu_GENERATE}"\n'
+            'export CXXFLAGS_x86_64_unknown_linux_gnu="${CXXFLAGS_x86_64_unknown_linux_gnu_GENERATE}"\n'
+            'export LDFLAGS_x86_64_unknown_linux_gnu="${LDFLAGS_x86_64_unknown_linux_gnu_GENERATE}"\n'
+            'export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS="${CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS_GENERATE}"\n'
+            'export RUSTFLAGS="${RUSTFLAGS_GENERATE}"\nexport CARGO_HOST_RUSTFLAGS="${CARGO_HOST_RUSTFLAGS_GENERATE}"\n'
+        )
+
+    def get_profile_use_flags_cargo(self):
+        """Return profile use flags for altcargo_pgo."""
+        self._write(
+            'export CFLAGS="${CFLAGS_USE}"\n'
+            'export CXXFLAGS="${CXXFLAGS_USE}"\n'
+            'export LDFLAGS="${LDFLAGS_USE}"\n'
+            'export CFLAGS_x86_64_unknown_linux_gnu="${CFLAGS_x86_64_unknown_linux_gnu_USE}"\n'
+            'export CXXFLAGS_x86_64_unknown_linux_gnu="${CXXFLAGS_x86_64_unknown_linux_gnu_USE}"\n'
+            'export LDFLAGS_x86_64_unknown_linux_gnu="${LDFLAGS_x86_64_unknown_linux_gnu_USE}"\n'
+            'export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS="${CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS_USE}"\n'
+            'export RUSTFLAGS="${RUSTFLAGS_USE}"\nexport CARGO_HOST_RUSTFLAGS="${CARGO_HOST_RUSTFLAGS_USE}"\n'
+        )
+
     def write_cargo_pattern(self):
         """Write cargo build pattern to spec file."""
-        if self.config.config_opts["altcargo1"]:
-            self.write_prep()
-            self._write_strip("%build")
-            self.write_build_prepend()
-            self.write_proxy_exports()
-            self._write_strip("mkdir -p $HOME/.cargo")
-            if self.config.config_opts["altcargo1_lto"]:
-                self._write('printf \"[build]\\nrustflags = [\\"-Ctarget-cpu=native\\", \\"-Ztune-cpu=native\\", \\"-Cprefer-dynamic=no\\", \\"-Copt-level=3\\", \\"-Clto=fat\\", \\"-Clinker-plugin-lto\\", \\"-Cembed-bitcode=yes\\", \\"-Clinker=clang\\", \\"-Clink-arg=-flto\\", \\"-Clink-arg=-fuse-ld=lld\\", \\"-Clink-arg=-Wl,--lto-O3\\", \\"-Clink-arg=-Wl,-O2\\", \\"-Clink-arg=-Wl,--hash-style=gnu\\", \\"-Clink-arg=-Wl,--enable-new-dtags\\", \\"-Clink-arg=-Wl,--build-id=sha1\\", \\"-Clink-arg=-fno-stack-protector\\", \\"-Clink-arg=-Wl,--as-needed\\", \\"-Clink-arg=-O3\\", \\"-Clink-arg=-march=native\\", \\"-Clink-arg=-mtune=native\\", \\"-Clink-arg=-falign-functions=32\\", \\"-Clink-arg=-fasynchronous-unwind-tables\\", \\"-Clink-arg=-funroll-loops\\", \\"-Clink-arg=-fvisibility-inlines-hidden\\", \\"-Clink-arg=-static-libstdc++\\", \\"-Clink-arg=-march=native\\", \\"-Clink-arg=-static-libgcc\\", \\"-Clink-arg=-pthread\\", \\"-Clink-arg=-lpthread\\", \\"-Clink-arg=-L.\\"]\\n[net]\\ngit-fetch-with-cli = true\\n[profile.release]\\nopt-level = 3\\nlto = \\"fat\\"\\n\" > $HOME/.cargo/config.toml\n')
-            else:
-                self._write('printf \"[build]\\nrustflags = [\\"-Ctarget-cpu=native\\", \\"-Ztune-cpu=native\\", \\"-Cprefer-dynamic=no\\", \\"-Copt-level=3\\", \\"-Clinker-plugin-lto\\", \\"-Cembed-bitcode=yes\\", \\"-Clinker=clang\\", \\"-Clink-arg=-flto\\", \\"-Clink-arg=-fuse-ld=lld\\", \\"-Clink-arg=-Wl,--lto-O3\\", \\"-Clink-arg=-Wl,-O2\\", \\"-Clink-arg=-Wl,--hash-style=gnu\\", \\"-Clink-arg=-Wl,--enable-new-dtags\\", \\"-Clink-arg=-Wl,--build-id=sha1\\", \\"-Clink-arg=-fno-stack-protector\\", \\"-Clink-arg=-Wl,--as-needed\\", \\"-Clink-arg=-O3\\", \\"-Clink-arg=-march=native\\", \\"-Clink-arg=-mtune=native\\", \\"-Clink-arg=-falign-functions=32\\", \\"-Clink-arg=-fasynchronous-unwind-tables\\", \\"-Clink-arg=-funroll-loops\\", \\"-Clink-arg=-fvisibility-inlines-hidden\\", \\"-Clink-arg=-static-libstdc++\\", \\"-Clink-arg=-march=native\\", \\"-Clink-arg=-static-libgcc\\", \\"-Clink-arg=-pthread\\", \\"-Clink-arg=-lpthread\\", \\"-Clink-arg=-L.\\"]\\n[net]\\ngit-fetch-with-cli = true\\n[profile.release]\\nopt-level = 3\\nlto = \\"fat\\"\\n\" > $HOME/.cargo/config.toml\n')
-            self._write_strip("unset CFLAGS")
-            self._write_strip("unset CXXFLAGS")
-            self._write_strip("unset FCFLAGS")
-            self._write_strip("unset FFLAGS")
-            self._write_strip("unset LDFLAGS")
-            self._write_strip("export CARGO_NET_GIT_FETCH_WITH_CLI=true")
-            self._write_strip("export CARGO_PROFILE_RELEASE_LTO=fat")
-            self._write_strip("export CARGO_PROFILE_RELEASE_OPT_LEVEL=3")
-            self._write_strip("export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang")
-            self._write_strip("export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt")
-            self._write_strip("export CARGO_HTTP_CAINFO=/var/cache/ca-certs/anchors/ca-certificates.crt")
-            self._write_strip("export CARGO_TARGET_DIR=target")
-            # self._write_strip('export RUSTFLAGS="-Ctarget-cpu=native -Ztune-cpu=native -Cprefer-dynamic=no -Copt-level=3 -Clto=fat -Clinker-plugin-lto -Cembed-bitcode=yes -Clinker=clang -Clink-arg=-flto -Clink-arg=-fuse-ld=lld -Clink-arg=-Wl,--lto-O3 -Clink-arg=-Wl,-O2 -Clink-arg=-Wl,--hash-style=gnu -Clink-arg=-Wl,--enable-new-dtags -Clink-arg=-Wl,--build-id=sha1 -Clink-arg=-fno-stack-protector -Clink-arg=-Wl,--as-needed -Clink-arg=-O3 -Clink-arg=-march=native -Clink-arg=-mtune=native -Clink-arg=-falign-functions=32 -Clink-arg=-fasynchronous-unwind-tables -Clink-arg=-funroll-loops -Clink-arg=-fvisibility-inlines-hidden -Clink-arg=-static-libstdc++ -Clink-arg=-march=native -Clink-arg=-static-libgcc -Clink-arg=-pthread -Clink-arg=-lpthread -Clink-arg=-L."')
+        self.write_prep()
+        self._write_strip("%build")
+        self.write_build_prepend_once()
+        self.write_build_prepend()
+        self.write_proxy_exports()
+        self._write_strip("export LANG=C.UTF-8")
+        # time.time() returns a float, but we only need second-precision
+        self._write_strip("export SOURCE_DATE_EPOCH={}".format(int(time.time())))
+        if self.config.config_opts["asneeded"]:
+            self._write_strip("unset LD_AS_NEEDED\n")
+        self.write_variables()
+        if self.config.patches_cargo:
             self.apply_patches_cargo()
+        if self.config.config_opts["altcargo_pgo"]:
             if self.config.make_macro:
                 self._write_strip("## make_macro start")
                 for line in self.config.make_macro:
                     self._write("{}\n".format(line))
                 self._write_strip("## make_macro end")
-            #else:
-                #self._write_strip("cargo upgrade")
-                #self._write_strip("cargo update --verbose")
-                #self._write_strip("cargo fetch --verbose")
-                #self._write_strip("cargo fetch --verbose --target x86_64-unknown-linux-gnu")
-                #self._write_strip('cargo build %{{?_smp_mflags}} --all-features --verbose --target-dir x86_64-unknown-linux-gnu --release {0}'.format(self.config.extra_configure))
-            self.write_build_append()
-            self._write_strip("\n")
-            self._write_strip("%install")
-            self.write_install_prepend()
-            self._write_strip("mkdir -p $HOME/.cargo")
-            if self.config.config_opts["altcargo1_lto"]:
-                self._write('printf \"[build]\\nrustflags = [\\"-Ctarget-cpu=native\\", \\"-Ztune-cpu=native\\", \\"-Cprefer-dynamic=no\\", \\"-Copt-level=3\\", \\"-Clto=fat\\", \\"-Clinker-plugin-lto\\", \\"-Cembed-bitcode=yes\\", \\"-Clinker=clang\\", \\"-Clink-arg=-flto\\", \\"-Clink-arg=-fuse-ld=lld\\", \\"-Clink-arg=-Wl,--lto-O3\\", \\"-Clink-arg=-Wl,-O2\\", \\"-Clink-arg=-Wl,--hash-style=gnu\\", \\"-Clink-arg=-Wl,--enable-new-dtags\\", \\"-Clink-arg=-Wl,--build-id=sha1\\", \\"-Clink-arg=-fno-stack-protector\\", \\"-Clink-arg=-Wl,--as-needed\\", \\"-Clink-arg=-O3\\", \\"-Clink-arg=-march=native\\", \\"-Clink-arg=-mtune=native\\", \\"-Clink-arg=-falign-functions=32\\", \\"-Clink-arg=-fasynchronous-unwind-tables\\", \\"-Clink-arg=-funroll-loops\\", \\"-Clink-arg=-fvisibility-inlines-hidden\\", \\"-Clink-arg=-static-libstdc++\\", \\"-Clink-arg=-march=native\\", \\"-Clink-arg=-static-libgcc\\", \\"-Clink-arg=-pthread\\", \\"-Clink-arg=-lpthread\\", \\"-Clink-arg=-L.\\"]\\n[net]\\ngit-fetch-with-cli = true\\n[profile.release]\\nopt-level = 3\\nlto = \\"fat\\"\\n\" > $HOME/.cargo/config.toml\n')
-            else:
-                self._write('printf \"[build]\\nrustflags = [\\"-Ctarget-cpu=native\\", \\"-Ztune-cpu=native\\", \\"-Cprefer-dynamic=no\\", \\"-Copt-level=3\\", \\"-Clinker-plugin-lto\\", \\"-Cembed-bitcode=yes\\", \\"-Clinker=clang\\", \\"-Clink-arg=-flto\\", \\"-Clink-arg=-fuse-ld=lld\\", \\"-Clink-arg=-Wl,--lto-O3\\", \\"-Clink-arg=-Wl,-O2\\", \\"-Clink-arg=-Wl,--hash-style=gnu\\", \\"-Clink-arg=-Wl,--enable-new-dtags\\", \\"-Clink-arg=-Wl,--build-id=sha1\\", \\"-Clink-arg=-fno-stack-protector\\", \\"-Clink-arg=-Wl,--as-needed\\", \\"-Clink-arg=-O3\\", \\"-Clink-arg=-march=native\\", \\"-Clink-arg=-mtune=native\\", \\"-Clink-arg=-falign-functions=32\\", \\"-Clink-arg=-fasynchronous-unwind-tables\\", \\"-Clink-arg=-funroll-loops\\", \\"-Clink-arg=-fvisibility-inlines-hidden\\", \\"-Clink-arg=-static-libstdc++\\", \\"-Clink-arg=-march=native\\", \\"-Clink-arg=-static-libgcc\\", \\"-Clink-arg=-pthread\\", \\"-Clink-arg=-lpthread\\", \\"-Clink-arg=-L.\\"]\\n[net]\\ngit-fetch-with-cli = true\\n[profile.release]\\nopt-level = 3\\nlto = \\"fat\\"\\n\" > $HOME/.cargo/config.toml\n')
-            self._write_strip("unset CFLAGS")
-            self._write_strip("unset CXXFLAGS")
-            self._write_strip("unset FCFLAGS")
-            self._write_strip("unset FFLAGS")
-            self._write_strip("unset LDFLAGS")
-            self._write_strip("export CARGO_NET_GIT_FETCH_WITH_CLI=true")
-            self._write_strip("export CARGO_PROFILE_RELEASE_LTO=fat")
-            self._write_strip("export CARGO_PROFILE_RELEASE_OPT_LEVEL=3")
-            self._write_strip("export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang")
-            self._write_strip("export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt")
-            self._write_strip("export CARGO_HTTP_CAINFO=/var/cache/ca-certs/anchors/ca-certificates.crt")
-            self._write_strip("export CARGO_TARGET_DIR=target")
-            # self._write_strip('export RUSTFLAGS="-Ctarget-cpu=native -Ztune-cpu=native -Cprefer-dynamic=no -Copt-level=3 -Clto=fat -Clinker-plugin-lto -Cembed-bitcode=yes -Clinker=clang -Clink-arg=-flto -Clink-arg=-fuse-ld=lld -Clink-arg=-Wl,--lto-O3 -Clink-arg=-Wl,-O2 -Clink-arg=-Wl,--hash-style=gnu -Clink-arg=-Wl,--enable-new-dtags -Clink-arg=-Wl,--build-id=sha1 -Clink-arg=-fno-stack-protector -Clink-arg=-Wl,--as-needed -Clink-arg=-O3 -Clink-arg=-march=native -Clink-arg=-mtune=native -Clink-arg=-falign-functions=32 -Clink-arg=-fasynchronous-unwind-tables -Clink-arg=-funroll-loops -Clink-arg=-fvisibility-inlines-hidden -Clink-arg=-static-libstdc++ -Clink-arg=-march=native -Clink-arg=-static-libgcc -Clink-arg=-pthread -Clink-arg=-lpthread -Clink-arg=-L."')
+        else:
+            if self.config.make_macro:
+                self._write_strip("## make_macro start")
+                for line in self.config.make_macro:
+                    self._write("{}\n".format(line))
+                self._write_strip("## make_macro end")
+        self.write_build_append()
+        self._write_strip("\n")
+        self._write_strip("%install")
+        self.write_build_prepend_once()
+        self.write_build_prepend()
+        self.write_proxy_exports()
+        self._write_strip("export LANG=C.UTF-8")
+        # time.time() returns a float, but we only need second-precision
+        self._write_strip("export SOURCE_DATE_EPOCH={}".format(int(time.time())))
+        if self.config.config_opts["asneeded"]:
+            self._write_strip("unset LD_AS_NEEDED\n")
+        self.write_variables()
+        self.write_install_prepend()
+        if self.config.config_opts["altcargo_pgo"]:
             if self.config.install_macro:
                 self._write_strip("## install_macro start")
                 for line in self.config.install_macro:
                     self._write("{}\n".format(line))
                 self._write_strip("## install_macro end")
+            self._write("\nif [ ! -f statuspgo ]; then\n")
+            self._write("echo PGO Phase 1\n")
+            if self.config.subdir:
+                self._write_strip("pushd " + self.config.subdir)
+            self.get_profile_generate_flags_cargo()
+            if self.config.configure_macro64:
+                for line in self.config.configure_macro64:
+                    self._write("{}\n".format(line))
             else:
-                if self.config.config_opts["altcargo1_lto"]:
-                    self._write_strip('cargo install %{{?_smp_mflags}} --all-features --offline --no-track --target x86_64-unknown-linux-gnu --verbose --path . --target-dir target --root %{{buildroot}}/usr/ {0} {1}'.format(self.config.extra_configure, self.config.extra_make_install))
-                else:
-                    self._write_strip('cargo install %{{?_smp_mflags}} --all-features --offline --no-track --verbose --path . --target-dir target --root %{{buildroot}}/usr/ {0} {1}'.format(self.config.extra_configure, self.config.extra_make_install))
-        else:
-            self.write_prep()
-            self._write_strip("%build")
-            self.write_build_prepend()
-            self.write_proxy_exports()
-            self._write_strip("cargo build --release")
-            self.write_build_append()
-            self._write_strip("\n")
-            self._write_strip("%install")
-            self.write_install_prepend()
+                self._write_strip("cargo clean || :")
+                self._write_strip(f"cargo install -Zunstable-options -Zhost-config -Ztarget-applies-to-host --jobs 16 -vv --offline --locked --no-track --force --profile release --target x86_64-unknown-linux-gnu --path . --root %{{buildroot}}/usr/ {self.config.extra_configure} {self.config.extra_configure64}")
+            self.write_profile_payload_content(pattern="cargo", build_type=None)
+            if self.config.custom_clean_pgo:
+                self._write_strip("{}\n".format(self.config.custom_clean_pgo))
+            else:
+                self._write_strip("\ncargo clean || :\n")
+            if self.config.subdir:
+                self._write_strip("popd")
+            self._write_strip("echo USED > statuspgo")
+            self._write_strip("fi")
+            self._write("\nif [ -f statuspgo ] && [ ! -f statuspgo2 ]; then\n")
+            self._write("echo PGO Phase 2\n")
+            if self.config.subdir:
+                self._write_strip("pushd " + self.config.subdir)
+            self._write_strip("llvm-profdata merge -o /var/tmp/pgo/rustmerged.profdata /var/tmp/pgo/*.profraw")
+            self.get_profile_use_flags_cargo()
+            if self.config.configure_macro_pgo:
+                for line in self.config.configure_macro_pgo:
+                    self._write("{}\n".format(line))
+            else:
+                self._write_strip(f"cargo install -Zunstable-options -Zhost-config -Ztarget-applies-to-host --jobs 16 -vv --offline --locked --no-track --force --profile release --target x86_64-unknown-linux-gnu --path . --root %{{buildroot}}/usr/ {self.config.extra_configure_pgo} {self.config.extra_configure64_pgo}")
+            if self.config.subdir:
+                self._write_strip("popd")
+            self._write_strip("echo USED > statuspgo2")
+            self._write_strip("fi")
+            if self.config.config_opts["altcargo_sample_bolt"]:
+                self._write("\nif [ ! -f statusbolt ]; then\n")
+                self._write("echo BOLT Phase\n")
+                if self.config.subdir:
+                    self._write_strip("pushd " + self.config.subdir)
+                self._write_strip("## profile_payload_bolt start")
+                for line in self.config.profile_payload_bolt:
+                    self._write("{}\n".format(line))
+                self._write_strip("## profile_payload_bolt end")
+            if self.config.subdir:
+                self._write_strip("popd")
+            self._write_strip("echo USED > statusbolt")
+            self._write_strip("fi")
             self.write_license_files()
+        else:
+            if self.config.install_macro:
+                self._write_strip("## install_macro start")
+                for line in self.config.install_macro:
+                    self._write("{}\n".format(line))
+                self._write_strip("## install_macro end")
+
+        self.write_find_lang()
 
     def write_cpan_pattern(self):
         """Write cpan build pattern to spec file."""
@@ -4556,8 +4610,11 @@ class Specfile(object):
 
     def write_find_lang(self):
         """Write %find_lang macro to spec file."""
-        for lang in self.locales:
-            self._write("%find_lang {}\n".format(lang))
+        if self.locales:
+            self._write_strip("## start %find_lang macros")
+            for lang in self.locales:
+                self._write("%find_lang {}\n".format(lang))
+            self._write_strip("## end %find_lang macros")
 
     def apply_patches(self):
         """Write patch list to spec file."""
@@ -4603,8 +4660,6 @@ class Specfile(object):
                 else:
                     for dirname in dirnames:
                         if pat.search(dirname):
-                            # print(f"found: {dirname} in {dirpath}")
-                            # print(f"found: {os.path.join(dirpath, dirname).removeprefix(prefix_to_remove)}")
                             self._write_strip(f"pushd {os.path.join(dirpath, dirname).removeprefix(prefix_to_remove)}")
                             self._write_strip(f"patch --no-backup-if-mismatch --fuzz=2 --strip=1 < {patches_path}/{patch[0]}")
                             self._write_strip(f"popd")

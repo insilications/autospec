@@ -115,6 +115,7 @@ class Config(object):
         self.cmake_srcdir = ".."
         self.subdir = ""
         self.configure_macro = []
+        self.configure_macro64 = []
         self.configure_macro_pgo = []
         self.configure_macro_special = []
         self.configure_macro_special_pgo = []
@@ -149,6 +150,10 @@ class Config(object):
         self.altflags_pgo = []
         self.altflags_pgof = []
         self.altflags_pgo_32 = []
+        self.altflags1rust = []
+        self.altflags1rustf = []
+        self.altflagsrust_pgo = []
+        self.altflagsrust_pgof = []
         self.prep_prepend = []
         self.build_prepend = []
         self.build_prepend32 = []
@@ -190,6 +195,7 @@ class Config(object):
         self.profile_payload = []
         self.profile_payload_special = []
         self.profile_payload_special2 = []
+        self.profile_payload_bolt = []
         self.signature = None
         self.yum_conf = None
         self.failed_pattern_dir = None
@@ -282,6 +288,9 @@ class Config(object):
             "ruby_pattern_from_gemspec": "enable ruby build from gemspec",
             "altflags_pgo_ext": "alternative pgo flags for profiling outside chroot",
             "altflags_pgo_ext_phase": "alternative pgo flags for profiling outside chroot phase",
+            "altcargo_pgo": "enable cargo local with pgo",
+            "altcargo_sample_bolt": "enable cargo local with instrumented sampling bolt",
+            "keepbuildroot": "do not remove current buildroot",
         }
         # simple_pattern_pkgconfig patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -644,6 +653,12 @@ class Config(object):
         # default enable cargo local with full LTO
         config_f["autospec"]["altcargo1_lto"] = "false"
 
+        # default enable cargo local with full LTO
+        config_f["autospec"]["altcargo_pgo"] = "false"
+
+        # default enable cargo local with instrumented sampling bolt
+        config_f["autospec"]["altcargo_sample_bolt"] = "false"
+
         # default disable simpler autogen macro
         config_f["autospec"]["autogen_simple"] = "false"
 
@@ -655,6 +670,7 @@ class Config(object):
         config_f["autospec"]["allow_test_failures"] = "true"
         config_f["autospec"]["verify_required"] = "false"
         config_f["autospec"]["keepstatic"] = "true"
+        config_f["autospec"]["keepbuildroot"] = "false"
         config_f["autospec"]["filters_provreq"] = "true"
         config_f["autospec"]["use_oneapi"] = "false"
         config_f["autospec"]["custom_bashrc"] = "false"
@@ -763,10 +779,13 @@ class Config(object):
             for k in keys:
                 self.transforms.pop(k)
 
+
     def write_file(self, path, content):
         """Write the conf file name's content."""
         with open(path, 'w') as conffile:
             conffile.writelines(content)
+
+
     def read_file(self, path, track=True):
         """Read full file at path.
 
@@ -932,15 +951,29 @@ class Config(object):
         altflags1_src = "/aot/build/clearlinux/projects/autospec/autospec/altflags1"
         altflags_pgo_src = "/aot/build/clearlinux/projects/autospec/autospec/altflags_pgo"
         altflags32_src = "/aot/build/clearlinux/projects/autospec/autospec/altflags1_32"
+        altflags1g_src = "/aot/build/clearlinux/projects/autospec/autospec/altflags1g"
         altflags1_dst = os.path.join(self.download_path, "altflags1")
         altflags_pgo_dst = os.path.join(self.download_path, "altflags_pgo")
         altflags32_dst = os.path.join(self.download_path, "altflags1_32")
+        altflags1g_dst = os.path.join(self.download_path, "altflags1g")
         if not os.path.isfile(altflags1_dst):
             shutil.copy2(altflags1_src, altflags1_dst)
         if not os.path.isfile(altflags_pgo_dst):
             shutil.copy2(altflags_pgo_src, altflags_pgo_dst)
         if not os.path.isfile(altflags32_dst):
             shutil.copy2(altflags32_src, altflags32_dst)
+        if not os.path.isfile(altflags1g_dst):
+            shutil.copy2(altflags1g_src, altflags1g_dst)
+
+        if self.config_opts.get("altcargo1") or self.config_opts.get("altcargo_pgo"):
+            altflags1rust_src = "/aot/build/clearlinux/projects/autospec/autospec/altflags1rust"
+            altflagsrust_pgo_src = "/aot/build/clearlinux/projects/autospec/autospec/altflagsrust_pgo"
+            altflags1rust_dst = os.path.join(self.download_path, "altflags1rust")
+            altflagsrust_pgo_dst = os.path.join(self.download_path, "altflagsrust_pgo")
+            if not os.path.isfile(altflags1rust_dst):
+                shutil.copy2(altflags1rust_src, altflags1rust_dst)
+            if not os.path.isfile(altflagsrust_pgo_dst):
+                shutil.copy2(altflagsrust_pgo_src, altflagsrust_pgo_dst)
 
     def copy_custom_bashrc(self):
         """Copy custom .bashrc."""
@@ -993,6 +1026,7 @@ class Config(object):
     def parse_config_files(self, bump, filemanager, version, requirements):
         """Parse the various configuration files that may exist in the package directory."""
         packages_file = None
+        config = None
 
         # Require autospec.conf for additional features
         if os.path.exists(self.config_file):
@@ -1273,6 +1307,8 @@ class Config(object):
 
         self.configure_macro = self.read_script_file(os.path.join(self.download_path, "configure_macro"))
 
+        self.configure_macro64 = self.read_script_file(os.path.join(self.download_path, "configure_macro64"))
+
         self.configure_macro_pgo = self.read_script_file(os.path.join(self.download_path, "configure_macro_pgo"))
 
         self.configure_macro_special = self.read_script_file(os.path.join(self.download_path, "configure_macro_special"))
@@ -1433,6 +1469,10 @@ class Config(object):
         self.altflags_pgo = self.read_script_file(os.path.join(self.download_path, "altflags_pgo"))
         self.altflags_pgof = self.read_script_file(os.path.join(self.download_path, "altflags_pgof"))
         self.altflags_pgo_32 = self.read_script_file(os.path.join(self.download_path, "altflags_pgo_32"))
+        self.altflags1rust = self.read_script_file(os.path.join(self.download_path, "altflags1rust"))
+        self.altflags1rustf = self.read_script_file(os.path.join(self.download_path, "altflags1rustf"))
+        self.altflagsrust_pgo = self.read_script_file(os.path.join(self.download_path, "altflagsrust_pgo"))
+        self.altflagsrust_pgof = self.read_script_file(os.path.join(self.download_path, "altflagsrust_pgof"))
         self.prep_prepend = self.read_script_file(os.path.join(self.download_path, "prep_prepend"))
         if os.path.isfile(os.path.join(self.download_path, "prep_append")):
             os.rename(os.path.join(self.download_path, "prep_append"), os.path.join(self.download_path, "build_prepend"))
@@ -1463,10 +1503,13 @@ class Config(object):
         self.cargo_update = self.read_script_file(os.path.join(self.download_path, "cargo_update"))
         self.service_restart = self.read_conf_file(os.path.join(self.download_path, "service_restart"))
 
-        if self.config_opts["altflags_pgo"] or self.config_opts["altflags_pgo_ext"]:
+        if self.config_opts["altflags_pgo"] or self.config_opts["altflags_pgo_ext"] or self.config_opts["altcargo_pgo"]:
             self.profile_payload = self.read_script_file(os.path.join(self.download_path, "profile_payload"))
             self.profile_payload_special = self.read_script_file(os.path.join(self.download_path, "profile_payload_special"))
             self.profile_payload_special2 = self.read_script_file(os.path.join(self.download_path, "profile_payload_special2"))
+
+        if self.config_opts["altcargo_sample_bolt"]:
+            self.profile_payload_bolt = self.read_script_file(os.path.join(self.download_path, "profile_payload_bolt"))
 
         self.custom_desc = self.read_conf_file(os.path.join(self.download_path, "description"))
         self.custom_summ = self.read_conf_file(os.path.join(self.download_path, "summary"))

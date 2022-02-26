@@ -42,7 +42,6 @@ class FileManager(object):
         self.files = set()  # global file set to weed out dupes
         self.files_blacklist = set()
         self.excludes = []
-        self.manual_excludes = []
         self.file_maps = {}  # Filename-to-package mapping
         self.setuid = []
         self.attrs = {}
@@ -53,7 +52,7 @@ class FileManager(object):
         # packages, the answer is No.
         self.want_dev_split = True
         self.has_banned = False
-        self.cargo_install_assets: list[tuple[str, str, str]] = list()
+        self.cargo_install_assets : List[Tuple[str, str, str]] = list()
         self.builddir : str = str()
         self.chroot_buildroot : str = str()
         self.mock_dir : str = mock_dir
@@ -63,7 +62,10 @@ class FileManager(object):
     @staticmethod
     def banned_path(path):
         """Check if the path is either banned or in a banned subdirectory."""
-        banned_paths = ["/etc", "/usr/etc", "/usr/src", "/var"]
+       banned_paths = ["/etc",
+                       "/usr/etc",
+                       "/usr/src",
+                       "/var"]
         for bpath in banned_paths:
             if path.startswith(bpath):
                 return True
@@ -189,7 +191,7 @@ class FileManager(object):
         """Search for pattern in filename.
 
         Attempt to find pattern in filename, if pattern matches push package file.
-        If that file is also in the excludes list, don't push the file.
+        If that file is also in the excludes list, prepend "%exclude " before pushing the filename.
         Returns True if a file was pushed, False otherwise.
         """
         if not replacement:
@@ -400,7 +402,6 @@ class FileManager(object):
             (r"^/(?:usr/|usr.*)lib32/libkdeinit5_[a-zA-Z0-9\.\_\+\-]*\.so$", "lib32"),
             (r"^/(?:usr/|usr.*)lib64/[a-zA-Z0-9\.\_\+\-]*\.so$", so_dest),
             (r"^/(?:usr/|usr.*)lib32/[a-zA-Z0-9\.\_\+\-]*\.so$", so_dest + '32'),
-			(r"^/usr/lib64/glibc-hwcaps/x86-64-v[0-9]+/[a-zA-Z0-9._+-]*\.so$", so_dest),
             (r"^/(?:usr/|usr.*)lib64/haswell/avx512_1/[a-zA-Z0-9\.\_\+\-]*\.so$", so_dest),
             (r"^/(?:usr/|usr.*)lib64/haswell/[a-zA-Z0-9\.\_\+\-]*\.so$", so_dest),
             (r"^/(?:usr/|usr.*)lib64/haswell/avx512_1/[a-zA-Z0-9\.\_\+\-]*\.so$", so_dest),
@@ -408,14 +409,12 @@ class FileManager(object):
             (r"^/(?:usr/|usr.*)lib64/[a-zA-Z0-9\.\_\+\-\/]*\.a$", "staticdev"),
             (r"^/(?:usr/|usr.*)lib32/[a-zA-Z0-9\.\_\+\-\/]*\.a$", "staticdev32"),
             (r"^/(?:usr/|usr.*)lib/haswell/[a-zA-Z0-9\.\_\+\-]*\.a$", "staticdev"),
-			(r"^/usr/lib64/glibc-hwcaps/x86-64-v[0-9]+/[a-zA-Z0-9._+-]*\.a$", "staticdev"),
             (r"^/(?:usr/|usr.*)lib64/haswell/[a-zA-Z0-9\.\_\+\-]*\.a$", "staticdev"),
             (r"^/usr/lib64/haswell/avx512_1/[a-zA-Z0-9._+-]*\.a$", "staticdev"),
             (r"^/(?:usr/|usr.*)lib32/haswell/[a-zA-Z0-9\.\_\+\-]*\.a$", "staticdev32"),
             (r"^/(?:usr/|usr.*)lib/pkgconfig/[a-zA-Z0-9\.\_\+\-]*\.pc$", "dev"),
             (r"^/(?:usr/|usr.*)lib64/pkgconfig/[a-zA-Z0-9\.\_\+\-]*\.pc$", "dev"),
             (r"^/(?:usr/|usr.*)lib32/pkgconfig/[a-zA-Z0-9\.\_\+\-]*\.pc$", "dev32"),
-			(r"^/usr/lib64/glibc-hwcaps/x86-64-v[0-9]+/[a-zA-Z0-9._+-]*\.pc$", "dev"),
             (r"^/usr/lib64/haswell/pkgconfig/[a-zA-Z0-9._+-]*\.pc$", "dev"),
             (r"^/usr/lib64/haswell/avx512_1/pkgconfig/[a-zA-Z0-9._+-]*\.pc$", "dev"),
             (r"^/(?:usr/|usr.*)lib/[a-zA-Z0-9\.\_\+\-]*\.la$", "dev"),
@@ -444,7 +443,7 @@ class FileManager(object):
             (r"^/(?:usr/|usr.*)lib/sysusers.d", "config"),
             (r"^/(?:usr/|usr.*)lib/sysctl.d", "config"),
             (r"^/(?:usr/|usr.*)share/", "data"),
-            (r"^/(?:usr/|usr.*)lib/perl5/", "perl", "/usr/lib/perl5/*"),
+            (r"^/(?:usr/|usr.*)lib/perl5/", "perl"),
             # finally move any dynamically loadable plugins (not
             # perl/python/ruby/etc.. extensions) into lib package
             (r"^/(?:usr/|usr.*)lib/.*/[a-zA-Z0-9\.\_\+\-]*\.so", so_dest),
@@ -618,32 +617,11 @@ class FileManager(object):
         patterns = [
             # Patterns for matching files, format is a tuple as follows:
             # (<raw pattern>, <destination>, <raw_destination>)
-            (
-                r"^(?!.*\.so)[a-zA-Z0-9\_\+\-]*(?:\d*)*\.(\d)$",
-                "/aot/var/lib/mock/clear-ripgrep/root/builddir/build/BUILDROOT/ripgrep-13.0.0-343.x86_64/usr/share/man/man",
-                "/usr/share/man/man",
-            ),
-            (
-                r"\.bash$",
-                "/aot/var/lib/mock/clear-ripgrep/root/builddir/build/BUILDROOT/ripgrep-13.0.0-343.x86_64/usr/share/bash-completion/completions/",
-                "/usr/share/bash-completion/completions/",
-            ),
-            (
-                r"^_[a-zA-Z0-9\_\-\+]*$",
-                "/aot/var/lib/mock/clear-ripgrep/root/builddir/build/BUILDROOT/ripgrep-13.0.0-343.x86_64/usr/share/zsh/site-functions/",
-                "/usr/share/zsh/site-functions/",
-            ),
-            (
-                r"\.fish$",
-                "/aot/var/lib/mock/clear-ripgrep/root/builddir/build/BUILDROOT/ripgrep-13.0.0-343.x86_64/usr/share/fish/completions/",
-                "/usr/share/fish/completions/",
-            ),
-            (
-                r"\.zsh$",
-                "/aot/var/lib/mock/clear-ripgrep/root/builddir/build/BUILDROOT/ripgrep-13.0.0-343.x86_64/usr/share/zsh/site-functions/",
-                "/usr/share/zsh/site-functions/",
-            ),
-        ]
+            (r"^(?!.*\.so)[a-zA-Z0-9\_\+\-]*(?:\d*)*\.(\d)$", "%{buildroot}/usr/share/man/man", "/usr/share/man/man"),
+            (r"\.bash$", "%{buildroot}/usr/share/bash-completion/completions/", "/usr/share/bash-completion/completions/"),
+            (r"^_[a-zA-Z0-9\_\-\+]*$", "%{buildroot}/usr/share/zsh/site-functions/", "/usr/share/zsh/site-functions/"),
+            (r"\.fish$", "%{buildroot}/usr/share/fish/completions/", "/usr/share/fish/completions/"),
+            (r"\.zsh$", "%{buildroot}/usr/share/zsh/site-functions/", "/usr/share/zsh/site-functions/")]
         target = f"{self.mock_dir}/clear-{self.package.uniqueext}/root/builddir/build/BUILD/{self.builddir}"
         prefix_to_remove = f"{self.mock_dir}/clear-{self.package.uniqueext}/root"
         builddir_prefixed = f"{prefix_to_remove}/builddir/build/BUILDROOT/{self.chroot_buildroot}/"
@@ -653,145 +631,147 @@ class FileManager(object):
                     pat = re.compile(pat_args[0])
                     match = pat.search(filename)
                     if match:
-                        if i == 0:  # man
+                        if i == 0: # man
+                            filename_installed = filename
                             add = True
-                            build_filename_prefix = os.path.join(dirpath, filename)
-                            for install_cmd in self.cargo_install_assets:
-                                if install_cmd[2] == build_filename_prefix:
+                            for i, install_cmd in enumerate(self.cargo_install_assets):
+                                if install_cmd[2] == filename_installed:
                                     add = False
-                            if add:
+                            if (add):
                                 man_number = match.group(1)
-                                filename_cleaned = f"{pat_args[2]}{man_number}/{filename}"
-
-                                builddir_prefixed_filename_cleaned = f"{builddir_prefixed}{filename_cleaned}"
-                                build_filepath_prefixed = (
-                                    f"install -D -m0644 {build_filename_prefix} {builddir_prefixed_filename_cleaned}"
-                                )
-                                print(f"man")
-                                print(f"self.push_file({filename_cleaned}, {content_name})")
-                                print(f"{build_filepath_prefixed}\n")
+                                build_filename_clean = f"{pat_args[2]}{man_number}/{filename}"
+                                build_filename = f"{pat_args[1]}{man_number}/{filename}"
+                                build_filepath = f"install -m0644 {os.path.join(dirpath, filename).removeprefix(prefix_to_remove)} {build_filename}"
+                                buildroot_created_dir = f"install -dm 0755 {pat_args[1]}{man_number}/"
+                                buildroot_created_dir_prefix = f"install -dm 0755 {builddir_prefixed}/{pat_args[2]}{man_number}/"
+                                build_filepath_prefixed = f"install -m0644 {os.path.join(dirpath, filename)} {builddir_prefixed}{build_filename_clean}"
                                 try:
-                                    util.call_fast(build_filepath_prefixed, cwd=target)
+                                    util.call(buildroot_created_dir_prefix, cwd=target)
+                                    util.call(build_filepath_prefixed, cwd=target)
                                 except subprocess.CalledProcessError as err:
-                                    print(f"Unable to install {build_filename_prefix} to {builddir_prefixed_filename_cleaned}")
-                                    print(f"Error: {err}")
+                                    util.print_fatal("Unable to install {0}: {1}".format(build_filename, cmd))
                                     sys.exit(1)
-                                self.cargo_install_assets.append((builddir_prefixed_filename_cleaned, filename_cleaned, build_filename_prefix))
-                                self.push_file(filename_cleaned, content_name)
-                        elif i == 1:  # .bash
+                                self.cargo_install_assets.append((buildroot_created_dir, build_filepath, filename_installed))
+                                self.push_file(build_filename_clean, content_name)
+                                if util.debugging:
+                                    print_debug(f"\nfile: {build_filename_clean}")
+                                    print_debug(buildroot_created_dir)
+                                    print_debug(f"{build_filepath}\n")
+                        elif i == 1: # .bash
                             with open(os.path.join(dirpath, filename), mode="r", encoding="utf-8") as file_obj:
                                 with mmap.mmap(file_obj.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
-                                    if mmap_obj.find(b"complete ") != -1:
+                                    if mmap_obj.find(b'complete ') != -1:
+                                        filename_installed = os.path.splitext(filename)[0]
                                         add = True
-                                        build_filename_prefix = os.path.join(dirpath, filename)
-                                        for install_cmd in self.cargo_install_assets:
-                                            if install_cmd[2] == build_filename_prefix:
+                                        for i, install_cmd in enumerate(self.cargo_install_assets):
+                                            if install_cmd[2] == filename_installed:
                                                 add = False
-                                        if add:
-                                            filename_cleaned = f"{pat_args[2]}{os.path.splitext(filename)[0]}"
-                                            builddir_prefixed_filename_cleaned = f"{builddir_prefixed}{filename_cleaned}"
-                                            build_filepath_prefixed = (
-                                                f"install -D -m0644 {build_filename_prefix} {builddir_prefixed_filename_cleaned}"
-                                            )
-                                            print(f"bash")
-                                            print(f"self.push_file({filename_cleaned}, {content_name})")
-                                            print(f"{build_filepath_prefixed}\n")
+                                        if (add):
+                                            #build_filename_clean = f"{pat_args[2]}{os.path.splitext(filename)[0]}"
+                                            #build_filename = f"{pat_args[1]}{os.path.splitext(filename)[0]}"
+                                            build_filename_clean = f"{pat_args[2]}{self.package.uniqueext}"
+                                            build_filename = f"{pat_args[1]}{self.package.uniqueext}"
+                                            build_filepath = f"install -m0644 {os.path.join(dirpath, filename).removeprefix(prefix_to_remove)} {build_filename}"
+                                            buildroot_created_dir = f"install -dm 0755 {pat_args[1]}"
+                                            buildroot_created_dir_prefix = f"install -dm 0755 {builddir_prefixed}/{pat_args[2]}"
+                                            build_filepath_prefixed = f"install -m0644 {os.path.join(dirpath, filename)} {builddir_prefixed}{build_filename_clean}"
                                             try:
-                                                util.call_fast(build_filepath_prefixed, cwd=target)
+                                                util.call(buildroot_created_dir_prefix, cwd=target)
+                                                util.call(build_filepath_prefixed, cwd=target)
                                             except subprocess.CalledProcessError as err:
-                                                print(
-                                                    f"Unable to install {build_filename_prefix} to {builddir_prefixed_filename_cleaned}"
-                                                )
-                                                print(f"Error: {err}")
+                                                util.print_fatal("Unable to install {0}: {1}".format(build_filename, cmd))
                                                 sys.exit(1)
-                                            self.cargo_install_assets.append(
-                                                (builddir_prefixed_filename_cleaned, filename_cleaned, build_filename_prefix)
-                                            )
-                                            self.push_file(filename_cleaned, content_name)
-                        elif i == 2:  # _zsh
+                                            self.cargo_install_assets.append((buildroot_created_dir, build_filepath, filename_installed))
+                                            self.push_file(build_filename_clean, content_name)
+                                            if util.debugging:
+                                                print_debug(f"\nfile: {build_filename_clean}")
+                                                print_debug(buildroot_created_dir)
+                                                print_debug(f"{build_filepath}\n")
+                        elif i == 2: # _zsh
                             with open(os.path.join(dirpath, filename), mode="r", encoding="utf-8") as file_obj:
                                 with mmap.mmap(file_obj.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
-                                    if mmap_obj.find(b"compdef") != -1 or mmap_obj.find(b"autoload") != -1:
+                                    if mmap_obj.find(b'compdef') != -1 or mmap_obj.find(b'autoload') != -1:
+                                        filename_installed = filename
                                         add = True
-                                        build_filename_prefix = os.path.join(dirpath, filename)
-                                        for install_cmd in self.cargo_install_assets:
-                                            if install_cmd[2] == build_filename_prefix:
+                                        for i, install_cmd in enumerate(self.cargo_install_assets):
+                                            if install_cmd[2] == filename_installed:
                                                 add = False
-                                        if add:
-                                            filename_cleaned = f"{pat_args[2]}{filename}"
-                                            builddir_prefixed_filename_cleaned = f"{builddir_prefixed}{filename_cleaned}"
-                                            build_filepath_prefixed = (
-                                                f"install -D -m0644 {build_filename_prefix} {builddir_prefixed_filename_cleaned}"
-                                            )
-                                            print(f"zsh")
-                                            print(f"self.push_file({filename_cleaned}, {content_name})")
-                                            print(f"{build_filepath_prefixed}\n")
+                                        if (add):
+                                            build_filename_clean = f"{pat_args[2]}{filename}"
+                                            build_filename = f"{pat_args[1]}{filename}"
+                                            build_filepath = f"install -m0644 {os.path.join(dirpath, filename).removeprefix(prefix_to_remove)} {build_filename}"
+                                            buildroot_created_dir = f"install -dm 0755 {pat_args[1]}"
+                                            buildroot_created_dir_prefix = f"install -dm 0755 {builddir_prefixed}/{pat_args[2]}"
+                                            build_filepath_prefixed = f"install -m0644 {os.path.join(dirpath, filename)} {builddir_prefixed}{build_filename_clean}"
                                             try:
-                                                util.call_fast(build_filepath_prefixed, cwd=target)
+                                                util.call(buildroot_created_dir_prefix, cwd=target)
+                                                util.call(build_filepath_prefixed, cwd=target)
                                             except subprocess.CalledProcessError as err:
-                                                print(
-                                                    f"Unable to install {build_filename_prefix} to {builddir_prefixed_filename_cleaned}"
-                                                )
-                                                print(f"Error: {err}")
+                                                util.print_fatal("Unable to install {0}: {1}".format(build_filename, cmd))
                                                 sys.exit(1)
-                                            self.cargo_install_assets.append(
-                                                (builddir_prefixed_filename_cleaned, filename_cleaned, build_filename_prefix)
-                                            )
-                                            self.push_file(filename_cleaned, content_name)
-                        elif i == 3:  # .fish
+                                            self.cargo_install_assets.append((buildroot_created_dir, build_filepath, filename_installed))
+                                            self.push_file(build_filename_clean, content_name)
+                                            if util.debugging:
+                                                print_debug(f"\nfile: {build_filename_clean}")
+                                                print_debug(buildroot_created_dir)
+                                                print_debug(f"{build_filepath}\n")
+                        elif i == 3: # .fish
+                            filename_installed = filename
                             add = True
-                            build_filename_prefix = os.path.join(dirpath, filename)
-                            for install_cmd in self.cargo_install_assets:
-                                if install_cmd[2] == build_filename_prefix:
+                            for i, install_cmd in enumerate(self.cargo_install_assets):
+                                if install_cmd[2] == filename_installed:
                                     add = False
-                            if add:
-                                filename_cleaned = f"{pat_args[2]}{self.package.uniqueext}.fish"
-                                builddir_prefixed_filename_cleaned = f"{builddir_prefixed}{filename_cleaned}"
-                                build_filepath_prefixed = (
-                                    f"install -D -m0644 {build_filename_prefix} {builddir_prefixed_filename_cleaned}"
-                                )
-                                print(f"fish")
-                                print(f"self.push_file({filename_cleaned}, {content_name})")
-                                print(f"{build_filepath_prefixed}\n")
+                            if (add):
+                                #build_filename_clean = f"{pat_args[2]}{filename}"
+                                #build_filename = f"{pat_args[1]}{filename}"
+                                build_filename_clean = f"{pat_args[2]}{self.package.uniqueext}.fish"
+                                build_filename = f"{pat_args[1]}{self.package.uniqueext}.fish"
+                                build_filepath = f"install -m0644 {os.path.join(dirpath, filename).removeprefix(prefix_to_remove)} {build_filename}"
+                                buildroot_created_dir = f"install -dm 0755 {pat_args[1]}"
+                                buildroot_created_dir_prefix = f"install -dm 0755 {builddir_prefixed}/{pat_args[2]}"
+                                build_filepath_prefixed = f"install -m0644 {os.path.join(dirpath, filename)} {builddir_prefixed}{build_filename_clean}"
                                 try:
-                                    util.call_fast(build_filepath_prefixed, cwd=target)
+                                    util.call(buildroot_created_dir_prefix, cwd=target)
+                                    util.call(build_filepath_prefixed, cwd=target)
                                 except subprocess.CalledProcessError as err:
-                                    print(f"Unable to install {build_filename_prefix} to {builddir_prefixed_filename_cleaned}")
-                                    print(f"Error: {err}")
+                                    util.print_fatal("Unable to install {0}: {1}".format(build_filename, cmd))
                                     sys.exit(1)
-                                self.cargo_install_assets.append((builddir_prefixed_filename_cleaned, filename_cleaned, build_filename_prefix))
-                                self.push_file(filename_cleaned, content_name)
-                        elif i == 4:  # .zsh
+                                self.cargo_install_assets.append((buildroot_created_dir, build_filepath, filename_installed))
+                                self.push_file(build_filename_clean, content_name)
+                                if util.debugging:
+                                    print_debug(f"\nfile: {build_filename_clean}")
+                                    print_debug(buildroot_created_dir)
+                                    print_debug(f"{build_filepath}\n")
+                        elif i == 4: # .zsh
                             with open(os.path.join(dirpath, filename), mode="r", encoding="utf-8") as file_obj:
                                 with mmap.mmap(file_obj.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
-                                    if mmap_obj.find(b"compdef") != -1 or mmap_obj.find(b"autoload") != -1:
+                                    if mmap_obj.find(b'compdef') != -1 or mmap_obj.find(b'autoload') != -1:
+                                        filename_installed = filename
                                         add = True
-                                        build_filename_prefix = os.path.join(dirpath, filename)
-                                        for install_cmd in self.cargo_install_assets:
-                                            if install_cmd[2] == build_filename_prefix:
+                                        for i, install_cmd in enumerate(self.cargo_install_assets):
+                                            if install_cmd[2] == filename_installed:
                                                 add = False
-                                        if add:
-                                            filename_cleaned = f"{pat_args[2]}_{self.package.uniqueext}"
-                                            builddir_prefixed_filename_cleaned = f"{builddir_prefixed}{filename_cleaned}"
-                                            build_filepath_prefixed = (
-                                                f"install -D -m0644 {build_filename_prefix} {builddir_prefixed_filename_cleaned}"
-                                            )
-                                            print(f"zsh")
-                                            print(f"self.push_file({filename_cleaned}, {content_name})")
-                                            print(f"{build_filepath_prefixed}\n")
+                                        if (add):
+                                            #build_filename_clean = f"{pat_args[2]}{filename}"
+                                            #build_filename = f"{pat_args[1]}{filename}"
+                                            build_filename_clean = f"{pat_args[2]}_{self.package.uniqueext}"
+                                            build_filename = f"{pat_args[1]}_{self.package.uniqueext}"
+                                            build_filepath = f"install -m0644 {os.path.join(dirpath, filename).removeprefix(prefix_to_remove)} {build_filename}"
+                                            buildroot_created_dir = f"install -dm 0755 {pat_args[1]}"
+                                            buildroot_created_dir_prefix = f"install -dm 0755 {builddir_prefixed}/{pat_args[2]}"
+                                            build_filepath_prefixed = f"install -m0644 {os.path.join(dirpath, filename)} {builddir_prefixed}{build_filename_clean}"
                                             try:
-                                                util.call_fast(build_filepath_prefixed, cwd=target)
+                                                util.call(buildroot_created_dir_prefix, cwd=target)
+                                                util.call(build_filepath_prefixed, cwd=target)
                                             except subprocess.CalledProcessError as err:
-                                                print(
-                                                    f"Unable to install {build_filename_prefix} to {builddir_prefixed_filename_cleaned}"
-                                                )
-                                                print(f"Error: {err}")
+                                                util.print_fatal("Unable to install {0}: {1}".format(build_filename, cmd))
                                                 sys.exit(1)
-                                            self.cargo_install_assets.append(
-                                                (builddir_prefixed_filename_cleaned, filename_cleaned, build_filename_prefix)
-                                            )
-                                            self.push_file(filename_cleaned, content_name)
-
+                                            self.cargo_install_assets.append((buildroot_created_dir, build_filepath, filename_installed))
+                                            self.push_file(build_filename_clean, content_name)
+                                            if util.debugging:
+                                                print_debug(f"\nfile: {build_filename_clean}")
+                                                print_debug(buildroot_created_dir)
+                                                print_debug(f"{build_filepath}\n")
 
     def fix_broken_pkg_config_versioning(self, content_name: str):
         """ Fix broken RPM semantic versioning in pkg-config .pc files """

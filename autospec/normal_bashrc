@@ -18,3 +18,5 @@ alias py="python"
 alias sf="sudo -s"
 alias sfs="sudo -E su -p"
 alias lddt="lddtree"
+#
+export LLVM_PROFILE_FILE="/var/tmp/pgo/code-%p-%m.profraw"
