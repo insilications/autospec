@@ -721,9 +721,6 @@ def package(
         filemanager.load_specfile(specfile)
         specfile.write_spec()
         filemanager.newfiles_printed = 0
-        #if package.round == 0:
-            #conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
-            #conf.create_reqs_cache(content.version, requirements.reqs_cache)
 
         mock_chroot = f"{mock_dir}/clear-{package.uniqueext}/root/builddir/build/BUILDROOT/{content.name}-{content.version}-{content.release}.x86_64"
         if filemanager.clean_directories(mock_chroot):
@@ -754,6 +751,7 @@ def package(
     #conf.create_reqs_cache(content.version, requirements.reqs_cache)
 
     if package.success == 0:
+        #conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
         print_fatal("Build failed, aborting")
         sys.exit(1)
     elif (package.success == 1):
@@ -810,6 +808,8 @@ def package(
             #else:
                 #print("To commit your changes, git add the relevant files and run 'git commit -F commitmsg'")
             link_new_rpms_here()
+
+        #conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
 
 
 if __name__ == "__main__":
