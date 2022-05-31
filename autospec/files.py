@@ -228,7 +228,8 @@ class FileManager(object):
             if lang not in self.locales and filename not in self.excludes:
                 self.locales.append(lang)
                 print(" New locale:", lang)
-                self.package.must_restart += 1
+                if not self.config.find_lang:
+                    self.package.must_restart += 1
                 if self.package_name == "gcc" or self.package_name == "glibc":
                     if "locale" not in self.packages:
                         self.packages["locale"] = set()

@@ -4609,7 +4609,12 @@ class Specfile(object):
 
     def write_find_lang(self):
         """Write %find_lang macro to spec file."""
-        if self.locales and self.config.config_opts["findlang"]:
+        if self.config.find_lang:
+            self._write_strip("## custom find_lang start")
+            for line in self.config.find_lang:
+                self._write("{}\n".format(line))
+            self._write_strip("## custom find_lang end")
+        elif self.locales and self.config.config_opts["findlang"]:
             self._write_strip("## start %find_lang macros")
             for lang in self.locales:
                 self._write("%find_lang {}\n".format(lang))

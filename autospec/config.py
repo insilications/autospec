@@ -138,6 +138,7 @@ class Config(object):
         self.install_macro_build_special = []
         self.install_macro_build_special2 = []
         self.install_macro_build_special_32 = []
+        self.find_lang = []
         self.custom_clean_pgo = ""
         self.custom_git_re = []
         self.custom_git_re2 = []
@@ -1366,6 +1367,8 @@ class Config(object):
         self.install_macro_build_special2 = self.read_script_file(os.path.join(self.download_path, "install_macro_build_special2"))
 
         self.install_macro_build_special_32 = self.read_script_file(os.path.join(self.download_path, "install_macro_build_special_32"))
+
+        self.find_lang = self.read_script_file(os.path.join(self.download_path, "find_lang"))
 
         content = self.read_conf_file(os.path.join(self.download_path, "cmake_args"))
         if content:
