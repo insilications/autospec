@@ -901,7 +901,7 @@ class Specfile(object):
         # compilation flag if this environment variable is set.  -Werror
         # is a useful flag for the upstream package maintainers, but is
         # a source of headaches for downstream users.
-        self._write_strip("export GCC_IGNORE_WERROR=1\n")
+        #self._write_strip("export GCC_IGNORE_WERROR=1\n")
 
         if self.config.config_opts["use_clang"]:
             self._write_strip("export CC=clang\n")
