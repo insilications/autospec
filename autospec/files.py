@@ -741,6 +741,8 @@ class FileManager(object):
                 (r"^/usr/lib64/libns(?:s_(?:(?:compat|hesiod)\.so\.\d+|files\.so\.\d+|(?:compat|hesiod)\.so|dns\.so\.\d+)|l\.so\.\d+)$", "libc6", "", "", True),
                 (r"^/usr/lib64/lib(?:BrokenLocale\.so\.\d+|m(?:emusage|vec)\.so|mvec\.so\.\d+|(?:an|d)l\.so\.\d+)$", "libc6", "", "", True),
                 (r"^/usr/lib64/lib(?:thread_db\.so\.\d+|pcprofile\.so|(?:pthread|r(?:esolv|t)|util)\.so\.\d+)$", "libc6", "", "", True),
+                # libc6-dev
+                (r"^/usr/bin/mtrace$", "libc6-dev", "", "", True),
                 # lib-avx2
                 (r"^/usr/lib64/haswell/(?:avx512_1/libm(?:vec)?\.so\.\d+|(?:libc(?:rypt)?|libmvec)\.so\.\d+)$", "lib-avx2"),
                 # locale
@@ -762,7 +764,7 @@ class FileManager(object):
                 # staticdev
                 (r"^/usr/lib64/lib(?:BrokenLocale|(?:(?:m(?:\-\d+\.\d+|check)|resolv|crypt|anl|g)|[cm]))\.a$", "staticdev"),
                 # doc
-                (r"^/usr/share/info/libc\.info-\d+$", "doc"),
+                (r"^/usr/share/info/libc\.info(?:-\d+)?$", "doc"),
                 # extras
                 (r"^/usr/bin/makedb$", "extras"),
                 (r"^/usr/lib64/libnss_db\.so(?:\.\d+)?$", "extras")]
