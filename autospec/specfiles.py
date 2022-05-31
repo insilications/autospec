@@ -453,6 +453,7 @@ class Specfile(object):
         self.write_service_restart()
         self.write_exclude_deletes()
         self.write_install_append()
+        self.write_find_lang()
         # elf move is last is copying content already
         # installed bits to their individual buildroots
         # maybe need a new install_append_last file
@@ -1510,7 +1511,7 @@ class Specfile(object):
 
         if self.config.subdir:
             self._write_strip("popd")
-        self.write_find_lang()
+        # self.write_find_lang()
 
 
     def write_make_install_buildtcl_configure(self):
@@ -1583,7 +1584,7 @@ class Specfile(object):
 
         if self.config.subdir:
             self._write_strip("popd")
-        self.write_find_lang()
+        # self.write_find_lang()
 
 
     def write_make_install(self):
@@ -1740,7 +1741,7 @@ class Specfile(object):
 
             if self.config.subdir:
                 self._write_strip("popd")
-        self.write_find_lang()
+        # self.write_find_lang()
 
     def write_prep_prepend(self):
         """Write out any custom supplied commands at the start of the %prep section."""
@@ -2042,7 +2043,7 @@ class Specfile(object):
         if self.config.subdir:
             self._write_strip("popd")
 
-        self.write_find_lang()
+        # self.write_find_lang()
 
     def get_profile_generate_flags(self):
         """Return profile generate flags if proper configuration is set. Otherwise an empty string is returned."""
@@ -2986,7 +2987,7 @@ class Specfile(object):
         self._write_strip("pip install --root=%{buildroot}-v3 --no-deps --ignore-installed dist/*.whl")
         self._write_strip("popd")
 
-        self.write_find_lang()
+        # self.write_find_lang()
 
     def write_distutils3_pattern(self):
         """Write build pattern for python packages using distutils3."""
@@ -3056,7 +3057,7 @@ class Specfile(object):
         self._write_strip("python3 -tt setup.py build install --root=%{buildroot}-v3")
         self._write_strip("popd")
 
-        self.write_find_lang()
+        # self.write_find_lang()
 
     def write_distutils36_pattern(self):
         """Write build pattern for python packages using distutils36."""
@@ -3090,7 +3091,7 @@ class Specfile(object):
         self._write_strip("echo ----[ mark ]----")
         self._write_strip("cat %{buildroot}/usr/lib/python3*/site-packages/*/requires.txt || :")
         self._write_strip("echo ----[ mark ]----")
-        self.write_find_lang()
+        # self.write_find_lang()
 
     def write_R_pattern(self):
         """Write build pattern for R packages."""
@@ -3153,7 +3154,7 @@ class Specfile(object):
         self._write_strip("cp ~/.stash/* %{buildroot}/usr/lib64/R/library/*/libs/ || :")
 
         self._write_strip("%{__rm} -rf %{buildroot}%{_datadir}/R/library/R.css")
-        self.write_find_lang()
+        # self.write_find_lang()
         self.write_check()
 
     def write_ruby_pattern(self):
@@ -3180,7 +3181,7 @@ class Specfile(object):
         self._write_strip(f" {self.name}.gem")
         self._write_strip("\n")
 
-        self.write_find_lang()
+        # self.write_find_lang()
         self.write_check()
 
     def write_cmake_pattern(self):
@@ -3629,7 +3630,7 @@ class Specfile(object):
                     self._write("{}\n".format(line))
                 self._write_strip("## install_macro end")
 
-        self.write_find_lang()
+        # self.write_find_lang()
 
     def write_cpan_pattern(self):
         """Write cpan build pattern to spec file."""
@@ -3661,7 +3662,7 @@ class Specfile(object):
         self._write_strip("find %{buildroot} -depth -type d -exec rmdir {} 2>/dev/null ';'")
         self._write_strip("find %{buildroot} -type f -name '*.bs' -empty -exec rm -f {} ';'")
         self._write_strip("%{_fixperms} %{buildroot}/*")
-        self.write_find_lang()
+        # self.write_find_lang()
 
     def write_scons_pattern(self):
         """Write scons build pattern to spec file."""
@@ -3682,7 +3683,7 @@ class Specfile(object):
         self.write_license_files()
         self.write_variables()
         self._write_strip("%scons_install O=3 V=1 VERBOSE=1 {}".format(self.config.extra_make_install))
-        self.write_find_lang()
+        # self.write_find_lang()
 
     def write_golang_pattern(self):
         """Write build pattern for go packages."""
@@ -4246,7 +4247,7 @@ class Specfile(object):
             self._write("DESTDIR=%{buildroot} ninja -C builddir install\n\n")
             if self.config.subdir:
                 self._write_strip("popd")
-        self.write_find_lang()
+        # self.write_find_lang()
 
 
     def write_waf_pattern(self):
@@ -4571,7 +4572,7 @@ class Specfile(object):
             self._write_strip(f"%waf_install -- --verbose {self.config.extra_make_install}")
             if self.config.subdir:
                 self._write_strip("popd")
-        self.write_find_lang()
+        # self.write_find_lang()
 
     def write_phpize_pattern(self):
         """Write phpize build pattern to spec file."""
