@@ -291,6 +291,7 @@ class Config(object):
             "altcargo_pgo": "enable cargo local with pgo",
             "altcargo_sample_bolt": "enable cargo local with instrumented sampling bolt",
             "keepbuildroot": "do not remove current buildroot",
+            "findlang": "enable %find_lang macro",
         }
         # simple_pattern_pkgconfig patterns
         # contains patterns for parsing build.log for missing dependencies
@@ -671,6 +672,7 @@ class Config(object):
         config_f["autospec"]["verify_required"] = "false"
         config_f["autospec"]["keepstatic"] = "true"
         config_f["autospec"]["keepbuildroot"] = "false"
+        config_f["autospec"]["findlang"] = "true"
         config_f["autospec"]["filters_provreq"] = "true"
         config_f["autospec"]["use_oneapi"] = "false"
         config_f["autospec"]["custom_bashrc"] = "false"
