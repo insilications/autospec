@@ -826,7 +826,6 @@ class Specfile(object):
                 self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 for line in self.config.altflags1_32f:
                     self._write("{}\n".format(line))
-                self._write_strip('export ASFLAGS="--32"')
                 self._write_strip("## altflags1_32f end")
             elif self.config.altflags1_32 and self.config.altflags1_32[0]:
                 self._write_strip("## altflags1_32 content")
@@ -842,7 +841,6 @@ class Specfile(object):
                 self._write_strip('export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"')
                 for line in self.config.altflags1_32:
                     self._write("{}\n".format(line))
-                self._write_strip('export ASFLAGS="--32"')
                 self._write_strip("## altflags1_32 end")
         else:
             if self.config.config_opts["use_clang"]:
