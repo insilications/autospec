@@ -333,7 +333,7 @@ class Specfile(object):
         deps["lib"] = ["data", "libexec", "license"]
         deps["libexec"] = ["config", "license"]
         deps["lib32"] = ["data", "license"]
-		deps["python"] = ["python3"]
+        deps["python"] = ["python3"]
         deps["python3"] = ["filemap"]
         if self.config.config_opts.get("dev_requires_extras"):
             deps["dev"].append("extras")
@@ -924,9 +924,9 @@ class Specfile(object):
             if arch == 'x86_64':
                 flags.append("-fzero-call-used-regs=used")
         if self.need_avx2_flags:
-            flags.extend(["-O3", "-march=x86-64-v3", "-mtune=skylake", "-Wl,-z,x86-64-v3"])
+            flags.extend(["-O3", "-march=x86-64-v3", "-mtune=skylake", "-Wl,-z,x86-64-v3", "-msse2avx"])
         if self.need_avx512_flags:
-            flags.extend(["-O3", "-march=x86_64-v4", "-mtune=skylake", "-Wl,-z,x86-64-v4"])
+            flags.extend(["-O3", "-march=x86_64-v4", "-mtune=skylake", "-Wl,-z,x86-64-v4", "-msse2avx"])
         if self.config.config_opts["insecure_build"]:
             self._write_strip('export CFLAGS="-O3 -g -fopt-info-vec "\n')
             self._write_strip("unset LDFLAGS\n")
@@ -1864,10 +1864,13 @@ class Specfile(object):
 
     def write_elf_move(self):
         """Write out elf-move for alternate build roots."""
+        skips = ""
+        for setuid in self.setuid:
+            skips = f"{skips} --skip-path {setuid}"
         if self.config.config_opts['use_avx2'] or self.config.default_pattern == "distutils3" or self.config.default_pattern == "pyproject":
             self._write_strip('/usr/bin/elf-move.py avx2 %{buildroot}-v3 %{buildroot} %{buildroot}/usr/share/clear/filemap/filemap-%{name}' + skips)
         if self.config.config_opts['use_avx512']:
-            self._write_strip('/usr/bin/elf-move.py avx512 %{buildroot} %{buildroot}/usr/share/clear/optimized-elf/ %{buildroot}/usr/share/clear/filemap/filemap-%{name}')
+            self._write_strip('/usr/bin/elf-move.py avx512 %{buildroot}-v4 %{buildroot}/usr/share/clear/optimized-elf/ %{buildroot}/usr/share/clear/filemap/filemap-%{name}' + skips)
 
     def write_exclude_deletes(self):
         """Write out deletes for excluded files."""
@@ -2987,7 +2990,7 @@ class Specfile(object):
         self._write_strip("pip install --root=%{buildroot}-v3 --no-deps --ignore-installed dist/*.whl")
         self._write_strip("popd")
 
-        # self.write_find_lang()
+        #self.write_find_lang()
 
     def write_distutils3_pattern(self):
         """Write build pattern for python packages using distutils3."""
