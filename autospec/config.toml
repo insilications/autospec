@@ -8,21 +8,37 @@ jobs = 16
 git-fetch-with-cli = true
 
 [profile.dev.package.syn]
-codegen-units = 4
+opt-level = 3
+codegen-units = 16
+debug = 0
+debug-assertions = false
+overflow-checks = false
 
 [profile.dev.package.serde_derive]
-codegen-units = 4
+opt-level = 3
+codegen-units = 16
+debug = 0
+debug-assertions = false
+overflow-checks = false
 
 [profile.release.package.syn]
-codegen-units = 4
+opt-level = 3
+codegen-units = 16
+debug = 0
+debug-assertions = false
+overflow-checks = false
 
 [profile.release.package.serde_derive]
-codegen-units = 4
+opt-level = 3
+codegen-units = 16
+debug = 0
+debug-assertions = false
+overflow-checks = false
 
 [profile.release]
 opt-level = 3
-codegen-units = 1
-debug = 1
+# codegen-units = 1
+# debug = 1
 debug-assertions = false
 overflow-checks = false
 #panic = "abort"
@@ -30,22 +46,22 @@ overflow-checks = false
 
 [profile.release.build-override]
 opt-level = 3
-codegen-units = 1
-debug = 1
+# codegen-units = 1
+# debug = 1
 debug-assertions = false
 overflow-checks = false
 
 [profile.release.package."*"]
 opt-level = 3
-codegen-units = 1
-debug = 1
+# codegen-units = 1
+# debug = 1
 debug-assertions = false
 overflow-checks = false
 
 [profile.dev]
 opt-level = 3
-codegen-units = 1
-debug = 1
+# codegen-units = 1
+# debug = 1
 debug-assertions = false
 overflow-checks = false
 #panic = "abort"
@@ -53,58 +69,58 @@ overflow-checks = false
 
 [profile.dev.build-override]
 opt-level = 3
-codegen-units = 1
-debug = 1
+# codegen-units = 1
+# debug = 1
 debug-assertions = false
 overflow-checks = false
 
 [profile.dev.package."*"]
 opt-level = 3
-codegen-units = 1
-debug = 1
+# codegen-units = 1
+# debug = 1
 debug-assertions = false
 overflow-checks = false
 
 [profile.test]
 opt-level = 3
-codegen-units = 1
-debug = 1
+# codegen-units = 1
+# debug = 1
 debug-assertions = false
 overflow-checks = false
 #rpath = false
 
 [profile.test.build-override]
 opt-level = 3
-codegen-units = 1
-debug = 1
+# codegen-units = 1
+# debug = 1
 debug-assertions = false
 overflow-checks = false
 
 [profile.test.package."*"]
 opt-level = 3
-codegen-units = 1
-debug = 1
+# codegen-units = 1
+# debug = 1
 debug-assertions = false
 overflow-checks = false
 
 [profile.bench]
 opt-level = 3
-codegen-units = 1
-debug = 1
+# codegen-units = 1
+# debug = 1
 debug-assertions = false
 overflow-checks = false
 
 [profile.bench.build-override]
 opt-level = 3
-codegen-units = 1
-debug = 1
+# codegen-units = 1
+# debug = 1
 debug-assertions = false
 overflow-checks = false
 
 [profile.bench.package."*"]
 opt-level = 3
-codegen-units = 1
-debug = 1
+# codegen-units = 1
+# debug = 1
 debug-assertions = false
 overflow-checks = false
 
