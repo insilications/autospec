@@ -1,9 +1,9 @@
-export CFLAGS="-m32 -O3 -pipe -fPIC -mstackrealign -fomit-frame-pointer -fstrict-aliasing -ffast-math -march=native -Wall"
-export FCFLAGS="-m32 -O3 -pipe -fPIC -mstackrealign -fomit-frame-pointer -fstrict-aliasing -ffast-math -march=native -Wall"
-export FFLAGS="-m32 -O3 -pipe -fPIC -mstackrealign -fomit-frame-pointer -fstrict-aliasing -ffast-math -march=native -Wall"
-export CXXFLAGS="-m32 -O3 -fvisibility-inlines-hidden -pipe -fPIC -mstackrealign -fomit-frame-pointer -fstrict-aliasing -ffast-math -march=native -Wall"
-export LDFLAGS="-m32 -O3 -pipe -fPIC -mstackrealign -fomit-frame-pointer -fstrict-aliasing -ffast-math -march=native -Wall"
-export ASMFLAGS="-m32 -O3 -pipe -fPIC -mstackrealign -fomit-frame-pointer -fstrict-aliasing -ffast-math -march=native -Wall"
+export CFLAGS="-m32 -O3 -pipe -fPIC -mstackrealign -fomit-frame-pointer -fstrict-aliasing -march=native -mtune=native -Wall"
+export FCFLAGS="-m32 -O3 -pipe -fPIC -mstackrealign -fomit-frame-pointer -fstrict-aliasing -march=native -mtune=native -Wall"
+export FFLAGS="-m32 -O3 -pipe -fPIC -mstackrealign -fomit-frame-pointer -fstrict-aliasing -march=native -mtune=native -Wall"
+export CXXFLAGS="-m32 -O3 -fvisibility-inlines-hidden -pipe -fPIC -mstackrealign -fomit-frame-pointer -fstrict-aliasing -march=native -mtune=native -Wall"
+export LDFLAGS="-m32 -O3 -pipe -fPIC -mstackrealign -fomit-frame-pointer -fstrict-aliasing -march=native -mtune=native -Wall"
+export ASMFLAGS="-m32 -O3 -pipe -fPIC -mstackrealign -fomit-frame-pointer -fstrict-aliasing -march=native -mtune=native -Wall"
 export ASFLAGS="--32"
 #
 export AR=/usr/bin/gcc-ar

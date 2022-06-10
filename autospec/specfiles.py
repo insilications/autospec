@@ -617,21 +617,56 @@ class Specfile(object):
                         self._write("{}\n".format(line))
                     self._write_strip("## make_macro end")
         elif build32 is False and build_type == "special":
+
             if not self.config.make_macro_special:
                 if self.config.config_opts["use_ninja"]:
-                    self._write_strip("ninja --verbose {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special))
+                    self._write_strip("ninja --verbose {} {} {}".format(self.config.parallel_build, self.config.extra_make_special))
                 else:
-                    self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special))
+                    if pattern == "make" and pgo is False:
+                        self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make_special))
+                    elif pattern == "make" and pgo is True:
+                        self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make_special))
+                    elif pattern == "make" and pgo is None:
+                        self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make_special))
+                    elif pattern != "make":
+                        self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make_special))
             else:
-                self._write_strip("{}".format(self.config.make_macro_special))
+                if pgo is True and self.config.make_macro_pgo_special:
+                    self._write_strip("## make_macro_pgo_special content")
+                    for line in self.config.make_macro_pgo_special:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## make_macro_pgo_special end")
+                else:
+                    self._write_strip("## make_macro_special content")
+                    for line in self.config.make_macro_special:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## make_macro_special end")
+
         elif build32 is False and build_type == "special2":
             if not self.config.make_macro_special2:
                 if self.config.config_opts["use_ninja"]:
-                    self._write_strip("ninja --verbose {} {} {}".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special2))
+                    self._write_strip("ninja --verbose {} {} {}".format(self.config.parallel_build, self.config.extra_make_special2))
                 else:
-                    self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make, self.config.extra_make_special2))
+                    if pattern == "make" and pgo is False:
+                        self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make_special2))
+                    elif pattern == "make" and pgo is True:
+                        self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make_special2))
+                    elif pattern == "make" and pgo is None:
+                        self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make_special2))
+                    elif pattern != "make":
+                        self._write_strip("make {} {} {} V=1 VERBOSE=1".format(self.config.parallel_build, self.config.extra_make_special2))
             else:
-                self._write_strip("{}".format(self.config.make_macro_special2))
+                if pgo is True and self.config.make_macro_pgo_special2:
+                    self._write_strip("## make_macro_pgo_special2 content")
+                    for line in self.config.make_macro_pgo_special2:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## make_macro_pgo_special2 end")
+                else:
+                    self._write_strip("## make_macro_special2 content")
+                    for line in self.config.make_macro_special2:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## make_macro_special2 end")
+
         if self.config.make_append:
             self._write_strip("## make_append content")
             for line in self.config.make_append:
@@ -888,371 +923,70 @@ class Specfile(object):
                 self._write_strip('export FFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -fvisibility-inlines-hidden -pipe -march=native -mtune=native -m32 -mstackrealign"')
                 self._write_strip('export LDFLAGS="-O2 -ffat-lto-objects -fuse-linker-plugin -pipe -march=native -mtune=native -m32 -mstackrealign"')
 
-    def write_variables(self):
+    def write_variables(self, build_type=None):
         """Write variable exports to spec file."""
-        flagsalt1c = []
-        flagsalt1cxx = []
-        flagsalt1ldflags = []
-        flags = []
-        arch = os.uname()[4]
 
-        # Clear ships with a patch in GCC that allows ignoring the -Werror
-        # compilation flag if this environment variable is set.  -Werror
-        # is a useful flag for the upstream package maintainers, but is
-        # a source of headaches for downstream users.
-        #self._write_strip("export GCC_IGNORE_WERROR=1\n")
+        if build_type is None:
+            if self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"]:
+                if self.config.altflags1f and self.config.altflags1f[0]:
+                    self._write_strip("## altflags1f content")
+                    for line in self.config.altflags1f:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## altflags1f end")
+                elif self.config.altflags1 and self.config.altflags1[0]:
+                    self._write_strip("## altflags1 content")
+                    for line in self.config.altflags1:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## altflags1 end")
 
-        if self.config.config_opts["use_clang"]:
-            self._write_strip("export CC=clang\n")
-            self._write_strip("export CXX=clang++\n")
-            # self._write_strip("CFLAGS=${CFLAGS/ -Wa,/ -fno-integrated-as -Wa,}")
-            # self._write_strip
-            lto = "-flto=auto"
-        else:
-            lto = "-flto=16"
+            if self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                if self.config.altflags_pgof and self.config.altflags_pgof[0]:
+                    self._write_strip("## altflags_pgof content")
+                    for line in self.config.altflags_pgof:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## altflags_pgof end")
+                elif self.config.altflags_pgo and self.config.altflags_pgo[0]:
+                    self._write_strip("## altflags_pgo content")
+                    for line in self.config.altflags_pgo:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## altflags_pgo end")
 
-        if not self.config.set_gopath:
-            self._write_strip("export GOPROXY=file:///usr/share/goproxy")
+            if self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                if self.config.altflags_pgof and self.config.altflags_pgof[0]:
+                    self._write_strip("## altflags_pgof content")
+                    for line in self.config.altflags_pgof:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## altflags_pgof end")
+                elif self.config.altflags_pgo and self.config.altflags_pgo[0]:
+                    self._write_strip("## altflags_pgo content")
+                    for line in self.config.altflags_pgo:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## altflags_pgo end")
 
-        if self.config.config_opts["optimize_size"]:
-            if self.config.config_opts["use_clang"]:
-                flags.extend(["-Os", "-ffunction-sections", "-fdata-sections"])
-            else:
-                flags.extend(["-Os", "-ffunction-sections", "-fdata-sections", "-fno-semantic-interposition"])
-        if self.config.config_opts["security_sensitive"]:
-            flags.append("-fstack-protector-strong")
-            if arch == 'x86_64':
-                flags.append("-fzero-call-used-regs=used")
-        if self.need_avx2_flags:
-            flags.extend(["-O3", "-march=x86-64-v3", "-mtune=skylake", "-Wl,-z,x86-64-v3", "-msse2avx"])
-        if self.need_avx512_flags:
-            flags.extend(["-O3", "-march=x86_64-v4", "-mtune=skylake", "-Wl,-z,x86-64-v4", "-msse2avx"])
-        if self.config.config_opts["insecure_build"]:
-            self._write_strip('export CFLAGS="-O3 -g -fopt-info-vec "\n')
-            self._write_strip("unset LDFLAGS\n")
-        if self.config.config_opts["conservative_flags"]:
-            self._write_strip(
-                'export CFLAGS="-O2 -g -Wp,-D_FORTIFY_SOURCE=2 '
-                "-fexceptions -fstack-protector "
-                "--param=ssp-buffer-size=32 -Wformat "
-                "-Wformat-security -Wno-error "
-                "-Wl,-z,max-page-size=0x1000 "
-                '-march=native -mtune=native"\n'
-            )
-            self._write_strip("export CXXFLAGS=$CFLAGS\n")
-            self._write_strip(
-                'export FFLAGS="-O2 -g -Wp,-D_FORTIFY_SOURCE=2 '
-                "-fexceptions -fstack-protector "
-                "--param=ssp-buffer-size=32 "
-                "-Wno-error "
-                "-Wl,-z,max-page-size=0x1000 "
-                '-march=native -mtune=native"\n'
-            )
-            self._write_strip("export FCFLAGS=$FFLAGS\n")
-            self._write_strip("unset LDFLAGS\n")
-        if self.config.config_opts["use_clang"]:
-            self._write_strip("unset LDFLAGS\n")
-        if self.config.config_opts["funroll-loops"]:
-            if self.config.config_opts["use_clang"]:
-                flags.extend(["-O3"])
-            else:
-                flags.extend(["-Ofast", "-fno-semantic-interposition", "-falign-functions=32", "-mprefer-vector-width=256", "-mno-vzeroupper"])
-        if self.config.default_pattern != 'qmake':
-            if self.config.config_opts['use_lto']:
-                flags.extend(["-O3", lto, "-ffat-lto-objects"])
-                if self.config.config_opts["use_clang"]:
-                    self._write_strip("export AR=llvm-ar\n")
-                    self._write_strip("export RANLIB=llvm-ranlib\n")
-                    self._write_strip("export NM=llvm-nm\n")
-                else:
-                    self._write_strip("export AR=gcc-ar\n")
-                    self._write_strip("export RANLIB=gcc-ranlib\n")
-                    self._write_strip("export NM=gcc-nm\n")
-            else:
-                flags.extend(["-fno-lto"])
-        if self.config.config_opts["fast-math"]:
-            flags.extend(["-ffast-math", "-ftree-loop-vectorize"])
-        if self.config.config_opts["pgo"]:
-            flags.extend(["-O3"])
-        if self.content.gcov_file:
-            flags = list(filter((lto).__ne__, flags))
-            flags.extend(["-O3", "-fauto-profile=%{{SOURCE{0}}}".format(self.source_index[self.config.sources["gcov"][0]])])
-        if (flags or self.config.config_opts["broken_c++"]) and not self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altcargo1"] and not self.config.config_opts["altcargo_pgo"]:
-            flags = sorted(list(set(flags)))
-            self._write_strip('export CFLAGS="$CFLAGS {0} "\n'.format(" ".join(flags)))
-            self._write_strip('export FCFLAGS="$FFLAGS {0} "\n'.format(" ".join(flags)))
-            self._write_strip('export FFLAGS="$FFLAGS {0} "\n'.format(" ".join(flags)))
-            # leave the export CXXFLAGS line open in case
-            self._write('export CXXFLAGS="$CXXFLAGS {0} '.format(" ".join(flags)))
-            if self.config.config_opts["broken_c++"]:
-                self._write("-std=gnu++98")
-            # close the open quote from CXXFLAGS export and add newline
-            self._write('"\n')
+            if self.config.config_opts["altcargo_pgo"] and not self.config.config_opts["altcargo1"] and not self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
+                if self.config.altflagsrust_pgof and self.config.altflagsrust_pgof[0]:
+                    self._write_strip("## altflagsrust_pgof content")
+                    for line in self.config.altflagsrust_pgof:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## altflagsrust_pgof end")
+                elif self.config.altflagsrust_pgo and self.config.altflagsrust_pgo[0]:
+                    self._write_strip("## altflagsrust_pgo content")
+                    for line in self.config.altflagsrust_pgo:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## altflagsrust_pgo end")
 
-        if (
-            self.config.profile_payload
-            and self.config.profile_payload[0]
-            and not self.need_avx2_flags
-            and not self.need_avx512_flags
-            and not self.config.config_opts["fsalt1"]
-            and not self.config.config_opts["altflags_pgo"]
-            and not self.config.config_opts["altflags_pgo_ext"]
-            and not self.config.config_opts["altcargo1"]
-            and not self.config.config_opts["altcargo_pgo"]
-        ):
-            genflags = []
-            useflags = []
-            genflags.extend(
-                ["-fprofile-generate", "-fprofile-dir=/var/tmp/pgo", "-fprofile-update=atomic", "-fprofile-abs-path", "-fprofile-arcs", "-ftest-coverage", "--coverage", "-fprofile-partial-training"]
-            )
-            useflags.extend(["-fprofile-use", "-fprofile-dir=/var/tmp/pgo", "-fprofile-correction", "-fprofile-partial-training"])
-
-            self._write_strip('export CFLAGS_GENERATE="$CFLAGS {0} "\n'.format(" ".join(genflags)))
-            self._write_strip('export FCFLAGS_GENERATE="$FCFLAGS {0} "\n'.format(" ".join(genflags)))
-            self._write_strip('export FFLAGS_GENERATE="$FFLAGS {0} "\n'.format(" ".join(genflags)))
-            self._write_strip('export CXXFLAGS_GENERATE="$CXXFLAGS {0} "\n'.format(" ".join(genflags)))
-            self._write_strip('export LDFLAGS_GENERATE="$LDFLAGS {0} "\n'.format(" ".join(genflags)))
-
-            self._write_strip('export CFLAGS_USE="$CFLAGS {0} "\n'.format(" ".join(useflags)))
-            self._write_strip('export FCFLAGS_USE="$FCFLAGS {0} "\n'.format(" ".join(useflags)))
-            self._write_strip('export FFLAGS_USE="$FFLAGS {0} "\n'.format(" ".join(useflags)))
-            self._write_strip('export CXXFLAGS_USE="$CXXFLAGS {0} "\n'.format(" ".join(useflags)))
-            self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
-            self._write_strip("##")
-
-        if self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"]:
-            if self.config.altflags1f and self.config.altflags1f[0]:
-                self._write_strip("## altflags1f content")
-                for line in self.config.altflags1f:
-                    self._write("{}\n".format(line))
-                self._write_strip("## altflags1f end")
-            elif self.config.altflags1 and self.config.altflags1[0]:
-                self._write_strip("## altflags1 content")
-                for line in self.config.altflags1:
-                    self._write("{}\n".format(line))
-                self._write_strip("## altflags1 end")
-            else:
-                flagsalt1c.extend(
-                    [
-                        "-g",
-                        "-feliminate-unused-debug-types",
-                        "-pipe",
-                        "-Wall",
-                        "-Wl,--hash-style=gnu",
-                        "-Wp,-D_REENTRANT",
-                        "-Wl,-sort-common",
-                        "-Wl,--enable-new-dtags",
-                        "-fasynchronous-unwind-tables",
-                        "-falign-functions=32",
-                        "-fno-math-errno",
-                        "-ftree-loop-distribute-patterns",
-                        "-Wl,-O2",
-                        "-Wl,-z,now",
-                        "-Wl,-z,relro",
-                        "-fno-semantic-interposition",
-                        "-fno-trapping-math",
-                        "-m64",
-                        "-ffat-lto-objects",
-                        "-fuse-linker-plugin",
-                        "-flto=12",
-                        "-mtune=native",
-                        "-march=native",
-                        "-fipa-pta",
-                        "-fdevirtualize-at-ltrans",
-                        "-fno-plt",
-                        "-fno-pie",
-                        "-fno-PIE",
-                        "-fno-PIC",
-                        "-fuse-ld=bfd",
-                        "-fno-stack-protector",
-                        "-O3",
-                        "-floop-nest-optimize",
-                        "-Wl,--build-id=sha1",
-                        "-Wno-error",
-                        "-ftree-loop-distribute-patterns",
-                        "-ftree-vectorize",
-                        "-ftree-loop-vectorize",
-                        "-malign-data=cacheline",
-                        "-fasynchronous-unwind-tables",
-                        "-Wl,--as-needed",
-                        "-funroll-loops",
-                        "-fno-stack-protector",
-                        "-mtls-dialect=gnu2",
-                    ]
-                )
-                flagsalt1cxx.extend(
-                    [
-                        "-g",
-                        "-feliminate-unused-debug-types",
-                        "-pipe",
-                        "-Wall",
-                        "-Wl,--hash-style=gnu",
-                        "-Wp,-D_REENTRANT",
-                        "-Wl,-sort-common",
-                        "-Wl,--enable-new-dtags",
-                        "-fasynchronous-unwind-tables",
-                        "-falign-functions=32",
-                        "-fno-math-errno",
-                        "-ftree-loop-distribute-patterns",
-                        "-Wl,-O2",
-                        "-Wl,-z,now",
-                        "-Wl,-z,relro",
-                        "-fno-semantic-interposition",
-                        "-fno-trapping-math",
-                        "-m64",
-                        "-ffat-lto-objects",
-                        "-fuse-linker-plugin",
-                        "-flto=12",
-                        "-mtune=native",
-                        "-march=native",
-                        "-fipa-pta",
-                        "-fdevirtualize-at-ltrans",
-                        "-fno-plt",
-                        "-fvisibility-inlines-hidden",
-                        "-Wl,--enable-new-dtags",
-                        "-fno-pie",
-                        "-fno-PIE",
-                        "-fno-PIC",
-                        "-fuse-ld=bfd",
-                        "-fno-stack-protector",
-                        "-O3",
-                        "-floop-nest-optimize",
-                        "-Wl,--build-id=sha1",
-                        "-Wno-error",
-                        "-ftree-loop-distribute-patterns",
-                        "-ftree-vectorize",
-                        "-ftree-loop-vectorize",
-                        "-malign-data=cacheline",
-                        "-fasynchronous-unwind-tables",
-                        "-Wl,--as-needed",
-                        "-funroll-loops",
-                        "-fno-stack-protector",
-                        "-mtls-dialect=gnu2",
-                    ]
-                )
-                flagsalt1ldflags.extend(
-                    [
-                        "-Wl,-sort-common",
-                        "-fipa-pta",
-                        "-fdevirtualize-at-ltrans",
-                        "-fno-semantic-interposition",
-                        "-fno-plt",
-                        "-Wl,--hash-style=gnu",
-                        "-flto=12",
-                        "-fuse-linker-plugin",
-                        "-ffat-lto-objects",
-                        "-mtune=native",
-                        "-march=native",
-                        "-fno-pie",
-                        "-fno-PIE",
-                        "-fno-PIC",
-                        "-fuse-ld=bfd",
-                        "-fno-stack-protector",
-                        "-Wl,-O2",
-                        "-Wl,-z,now",
-                        "-Wl,-z,relro",
-                        "-O3",
-                        "-floop-nest-optimize",
-                        "-Wl,--build-id=sha1",
-                        "-ftree-loop-distribute-patterns",
-                        "-ftree-vectorize",
-                        "-ftree-loop-vectorize",
-                        "-malign-data=cacheline",
-                        "-fasynchronous-unwind-tables",
-                        "-Wl,--as-needed",
-                        "-funroll-loops",
-                        "-fno-stack-protector",
-                        "-mtls-dialect=gnu2",
-                    ]
-                )
-                flagsalt1c = sorted(list(set(flagsalt1c)))
-                flagsalt1cxx = sorted(list(set(flagsalt1cxx)))
-                flagsalt1ldflags = sorted(list(set(flagsalt1ldflags)))
-                self._write_strip('export CFLAGS="{0} "\n'.format(" ".join(flagsalt1c)))
-                self._write_strip('export FCFLAGS="{0} "\n'.format(" ".join(flagsalt1c)))
-                self._write_strip('export FFLAGS="{0} "\n'.format(" ".join(flagsalt1c)))
-                self._write_strip('export LDFLAGS="{0} "\n'.format(" ".join(flagsalt1ldflags)))
-                # leave the export CXXFLAGS line open in case
-                self._write('export CXXFLAGS="{0} '.format(" ".join(flagsalt1cxx)))
-                if self.config.config_opts["broken_c++"]:
-                    self._write("-std=gnu++98")
-                # close the open quote from CXXFLAGS export and add newline
-                self._write('"\n')
-        if self.config.profile_payload and self.config.profile_payload[0] and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
-            genflags = []
-            useflags = []
-            genflags.extend(
-                ["-fprofile-generate", "-fprofile-dir=/var/tmp/pgo", "-fprofile-update=atomic", "-fprofile-abs-path", "-fprofile-arcs", "-ftest-coverage", "--coverage", "-fprofile-partial-training"]
-            )
-            useflags.extend(["-fprofile-use", "-fprofile-dir=/var/tmp/pgo", "-fprofile-correction", "-fprofile-partial-training"])
-            if self.config.altflags_pgof and self.config.altflags_pgof[0]:
-                self._write_strip("## altflags_pgof content")
-                for line in self.config.altflags_pgof:
-                    self._write("{}\n".format(line))
-                self._write_strip("## altflags_pgof end")
-            elif self.config.altflags_pgo and self.config.altflags_pgo[0]:
-                self._write_strip("## altflags_pgo content")
-                for line in self.config.altflags_pgo:
-                    self._write("{}\n".format(line))
-                self._write_strip("## altflags_pgo end")
-            else:
-                self._write_strip("## altflags_pgo content")
-                self._write_strip("## pgo generate")
-                self._write_strip('export CFLAGS_GENERATE="$CFLAGS {0} "\n'.format(" ".join(genflags)))
-                self._write_strip('export FCFLAGS_GENERATE="$FCFLAGS {0} "\n'.format(" ".join(genflags)))
-                self._write_strip('export FFLAGS_GENERATE="$FFLAGS {0} "\n'.format(" ".join(genflags)))
-                self._write_strip('export CXXFLAGS_GENERATE="$CXXFLAGS {0} "\n'.format(" ".join(genflags)))
-                self._write_strip('export LDFLAGS_GENERATE="$LDFLAGS {0} "\n'.format(" ".join(genflags)))
-                self._write_strip("## pgo use")
-                self._write_strip('export CFLAGS_USE="$CFLAGS {0} "\n'.format(" ".join(useflags)))
-                self._write_strip('export FCFLAGS_USE="$FCFLAGS {0} "\n'.format(" ".join(useflags)))
-                self._write_strip('export FFLAGS_USE="$FFLAGS {0} "\n'.format(" ".join(useflags)))
-                self._write_strip('export CXXFLAGS_USE="$CXXFLAGS {0} "\n'.format(" ".join(useflags)))
-                self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
-                self._write_strip("## altflags_pgo end")
-        if self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
-            genflags = []
-            useflags = []
-            genflags.extend(
-                ["-fprofile-generate", "-fprofile-dir=/var/tmp/pgo", "-fprofile-update=atomic", "-fprofile-abs-path", "-fprofile-arcs", "-ftest-coverage", "--coverage", "-fprofile-partial-training"]
-            )
-            useflags.extend(["-fprofile-use", "-fprofile-dir=/var/tmp/pgo", "-fprofile-correction", "-fprofile-partial-training"])
-            if self.config.altflags_pgof and self.config.altflags_pgof[0]:
-                self._write_strip("## altflags_pgof content")
-                for line in self.config.altflags_pgof:
-                    self._write("{}\n".format(line))
-                self._write_strip("## altflags_pgof end")
-            elif self.config.altflags_pgo and self.config.altflags_pgo[0]:
-                self._write_strip("## altflags_pgo content")
-                for line in self.config.altflags_pgo:
-                    self._write("{}\n".format(line))
-                self._write_strip("## altflags_pgo end")
-            else:
-                self._write_strip("## altflags_pgo content")
-                self._write_strip("## pgo generate")
-                self._write_strip('export CFLAGS_GENERATE="$CFLAGS {0} "\n'.format(" ".join(genflags)))
-                self._write_strip('export FCFLAGS_GENERATE="$FCFLAGS {0} "\n'.format(" ".join(genflags)))
-                self._write_strip('export FFLAGS_GENERATE="$FFLAGS {0} "\n'.format(" ".join(genflags)))
-                self._write_strip('export CXXFLAGS_GENERATE="$CXXFLAGS {0} "\n'.format(" ".join(genflags)))
-                self._write_strip('export LDFLAGS_GENERATE="$LDFLAGS {0} "\n'.format(" ".join(genflags)))
-                self._write_strip("## pgo use")
-                self._write_strip('export CFLAGS_USE="$CFLAGS {0} "\n'.format(" ".join(useflags)))
-                self._write_strip('export FCFLAGS_USE="$FCFLAGS {0} "\n'.format(" ".join(useflags)))
-                self._write_strip('export FFLAGS_USE="$FFLAGS {0} "\n'.format(" ".join(useflags)))
-                self._write_strip('export CXXFLAGS_USE="$CXXFLAGS {0} "\n'.format(" ".join(useflags)))
-                self._write_strip('export LDFLAGS_USE="$LDFLAGS {0} "\n'.format(" ".join(useflags)))
-                self._write_strip("## altflags_pgo end")
-        if self.config.config_opts["altcargo_pgo"] and not self.config.config_opts["altcargo1"] and not self.config.config_opts["altflags_pgo_ext"] and not self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
-            if self.config.altflagsrust_pgof and self.config.altflagsrust_pgof[0]:
-                self._write_strip("## altflagsrust_pgof content")
-                for line in self.config.altflagsrust_pgof:
-                    self._write("{}\n".format(line))
-                self._write_strip("## altflagsrust_pgof end")
-            elif self.config.altflagsrust_pgo and self.config.altflagsrust_pgo[0]:
-                self._write_strip("## altflagsrust_pgo content")
-                for line in self.config.altflagsrust_pgo:
-                    self._write("{}\n".format(line))
-                self._write_strip("## altflagsrust_pgo end")
+        if build_type == "special":
+            if self.config.config_opts["fsalt1"] and not self.config.config_opts["altflags_pgo"]:
+                if self.config.altflags1_special and self.config.altflags1_special[0]:
+                    self._write_strip("## altflags1_special content")
+                    for line in self.config.altflags1_special:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## altflags1_special end")
+                elif self.config.altflags1 and self.config.altflags1[0]:
+                    self._write_strip("## altflags1 content")
+                    for line in self.config.altflags1:
+                        self._write("{}\n".format(line))
+                    self._write_strip("## altflags1 end")
 
     def write_check(self):
         """Write check section to spec file."""
@@ -1681,7 +1415,7 @@ class Specfile(object):
                     self._write_strip("popd")
 
             if self.config.config_opts["build_special"]:
-                self.write_variables()
+                self.write_variables(build_type="special")
                 if self.config.config_opts["altflags_pgo_ext"]:
                     if not self.config.config_opts["altflags_pgo_ext_phase"]:
                         self._write(f"{self.get_profile_generate_flags()}")
@@ -2249,7 +1983,7 @@ class Specfile(object):
                 self._write(f"{self.get_profile_use_flags()}")
                 for line in self.config.configure_macro_pgo:
                     self._write("{}\n".format(line))
-                self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
+                self.write_make_line(build32=False, build_type=None, pgo=True, pattern="configure")
                 if self.config.subdir:
                     self._write_strip("popd")
                 self._write_strip("\n")
@@ -2259,7 +1993,7 @@ class Specfile(object):
                 self._write(f"{self.get_profile_use_flags()}")
                 for line in self.config.configure_macro:
                     self._write("{}\n".format(line))
-                self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
+                self.write_make_line(build32=False, build_type=None, pgo=True, pattern="configure")
                 if self.config.subdir:
                     self._write_strip("popd")
                 self._write_strip("\n")
@@ -2267,7 +2001,7 @@ class Specfile(object):
                 if self.config.subdir:
                     self._write_strip(f"pushd {self.config.subdir}")
                 self._write_strip(f"{self.get_profile_use_flags()}%configure {self.config.extra_configure_pgo}")
-                self.write_make_line(build32=False, build_type=None, pgo=True, pattern=None)
+                self.write_make_line(build32=False, build_type=None, pgo=True, pattern="configure")
                 if self.config.subdir:
                     self._write_strip("popd")
                 self._write_strip("\n")
@@ -2314,11 +2048,10 @@ class Specfile(object):
             if self.config.configure_macro:
                 if self.config.subdir:
                     self._write_strip(f"pushd {self.config.subdir}")
-                self._write(f"{self.get_profile_use_flags()}")
                 self.write_build_append()
                 for line in self.config.configure_macro:
                     self._write("{}\n".format(line))
-                self.write_make_line()
+                self.write_make_line(build32=False, build_type=None, pgo=False, pattern="configure")
                 if self.config.subdir:
                     self._write_strip("popd")
                 self._write_strip("\n")
@@ -2326,8 +2059,8 @@ class Specfile(object):
                 if self.config.subdir:
                     self._write_strip(f"pushd {self.config.subdir}")
                 self.write_build_append()
-                self._write_strip(f"{self.get_profile_use_flags()}%configure {self.config.extra_configure} {self.config.extra_configure64}")
-                self.write_make_line()
+                self._write_strip(f"%configure {self.config.extra_configure} {self.config.extra_configure64}")
+                self.write_make_line(build32=False, build_type=None, pgo=False, pattern="configure")
                 if self.config.subdir:
                     self._write_strip("popd")
                 self._write_strip("\n")
@@ -2335,7 +2068,7 @@ class Specfile(object):
         if self.config.config_opts["build_special"]:
             self._write_strip("pushd ../build-special/")
             self.write_build_prepend()
-            self.write_variables()
+            self.write_variables(build_type="special")
 
             if self.config.profile_payload and self.config.config_opts["altflags_pgo"] and not self.config.config_opts["fsalt1"]:
                 self.write_profile_payload(pattern="configure", build_type="special")
@@ -2416,7 +2149,6 @@ class Specfile(object):
                     if self.config.subdir:
                         self._write_strip(f"pushd {self.config.subdir}")
                     self.write_build_append()
-                    self._write(f"{self.get_profile_use_flags()}")
                     for line in self.config.configure_macro_special:
                         self._write("{}\n".format(line))
                     self.write_make_line(build32=False, build_type="special", pgo=False, pattern=None)
@@ -3878,11 +3610,11 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                     self.write_trystatic()
                     self.write_make_prepend(build32=False)
-                    if self.config.make_macro_special_pgo:
-                        self._write_strip("## make_macro_special_pgo start")
-                        for line in self.config.make_macro_special_pgo:
+                    if self.config.make_macro_pgo_special:
+                        self._write_strip("## make_macro_pgo_special start")
+                        for line in self.config.make_macro_pgo_special:
                             self._write("{}\n".format(line))
-                        self._write_strip("## make_macro_special_pgo end")
+                        self._write_strip("## make_macro_pgo_special end")
                     elif self.config.make_macro_special:
                         self._write_strip("## make_macro_special start")
                         for line in self.config.make_macro_special:
@@ -3926,11 +3658,11 @@ class Specfile(object):
                         self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
                     self.write_trystatic()
                     self.write_make_prepend(build32=False)
-                    if self.config.make_macro_special_pgo:
-                        self._write_strip("## make_macro_special_pgo start")
-                        for line in self.config.make_macro_special_pgo:
+                    if self.config.make_macro_pgo_special:
+                        self._write_strip("## make_macro_pgo_special start")
+                        for line in self.config.make_macro_pgo_special:
                             self._write("{}\n".format(line))
-                        self._write_strip("## make_macro_special_pgo end")
+                        self._write_strip("## make_macro_pgo_special end")
                     elif self.config.make_macro_special:
                         self._write_strip("## make_macro_special start")
                         for line in self.config.make_macro_special:
@@ -4088,11 +3820,11 @@ class Specfile(object):
                                 self._write("{}\n".format(line))
                         self.write_trystatic()
                         self.write_make_prepend(build32=False)
-                        if self.config.make_macro_special_pgo:
-                            self._write_strip("## make_macro_special_pgo start")
-                            for line in self.config.make_macro_special_pgo:
+                        if self.config.make_macro_pgo_special:
+                            self._write_strip("## make_macro_pgo_special start")
+                            for line in self.config.make_macro_pgo_special:
                                 self._write("{}\n".format(line))
-                            self._write_strip("## make_macro_special_pgo end")
+                            self._write_strip("## make_macro_pgo_special end")
                         elif self.config.make_macro_special:
                             self._write_strip("## make_macro_special start")
                             for line in self.config.make_macro_special:
@@ -4139,11 +3871,11 @@ class Specfile(object):
                             self._write_strip('CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" LIBS="$LIBS" meson --libdir=lib64 --sysconfdir=/usr/share --prefix=/usr --buildtype=plain -Ddefault_library=both {0} builddir'.format(self.config.extra_configure_special))
                         self.write_trystatic()
                         self.write_make_prepend(build32=False)
-                        if self.config.make_macro_special_pgo:
-                            self._write_strip("## make_macro_special_pgo start")
-                            for line in self.config.make_macro_special_pgo:
+                        if self.config.make_macro_pgo_special:
+                            self._write_strip("## make_macro_pgo_special start")
+                            for line in self.config.make_macro_pgo_special:
                                 self._write("{}\n".format(line))
-                            self._write_strip("## make_macro_special_pgo end")
+                            self._write_strip("## make_macro_pgo_special end")
                         elif self.config.make_macro_special:
                             self._write_strip("## make_macro_special start")
                             for line in self.config.make_macro_special:
@@ -4411,11 +4143,11 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                     self.write_trystatic()
                     self.write_make_prepend(build32=False)
-                    if self.config.make_macro_special_pgo:
-                        self._write_strip("## make_macro_special_pgo start")
-                        for line in self.config.make_macro_special_pgo:
+                    if self.config.make_macro_pgo_special:
+                        self._write_strip("## make_macro_pgo_special start")
+                        for line in self.config.make_macro_pgo_special:
                             self._write("{}\n".format(line))
-                        self._write_strip("## make_macro_special_pgo end")
+                        self._write_strip("## make_macro_pgo_special end")
                     elif self.config.make_macro_special:
                         self._write_strip("## make_macro_special start")
                         for line in self.config.make_macro_special:
@@ -4462,11 +4194,11 @@ class Specfile(object):
                         self._write_strip(f"%waf --out=builddir {self.config.extra_configure_special} || :")
                     self.write_trystatic()
                     self.write_make_prepend(build32=False)
-                    if self.config.make_macro_special_pgo:
-                        self._write_strip("## make_macro_special_pgo start")
-                        for line in self.config.make_macro_special_pgo:
+                    if self.config.make_macro_pgo_special:
+                        self._write_strip("## make_macro_pgo_special start")
+                        for line in self.config.make_macro_pgo_special:
                             self._write("{}\n".format(line))
-                        self._write_strip("## make_macro_special_pgo end")
+                        self._write_strip("## make_macro_pgo_special end")
                     elif self.config.make_macro_special:
                         self._write_strip("## make_macro_special start")
                         for line in self.config.make_macro_special:

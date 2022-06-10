@@ -126,10 +126,11 @@ class Config(object):
         self.configure_macro_openmpi = []
         self.make_macro = []
         self.make_macro_pgo = []
+        self.make_macro_pgo_special = []
+        self.make_macro_pgo_special2 = []
         self.make_macro_32 = []
-        self.make_macro_special = ""
-        self.make_macro_special2 = ""
-        self.make_macro_special_pgo = ""
+        self.make_macro_special = []
+        self.make_macro_special2 = []
         self.install_macro = []
         self.install_macro_32 = []
         self.install_macro_512 = ""
@@ -146,6 +147,7 @@ class Config(object):
         self.disable_static = "--disable-static"
         self.altflags1 = []
         self.altflags1f = []
+        self.altflags1_special = []
         self.altflags1_32 = []
         self.altflags1_32f = []
         self.altflags_pgo = []
@@ -1334,19 +1336,15 @@ class Config(object):
 
         self.make_macro_pgo = self.read_script_file(os.path.join(self.download_path, "make_macro_pgo"))
 
+        self.make_macro_pgo_special = self.read_script_file(os.path.join(self.download_path, "make_macro_pgo_special"))
+
+        self.make_macro_pgo_special2 = self.read_script_file(os.path.join(self.download_path, "make_macro_pgo_special2"))
+
         self.make_macro_32 = self.read_script_file(os.path.join(self.download_path, "make_macro_32"))
 
-        content = self.read_conf_file(os.path.join(self.download_path, "make_macro_special"))
-        if content and content[0]:
-            self.make_macro_special = "\n".join(content)
+        self.make_macro_special = self.read_script_file(os.path.join(self.download_path, "make_macro_special"))
 
-        content = self.read_conf_file(os.path.join(self.download_path, "make_macro_special2"))
-        if content and content[0]:
-            self.make_macro_special2 = "\n".join(content)
-
-        content = self.read_conf_file(os.path.join(self.download_path, "make_macro_special_pgo"))
-        if content and content[0]:
-            self.make_macro_special_pgo = "\n".join(content)
+        self.make_macro_special2 = self.read_script_file(os.path.join(self.download_path, "make_macro_special2"))
 
         self.install_macro = self.read_script_file(os.path.join(self.download_path, "install_macro"))
 
@@ -1471,6 +1469,7 @@ class Config(object):
 
         self.altflags1 = self.read_script_file(os.path.join(self.download_path, "altflags1"))
         self.altflags1f = self.read_script_file(os.path.join(self.download_path, "altflags1f"))
+        self.altflags1_special = self.read_script_file(os.path.join(self.download_path, "altflags1_special"))
         self.altflags1_32 = self.read_script_file(os.path.join(self.download_path, "altflags1_32"))
         self.altflags1_32f = self.read_script_file(os.path.join(self.download_path, "altflags1_32f"))
         self.altflags_pgo = self.read_script_file(os.path.join(self.download_path, "altflags_pgo"))
