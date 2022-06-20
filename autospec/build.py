@@ -94,8 +94,8 @@ class Build(object):
         self.mock_dir = ""
         self.short_circuit = ""
         self.do_file_restart = True
-        self.patch_name_line = re.compile(r'^Patch #[0-9]+ \((.*)\):$')
-        self.patch_fail_line = re.compile(r'^Skipping patch.$')
+        #self.patch_name_line = re.compile(r'^Patch #[0-9]+ \((.*)\):$')
+        #self.patch_fail_line = re.compile(r'^Skipping patch.$')
 
     def write_cargo_config(self, mock_dir, content_name, config):
         """Write cargo config.toml to package .cargo builddir home directory."""
@@ -291,7 +291,6 @@ class Build(object):
         match = pat.search(line)
         if not match:
             return
-        #s = match.group(0)
         util.print_extra_warning(f"{line}")
 
     def failed_pattern(self, line, config, requirements, pattern, verbose, buildtool=None):
@@ -399,11 +398,11 @@ class Build(object):
         with util.open_auto(filename, "r") as buildlog:
             loglines = buildlog.readlines()
         for line in loglines:
-            if patch_name_match := self.patch_name_line.search(line):
-                patch_name = patch_name_match.groups()[0]
-            if patch_name:
-                if self.patch_fail_line.search(line):
-                    self.must_restart += config.remove_backport_patch(patch_name)
+            #if patch_name_match := self.patch_name_line.search(line):
+                #patch_name = patch_name_match.groups()[0]
+            #if patch_name:
+                #if self.patch_fail_line.search(line):
+                    #self.must_restart += config.remove_backport_patch(patch_name)
             if (self.short_circuit != "prep" and self.short_circuit != "binary"):
                 for pat in config.pkgconfig_pats:
                     self.simple_pattern_pkgconfig(line, *pat, config.config_opts.get('32bit'), requirements)

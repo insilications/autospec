@@ -443,7 +443,8 @@ class Config(object):
 
         self.failed_exit_pats = [(r"overwriting an existing profile", 0, None),
                                  (r"\[-Wmissing-profile\]", 0, None),
-                                 (r"\[-Wcoverage-mismatch\]", 0, None)]
+                                 (r"\[-Wcoverage-mismatch\]", 0, None),
+                                 (r"no profile data available for function", 0, None)]
 
     def set_build_pattern(self, pattern, strength):
         """Set the global default pattern and pattern strength."""
