@@ -1332,8 +1332,10 @@ class Config(object):
 
         self.configure_macro_openmpi = self.read_script_file(os.path.join(self.download_path, "configure_macro_openmpi"))
 
-        self.make_macro = self.read_script_file(os.path.join(self.download_path, "make_macro"))
-        self.make_macro = self.read_script_file(os.path.join(self.download_path, "make_macro64"))
+        if os.path.exists(os.path.join(self.download_path, "make_macro")):
+            self.make_macro = self.read_script_file(os.path.join(self.download_path, "make_macro"))
+        elif os.path.exists(os.path.join(self.download_path, "make_macro64")):
+            self.make_macro = self.read_script_file(os.path.join(self.download_path, "make_macro64"))
 
         self.make_macro_pgo = self.read_script_file(os.path.join(self.download_path, "make_macro_pgo"))
 
