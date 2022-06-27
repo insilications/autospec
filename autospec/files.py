@@ -401,7 +401,7 @@ class FileManager(object):
             (r"^/(?:usr/|usr.*)lib32/libkdeinit5_[a-zA-Z0-9\.\_\+\-]*\.so$", "lib32"),
             (r"^/(?:usr/|usr.*)lib64/[a-zA-Z0-9\.\_\+\-]*\.so$", so_dest),
             (r"^/(?:usr/|usr.*)lib32/[a-zA-Z0-9\.\_\+\-]*\.so$", so_dest + '32'),
-			(r"^/usr/lib64/glibc-hwcaps/x86-64-v[0-9]+/[a-zA-Z0-9._+-]*\.so$", so_dest),
+            (r"^/usr/lib64/glibc-hwcaps/x86-64-v[0-9]+/[a-zA-Z0-9._+-]*\.so$", so_dest),
             (r"^/(?:usr/|usr.*)lib64/haswell/avx512_1/[a-zA-Z0-9\.\_\+\-]*\.so$", so_dest),
             (r"^/(?:usr/|usr.*)lib64/haswell/[a-zA-Z0-9\.\_\+\-]*\.so$", so_dest),
             (r"^/(?:usr/|usr.*)lib64/haswell/avx512_1/[a-zA-Z0-9\.\_\+\-]*\.so$", so_dest),
@@ -409,14 +409,14 @@ class FileManager(object):
             (r"^/(?:usr/|usr.*)lib64/[a-zA-Z0-9\.\_\+\-\/]*\.a$", "staticdev"),
             (r"^/(?:usr/|usr.*)lib32/[a-zA-Z0-9\.\_\+\-\/]*\.a$", "staticdev32"),
             (r"^/(?:usr/|usr.*)lib/haswell/[a-zA-Z0-9\.\_\+\-]*\.a$", "staticdev"),
-			(r"^/usr/lib64/glibc-hwcaps/x86-64-v[0-9]+/[a-zA-Z0-9._+-]*\.a$", "staticdev"),
+            (r"^/usr/lib64/glibc-hwcaps/x86-64-v[0-9]+/[a-zA-Z0-9._+-]*\.a$", "staticdev"),
             (r"^/(?:usr/|usr.*)lib64/haswell/[a-zA-Z0-9\.\_\+\-]*\.a$", "staticdev"),
             (r"^/usr/lib64/haswell/avx512_1/[a-zA-Z0-9._+-]*\.a$", "staticdev"),
             (r"^/(?:usr/|usr.*)lib32/haswell/[a-zA-Z0-9\.\_\+\-]*\.a$", "staticdev32"),
             (r"^/(?:usr/|usr.*)lib/pkgconfig/[a-zA-Z0-9\.\_\+\-]*\.pc$", "dev"),
             (r"^/(?:usr/|usr.*)lib64/pkgconfig/[a-zA-Z0-9\.\_\+\-]*\.pc$", "dev"),
             (r"^/(?:usr/|usr.*)lib32/pkgconfig/[a-zA-Z0-9\.\_\+\-]*\.pc$", "dev32"),
-			(r"^/usr/lib64/glibc-hwcaps/x86-64-v[0-9]+/[a-zA-Z0-9._+-]*\.pc$", "dev"),
+            (r"^/usr/lib64/glibc-hwcaps/x86-64-v[0-9]+/[a-zA-Z0-9._+-]*\.pc$", "dev"),
             (r"^/usr/lib64/haswell/pkgconfig/[a-zA-Z0-9._+-]*\.pc$", "dev"),
             (r"^/usr/lib64/haswell/avx512_1/pkgconfig/[a-zA-Z0-9._+-]*\.pc$", "dev"),
             (r"^/(?:usr/|usr.*)lib/[a-zA-Z0-9\.\_\+\-]*\.la$", "dev"),
@@ -614,6 +614,7 @@ class FileManager(object):
                 (r"^/usr/lib32/lib(?:quadmath|(?:gfortr|ubs)an|a(?:tomic|san)|gomp|itm|ssp)\.a$", "libgcc32"),
                 # libstdc++
                 (r"^/usr/lib64/libstdc\+\+\.so\.[a-zA-Z0-9\.\_\+\-]*", "libstdc++", "", "", True),
+                (r"^/usr/lib64/haswell/libstdc\+\+\.so\.[a-zA-Z0-9\.\_\+\-]*", "libstdc++", "", "", True),
                 # jit
                 (r"^/usr/lib64/libgccjit.so\.[a-zA-Z0-9\.\_\+\-]*", "jit"),
                 # libstdc++32

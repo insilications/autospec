@@ -420,14 +420,14 @@ def git_clone(url, path, cmd_args, clone_path, force_module, force_fullclone, is
                 call(f"git clone -j8 --branch={cmd_args}", cwd=path)
             else:
                 print_info(f"git clone --single-branch -j8 --branch={cmd_args}")
-                call(f"git clone --single-branch -j8 --branch={cmd_args}", cwd=path)
+                call(f"git clone --depth=1 --single-branch -j8 --branch={cmd_args}", cwd=path)
         else:
             if force_fullclone is True:
                 print_info(f"git clone --recurse-submodules -j8 --branch={cmd_args}")
                 call(f"git clone --recurse-submodules -j8 --branch={cmd_args}", cwd=path)
             else:
                 print_info(f"git clone --single-branch --shallow-submodules --recurse-submodules -j8 --branch={cmd_args}")
-                call(f"git clone --single-branch --shallow-submodules --recurse-submodules -j8 --branch={cmd_args}", cwd=path)
+                call(f"git clone --depth=1 --single-branch --shallow-submodules --recurse-submodules -j8 --branch={cmd_args}", cwd=path)
     except subprocess.CalledProcessError as err:
         if is_fatal:
             remove_clone_archive(path, clone_path, is_fatal)
