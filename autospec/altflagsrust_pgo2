@@ -12,7 +12,7 @@ export AR_x86_64_unknown_linux_gnu=/usr/bin/llvm-ar
 export RANLIB_x86_64_unknown_linux_gnu=/usr/bin/llvm-ranlib
 export NM_x86_64_unknown_linux_gnu=/usr/bin/llvm-nm
 export CRATE_CC_NO_DEFAULTS=1
-export CARGO_BUILD_JOBS=16
+export CARGO_BUILD_JOBS=20
 #!
 #! export PGO_GEN="-fprofile-instr-generate=/var/tmp/pgo/clang/ -fcoverage-mapping"
 #! export PGO_GEN_RUST="-Cprofile-generate=/var/tmp/pgo/ -Clink-arg=-fprofile-instr-generate=/var/tmp/pgo/clang/ -Clink-arg=-fcoverage-mapping"

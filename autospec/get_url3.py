@@ -195,7 +195,7 @@ def main():
 
         filename_tar = f"{cwd}/insync-v{file_version}.tar.gz"
         if not os.path.exists(filename_tar):
-            tar_cmd = f"tar --create --add-file=CMakeLists.txt --file=- usr/ | pigz -9 -p 16 > {filename_tar}"
+            tar_cmd = f"tar --create --add-file=CMakeLists.txt --file=- usr/ | pigz -9 -p 20 > {filename_tar}"
             #print(f"tar_cmd: {tar_cmd}")
             try:
                 process = subprocess.run(

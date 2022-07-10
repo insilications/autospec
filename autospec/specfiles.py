@@ -2748,9 +2748,9 @@ class Specfile(object):
             self._write_strip("if [ ! -f setup.py ]; then")
             self._write('printf \"#!/usr/bin/env python\\nfrom setuptools import setup\\nsetup()\" > setup.py\n')
             self._write_strip('chmod +x setup.py')
-            self._write_strip("python3 setup.py build -j 16 " + self.config.extra_configure)
+            self._write_strip("python3 setup.py build -j 20 " + self.config.extra_configure)
             self._write_strip("else")
-            self._write_strip("python3 setup.py build -j 16 " + self.config.extra_configure)
+            self._write_strip("python3 setup.py build -j 20 " + self.config.extra_configure)
             self._write_strip("fi")
         if self.config.subdir:
             self._write_strip("popd")
@@ -2774,7 +2774,7 @@ class Specfile(object):
         self._write_strip("rm -rf %{buildroot}")
         self.write_install_prepend()
         self.write_license_files()
-        self._write_strip("python3 -tt setup.py build -j 16 install --root=%{buildroot}")
+        self._write_strip("python3 -tt setup.py build -j 20 install --root=%{buildroot}")
         if self.config.subdir:
             self._write_strip("popd")
         for module in self.config.pypi_overrides:
@@ -3319,7 +3319,7 @@ class Specfile(object):
                     self._write("{}\n".format(line))
             else:
                 self._write_strip("cargo clean || :")
-                self._write_strip(f"cargo install -Zunstable-options -Zhost-config -Ztarget-applies-to-host --jobs 16 -vv --offline --locked --no-track --force --profile release --target x86_64-unknown-linux-gnu --path . --root %{{buildroot}}/usr/ {self.config.extra_configure} {self.config.extra_configure64}")
+                self._write_strip(f"cargo install -Zunstable-options -Zhost-config -Ztarget-applies-to-host --jobs 20 -vv --offline --locked --no-track --force --profile release --target x86_64-unknown-linux-gnu --path . --root %{{buildroot}}/usr/ {self.config.extra_configure} {self.config.extra_configure64}")
             self.write_profile_payload_content(pattern="cargo", build_type=None)
             if self.config.custom_clean_pgo:
                 self._write_strip("{}\n".format(self.config.custom_clean_pgo))
@@ -3339,7 +3339,7 @@ class Specfile(object):
                 for line in self.config.configure_macro_pgo:
                     self._write("{}\n".format(line))
             else:
-                self._write_strip(f"cargo install -Zunstable-options -Zhost-config -Ztarget-applies-to-host --jobs 16 -vv --offline --locked --no-track --force --profile release --target x86_64-unknown-linux-gnu --path . --root %{{buildroot}}/usr/ {self.config.extra_configure_pgo} {self.config.extra_configure64_pgo}")
+                self._write_strip(f"cargo install -Zunstable-options -Zhost-config -Ztarget-applies-to-host --jobs 20 -vv --offline --locked --no-track --force --profile release --target x86_64-unknown-linux-gnu --path . --root %{{buildroot}}/usr/ {self.config.extra_configure_pgo} {self.config.extra_configure64_pgo}")
             if self.config.subdir:
                 self._write_strip("popd")
             self._write_strip("echo USED > statuspgo2")
@@ -4013,7 +4013,7 @@ class Specfile(object):
                         self._write("{}\n".format(line))
                     self._write_strip("## make_macro end")
                 else:
-                    self._write_strip("./waf build --verbose --jobs=16 --out=builddir\n")
+                    self._write_strip("./waf build --verbose --jobs=20 --out=builddir\n")
                 self.write_profile_payload_content(pattern="waf", build_type=None)
                 if self.config.custom_clean_pgo:
                     self._write_strip("{}\n".format(self.config.custom_clean_pgo))
@@ -4047,7 +4047,7 @@ class Specfile(object):
                         self._write("{}\n".format(line))
                     self._write_strip("## make_macro end")
                 else:
-                    self._write_strip("./waf build --verbose --jobs=16 --out=builddir")
+                    self._write_strip("./waf build --verbose --jobs=20 --out=builddir")
                 self._write_strip("fi\n")
                 if self.config.subdir:
                     self._write_strip("popd")
@@ -4062,7 +4062,7 @@ class Specfile(object):
                         self._write("{}\n".format(line))
                     self._write_strip("## make_macro end")
                 else:
-                    self._write_strip("./waf build --verbose --jobs=16 --out=builddir")
+                    self._write_strip("./waf build --verbose --jobs=20 --out=builddir")
                 self._write_strip("\n")
                 self.write_profile_payload_content(pattern="waf", build_type=None)
                 if self.config.custom_clean_pgo:
@@ -4094,7 +4094,7 @@ class Specfile(object):
                         self._write("{}\n".format(line))
                     self._write_strip("## make_macro end")
                 else:
-                    self._write_strip("./waf build --verbose --jobs=16 --out=builddir")
+                    self._write_strip("./waf build --verbose --jobs=20 --out=builddir")
                 self._write_strip("fi\n")
                 if self.config.subdir:
                     self._write_strip("popd")
@@ -4121,7 +4121,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro_special end")
                     else:
-                        self._write_strip("./waf build --verbose --jobs=16 --out=builddir\n")
+                        self._write_strip("./waf build --verbose --jobs=20 --out=builddir\n")
                     self.write_profile_payload_content(pattern="waf", build_type="special")
                     if self.config.custom_clean_pgo:
                         self._write_strip("{}\n".format(self.config.custom_clean_pgo))
@@ -4154,7 +4154,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro_special end")
                     else:
-                        self._write_strip("./waf build --verbose --jobs=16 --out=builddir")
+                        self._write_strip("./waf build --verbose --jobs=20 --out=builddir")
                     self._write_strip("fi\n")
                     if self.config.subdir:
                         self._write_strip("popd")
@@ -4174,7 +4174,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro end")
                     else:
-                        self._write_strip("./waf build --verbose --jobs=16 --out=builddir\n")
+                        self._write_strip("./waf build --verbose --jobs=20 --out=builddir\n")
                     self.write_profile_payload_content(pattern="waf", build_type="special")
                     if self.config.custom_clean_pgo:
                         self._write_strip("{}\n".format(self.config.custom_clean_pgo))
@@ -4210,7 +4210,7 @@ class Specfile(object):
                             self._write("{}\n".format(line))
                         self._write_strip("## make_macro end")
                     else:
-                        self._write_strip("./waf build --verbose --jobs=16 --out=builddir")
+                        self._write_strip("./waf build --verbose --jobs=20 --out=builddir")
                     self._write_strip("fi\n")
                     if self.config.subdir:
                         self._write_strip("popd")
@@ -4228,7 +4228,7 @@ class Specfile(object):
                     self._write("{}\n".format(line))
                 self._write_strip("## make_macro end")
             else:
-                self._write_strip("./waf build --verbose --jobs=16 --out=builddir\n")
+                self._write_strip("./waf build --verbose --jobs=20 --out=builddir\n")
             if self.config.subdir:
                 self._write_strip("popd")
 
@@ -4237,11 +4237,11 @@ class Specfile(object):
             self._write_strip(f"%waf --out=builddiravx2 {self.config.extra_configure} {self.config.extra_configure64} || :")
             self.write_trystatic()
             self.write_make_prepend(build32=False)
-            self._write_strip("./waf build --verbose --jobs=16 --out=builddiravx2")
+            self._write_strip("./waf build --verbose --jobs=20 --out=builddiravx2")
             if self.config.config_opts['use_avx512']:
                 self._write_strip(f"sd -r 'allow_unknown=False' 'allow_unknown=True' waflib/ || :")
                 self._write_strip(f"%waf --out=builddiravx512 {self.config.extra_configure} {self.config.extra_configure64} || :")
-                self._write_strip("./waf build --verbose --jobs=16 --out=builddiravx512")
+                self._write_strip("./waf build --verbose --jobs=20 --out=builddiravx512")
                 if self.config.subdir:
                     self._write_strip("popd")
         if self.config.config_opts["32bit"]:
@@ -4253,7 +4253,7 @@ class Specfile(object):
             self._write_strip(f"%waf --out=builddir {self.config.extra_configure} {self.config.extra_configure32} || :")
             self.write_trystatic()
             self.write_make_prepend(build32=True)
-            self._write_strip("./waf build --verbose --jobs=16 --out=builddir")
+            self._write_strip("./waf build --verbose --jobs=20 --out=builddir")
             self._write_strip("popd")
 
         self.write_build_append()

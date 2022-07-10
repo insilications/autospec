@@ -476,7 +476,7 @@ def git_archive_all(path, name, url, branch, force_module, force_fullclone, conf
                 print_debug(f"absolute_url_file: {absolute_url_file}")
             try:
                 process = subprocess.run(
-                    f"tar --create --file=- {clone_path}/ | pigz -9 -p 16 > {clone_file}",
+                    f"tar --create --file=- {clone_path}/ | pigz -9 -p 20 > {clone_file}",
                     check=True,
                     shell=True,
                     stdout=subprocess.PIPE,
@@ -511,7 +511,7 @@ def git_archive_all(path, name, url, branch, force_module, force_fullclone, conf
                 print_debug(f"absolute_url_file: {absolute_url_file}")
             try:
                 process = subprocess.run(
-                    f"tar --create --exclude=.github --exclude=.git --file=- {os.path.basename(clone_path_norm)}/ | pigz -9 -p 16 > {absolute_file_path}",
+                    f"tar --create --exclude=.github --exclude=.git --file=- {os.path.basename(clone_path_norm)}/ | pigz -9 -p 20 > {absolute_file_path}",
                     check=True,
                     shell=True,
                     stdout=subprocess.PIPE,

@@ -160,7 +160,7 @@ class Build(object):
         system_pgo_dir_src = "/var/tmp/pgo"
         system_pgo_dir_dst = f"{config.download_path}/pgo.tar.gz"
         system_gitignore = f"{config.download_path}/.gitignore"
-        tar_cmd = f"tar --directory={root_dir_src} --create --file=- var/tmp/pgo/ | pigz -9 -p 16 > {system_pgo_dir_dst}"
+        tar_cmd = f"tar --directory={root_dir_src} --create --file=- var/tmp/pgo/ | pigz -9 -p 20 > {system_pgo_dir_dst}"
         if os.path.isdir(system_pgo_dir_src):
             if any(os.scandir(system_pgo_dir_src)):
                 if os.path.isfile(system_pgo_dir_dst):
@@ -194,7 +194,7 @@ class Build(object):
         #system_pgo_dir_src = f"{mock_dir}/clear-{content_name}/root/var/tmp/pgo"
         #system_pgo_dir_dst = f"{config.download_path}/pgo.tar.gz"
         #system_gitignore = f"{config.download_path}/.gitignore"
-        #tar_cmd = f"tar --directory={root_dir_src} --create --file=- var/tmp/pgo/ | pigz -9 -p 16 > {system_pgo_dir_dst}"
+        #tar_cmd = f"tar --directory={root_dir_src} --create --file=- var/tmp/pgo/ | pigz -9 -p 20 > {system_pgo_dir_dst}"
         #if os.path.isdir(system_pgo_dir_src):
             #if any(os.scandir(system_pgo_dir_src)):
                 #if os.path.isfile(system_pgo_dir_dst):

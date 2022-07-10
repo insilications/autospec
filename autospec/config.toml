@@ -1,7 +1,7 @@
 target-applies-to-host = false
 
 [build]
-jobs = 16
+jobs = 20
 #rustflags = ["-Zunstable-options", "-Clink-self-contained=off", "-Coverflow-checks=off", "-Cstrip=symbols", "-Cdebug-assertions=off", "-Cdebuginfo=0", "-Ctarget-cpu=native", "-Cprefer-dynamic=no", "-Zplt=off", "-Ztune-cpu=native", "-Copt-level=3", "-Clto=fat", "-Clinker-plugin-lto", "-Ccodegen-units=1", "-Cembed-bitcode=yes", "-Ctarget-feature=+crt-static,-vzeroupper", "-Crelocation-model=static", "-Cincremental=false", "-Cforce-frame-pointers=off", "-Cpanic=abort", "-Clinker=clang", "-Clink-arg=-Wno-unused-command-line-argument", "-Clink-arg=-DNDEBUG", "-Clink-arg=-flto=full", "-Clink-arg=-Wl,--lto-partitions=1", "-Clink-arg=-Wl,--lto-O3", "-Clink-arg=-Wl,-O2", "-Clink-arg=-Ofast", "-Clink-arg=-mno-vzeroupper", "-Clink-arg=-march=native", "-Clink-arg=-mtune=native", "-Clink-arg=-fuse-ld=lld", "-Clink-arg=-Wl,--as-needed", "-Clink-arg=-Wl,--build-id=sha1", "-Clink-arg=-Wl,--enable-new-dtags", "-Clink-arg=-Wl,-z,now,-z,relro,-z,max-page-size=0x4000,-z,separate-code", "-Clink-arg=-Wno-error", "-Clink-arg=-mprefer-vector-width=256", "-Clink-arg=-falign-functions=32", "-Clink-arg=-fasynchronous-unwind-tables", "-Clink-arg=-fno-semantic-interposition", "-Clink-arg=-Wl,-Bsymbolic-functions", "-Clink-arg=-fno-stack-protector", "-Clink-arg=-fno-trapping-math", "-Clink-arg=-fno-math-errno", "-Clink-arg=-ftree-slp-vectorize", "-Clink-arg=-ftree-vectorize", "-Clink-arg=-feliminate-unused-debug-types", "-Clink-arg=-fno-plt", "-Clink-arg=-Wno-error", "-Clink-arg=-Wp,-D_REENTRANT", "-Clink-arg=-fvisibility-inlines-hidden", "-Clink-arg=-fomit-frame-pointer", "-Clink-arg=-static-libstdc++", "-Clink-arg=-static-libgcc", "-Clink-arg=-pthread", "-Clink-arg=-fPIC", "-Clink-arg=-pipe", "-Clink-arg=-L."]
 
 [net]
@@ -9,28 +9,28 @@ git-fetch-with-cli = true
 
 [profile.dev.package.syn]
 opt-level = 2
-codegen-units = 16
+codegen-units = 20
 debug = 0
 debug-assertions = false
 overflow-checks = false
 
 [profile.dev.package.serde_derive]
 opt-level = 2
-codegen-units = 16
+codegen-units = 20
 debug = 0
 debug-assertions = false
 overflow-checks = false
 
 [profile.release.package.syn]
 opt-level = 2
-codegen-units = 16
+codegen-units = 20
 debug = 0
 debug-assertions = false
 overflow-checks = false
 
 [profile.release.package.serde_derive]
 opt-level = 2
-codegen-units = 16
+codegen-units = 20
 debug = 0
 debug-assertions = false
 overflow-checks = false
