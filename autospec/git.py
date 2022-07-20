@@ -274,6 +274,17 @@ def git_ls_remote(remote_url_cmd, clone_path, path, conf):
                     #print_debug(r)
 
         if git_ls_remote_cmd1_re1_result:
+            git_ls_remote_cmd1_re2_result_delete = []
+            default_re = r"^[vV](\d+$)"
+            git_ls_remote_cmd1_re2 = re.compile(default_re, re.MULTILINE)
+            for i, r in enumerate(git_ls_remote_cmd1_re1_result):
+                git_ls_remote_cmd1_re2_result = git_ls_remote_cmd1_re2.search(r)
+                if git_ls_remote_cmd1_re2_result:
+                    #if util.debugging:
+                        #print_debug(f"Modify: {i} - {r}")
+                    git_ls_remote_cmd1_re1_result[i] = f"{r}.0"
+
+        if git_ls_remote_cmd1_re1_result:
             git_ls_remote_cmd1_re3_result_delete = []
             git_ls_remote_cmd1_re3 = re.compile(r"(?:^(?:[a-zA-Z]+[0-9]?[a-zA-Z0-9]*[\-]+)?|^(?:[vV]+)?)(0|[1-9]\d*)(?:\.|\_)(0|[1-9]\d*)?(?:(?:\.|\_)(0|[1-9]\d*))?(?:(?:\.|\_)(0|[1-9]\d*))?((?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*))*)?(?:\-((?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z][0-9a-zA-Z]*))*))?([a-zA-Z0-9\_\.\-]+)?", re.MULTILINE)
             #if util.debugging:
