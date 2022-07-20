@@ -498,7 +498,6 @@ class Content(object):
             #print_debug(f"tarball.py - self.path: {self.path}")
             #print_debug(f"tarball.py - self.base_path: {self.base_path}")
             #print_debug(f"tarball.py - self.tarball_prefix: {self.tarball_prefix}")
-        #print()
         # Now that the metadata has been collected print the header
         self.print_header()
         # Download and process extra sources: archives, go archives and

@@ -227,7 +227,7 @@ class FileManager(object):
             lang = match.group(1)
             if lang not in self.locales and filename not in self.excludes:
                 self.locales.append(lang)
-                print(" New locale:", lang)
+                print("  New locale:", lang)
                 if not self.config.find_lang and not self.config.config_opts["findlang"]:
                     self.package.must_restart += 1
                 if self.package_name == "gcc" or self.package_name == "glibc":
@@ -451,9 +451,9 @@ class FileManager(object):
             (r"^/(?:usr/|usr.*)lib/.*/[a-zA-Z0-9\.\_\+\-]*\.so", so_dest),
             (r"^/(?:usr/|usr.*)lib64/.*/[a-zA-Z0-9\.\_\+\-]*\.so", so_dest),
             (r"^/(?:usr/|usr.*)lib32/.*/[a-zA-Z0-9\.\_\+\-]*\.so", so_dest + '32'),
-            (r"^/(?:usr/|usr.*)lib64/[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*$", so_dest),
-            (r"^/(?:usr/|usr.*)lib/[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*$", so_dest),
-            (r"^/(?:usr/|usr.*)lib32/[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*$", so_dest + '32'),
+            #(r"^/(?:usr/|usr.*)lib64/[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*$", so_dest),
+            #(r"^/(?:usr/|usr.*)lib/[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*$", so_dest),
+            #(r"^/(?:usr/|usr.*)lib32/[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*$", so_dest + '32'),
             (r"^/(?:usr/|usr.*)/[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*.txt$", "dev"),
             (r"^/(?:usr/|usr.*)/[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*.so$", so_dest),
             (r"^/(?:usr/|usr.*)/[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*.c$", "dev"),
@@ -639,40 +639,10 @@ class FileManager(object):
                 (r"^/usr/lib64/libgo\.so\.[0-9\.]*", "go-lib"),
                 (r"^/usr/lib64/go/\d+/x86_64-pc-linux-gnu/[a-zA-Z0-9\.\_\+\-\/]*\.gox$", "go-lib"),
                 # libubsan
-                (r"^/usr/lib64/lib(?:sanit|ubsan|[alt]san)[a-zA-Z0-9\.\_\+\-\/]*", "libubsan")]
+                (r"^/usr/lib64/lib(?:sanit|ubsan|[alt]san)[a-zA-Z0-9\.\_\+\-\/]*", "libubsan"),
+                # locale data gets picked up via file_is_locale
+                (r"^/(?:usr/|usr.*)share/locale/", "ignore")]
 
-                #(r"^/usr/(?:bin/(?:x86_64\-generic\-linux\-(?:g(?:cc(?:\-(?:ranlib|11|nm|ar))?|fortran|\+\+)|c\+\+)|gcc\-ranlib|gcov\-tool|lto\-dump|gfortran|gcc\-nm|gcc\-ar|gc(?:ov|c)|f95|c(?:pp|c)|[cg]\+\+)|lib\/cpp)$", "main"),
-                #(r"^/usr/share/gcc-11/[a-zA-Z0-9\.\_\+\-\/]*", "main"),
-                #(r"^/usr/lib64/libcc1[a-zA-Z0-9\.\_\+\-\/]*", "main"),
-                #(r"^/usr/lib64/gcc/x86_64-pc-linux-gnu/11/plugin/[a-zA-Z0-9\.\_\+\-]*\.so[0-9\.]*", "main"),
-                #(r"^/usr/lib64/gcc/x86_64\-generic\-linux/11/(?:plugin/include|in(?:stall\-tools|clude(?:\-fixed)?))/[a-zA-Z0-9\.\_\+\-\/]*", "main"),
-                #(r"^/usr/lib64/gcc/x86_64\-generic\-linux/11/(?:l(?:iblto_plugin\.so\.0\.0\.0|to(?:\-wrapper|1))|liblto_plugin\.so(?:\.0)?|plugin/gtype\.state|f(?:include|951)|c(?:ollect2|c1(?:plus)?))", "main"),
-                #(r"^/usr/lib64/gcc/x86_64-pc-linux-gnu/11/libcaf_[a-zA-Z0-9\.\_\+\-]*", "main"),
-                #(r"^/usr/lib64/gcc/x86_64\-generic\-linux/11/(?:plugin/gengtype|crt(?:fastmath|begin[ST]|prec(?:64|80|32)|begin|endS?)\.o|include/ssp/|libgc(?:c(?:_eh)?|ov)\.a)", "dev"),
-                #(r"^/usr/include/c\+\+/*[a-zA-Z0-9\.\_\+\-\/]*", "dev"),
-                #(r"^/usr/bin/gcov-dump$", "dev"),
-                #(r"^/usr/share/gdb/auto-load/usr/lib64/libstdc\+\+\.so[a-zA-Z0-9\.\_\+\-]*", "dev"),
-                #(r"^/usr/lib64/libssp[a-zA-Z0-9\.\_\+\-]*\.a$", "dev"),
-                #(r"^/usr/lib64/lib(?:g(?:fortran\.s(?:pec|o)|omp\.(?:spec|a))|quadmath\.so|s(?:tdc\+\+(?:fs)?|upc\+\+)\.a|stdc\+\+\.so|(?:atomic|gcc_s)\.so|itm\.s(?:pec|o))$", "dev"),
-                #(r"^/usr/lib32/(?:lib(?:sanitizer\.spec|(?:g(?:fortran|omp)|itm)\.spec|caf_single\.a|g(?:fortran|omp)\.(?:so|a)|quadmath\.(?:so|a)|(?:s(?:tdc\+\+fs|upc\+\+)|gc(?:c_eh|ov))\.a|stdc\+\+\.(?:so|a)|(?:atomic|ubsan|asan|ssp)\.(?:so|a)|itm\.(?:so|a)|gcc\.a)|crt(?:fastmath|(?:(?:begin[ST]|prec(?:32|64|80)|endS)|(?:begin|end)))\.o)$", "dev32"),
-                #(r"^/usr/lib64/gcc/x86_64-pc-linux-gnu/11/32/[a-zA-Z0-9\.\_\+\-\/]*", "dev32"),
-                #(r"^/usr/share/gdb/auto-load/usr/lib32/libstdc\+\+\.so[a-zA-Z0-9\.\_\+\-]*", "dev32"),
-                #(r"^/usr/lib32/libgo(?:(?:lib)?begin)?\.a", "dev32"),
-                #(r"^/usr/lib64/libgcc_s\.so\.1$", "libgcc1", "", "", True),
-                #(r"^/usr/lib64/lib(?:g(?:fortran|omp)|quadmath|atomic|itm|ssp)[a-zA-Z0-9\_\+\-]*\.so[a-zA-Z0-9\.\_\+\-]+", "libs-math"),
-                #(r"^/usr/lib64/haswell/lib(?:g(?:fortran|omp)|quadmath|atomic|itm|ssp)[a-zA-Z0-9\_\+\-]*\.so[a-zA-Z0-9\.\_\+\-]+", "libs-math"),
-                #(r"^/usr/lib32/lib(?:ssp_nonshared\.a|asan_preinit\.o)$", "libgcc32"),
-                #(r"^/usr/lib32/libgcc_s.so[a-zA-Z0-9\.\_\+\-]*", "libgcc32"),
-                #(r"^/usr/lib32/lib(?:quadmath|(?:gfortr|ubs)an|a(?:tomic|san)|gomp|itm|ssp)\.so\.[a-zA-Z0-9\.\_\+\-]*", "libgcc32"),
-                #(r"^/usr/lib64/libstdc\+\+\.so\.[a-zA-Z0-9\.\_\+\-]*", "libstdc++", "", "", True),
-                #(r"^/usr/lib32/libstdc\+\+\.so\.[a-zA-Z0-9\.\_\+\-]*", "libstdc++32"),
-                #(r"^/usr/libexec/gccgo/bin/[a-zA-Z0-9\.\_\+\-\/]*", "go"),
-                #(r"^/usr/(?:lib64/(?:gcc/x86_64\-generic\-linux/11/(?:test2json|buildid|vet|go1)|gcc/x86_64\-generic\-linux/11/cgo|libgo(?:(?:lib)?begin)?\.a|libgo\.so)|bin\/(?:x86_64\-generic\-linux\-)?gccgo)", "go"),
-                #(r"^/usr/lib64/libgo\.so\.[0-9\.]*", "go-lib"),
-                #(r"^/usr/lib64/go/11/x86_64-pc-linux-gnu/[a-zA-Z0-9\.\_\+\-\/]*\.gox$", "go-lib"),
-                #(r"^/usr/lib64/lib(?:sanit|ubsan|[alt]san)[a-zA-Z0-9\.\_\+\-\/]*", "libubsan"),
-                #(r"^/usr/share/man/man\d/[a-zA-Z0-9\.\_\+\-]*\.\d$", "doc"),
-                #(r"^/usr/share/info/[a-zA-Z0-9\.\_\+\-\/]*\.info$", "doc")]
             for pat_args in patterns_gcc:
                 if self.file_pat_match(filename, *pat_args):
                     return
@@ -683,7 +653,10 @@ class FileManager(object):
                 # (<raw pattern>, <package>, <optional replacement>, <optional prefix>, <-n subpackage:True or False>)
                 # order matters, first match wins!
                 (r"^/usr/lib/rpm[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*$", "main"),
-                (r"/usr/lib64/libdb_cxx(?:\-5\.(?:3\.)?|\.)so", "cxx")]
+                (r"/usr/lib64/libdb_cxx(?:\-5\.(?:3\.)?|\.)so", "cxx"),
+                # locale data gets picked up via file_is_locale
+                (r"^/(?:usr/|usr.*)share/locale/", "ignore")]
+
             for pat_args in patterns_db:
                 if self.file_pat_match(filename, *pat_args):
                     return
@@ -695,7 +668,10 @@ class FileManager(object):
                 # order matters, first match wins!
                 (r"^/usr/lib/rpm[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*$", "main"),
                 (r"/usr/lib64/lib(?:(?:softokn|freebl)3\.chk|(?:softokn|freebl)3\.so|nss(?:dbm3\.(?:chk|so)|(?:util)?3\.so)|s(?:mime|sl)3\.so)", "lib"),
-                (r"/usr/lib32/lib(?:(?:softokn|freebl)3\.chk|(?:softokn|freebl)3\.so|nss(?:dbm3\.(?:chk|so)|(?:util)?3\.so)|s(?:mime|sl)3\.so)", "lib32")]
+                (r"/usr/lib32/lib(?:(?:softokn|freebl)3\.chk|(?:softokn|freebl)3\.so|nss(?:dbm3\.(?:chk|so)|(?:util)?3\.so)|s(?:mime|sl)3\.so)", "lib32"),
+                # locale data gets picked up via file_is_locale
+                (r"^/(?:usr/|usr.*)share/locale/", "ignore")]
+
             for pat_args in patterns_nss:
                 if self.file_pat_match(filename, *pat_args):
                     return
@@ -709,7 +685,10 @@ class FileManager(object):
                 (r"^/usr/lib64/libncurses\+\+w?\.so\.6(?:\.2)?$", "lib-plusplus"),
                 (r"^/usr/lib64/lib(?:ncurses\.so\.6(?:\.2)?|(?:panel|tinfo|form|menu)\.so\.6(?:\.2)?)$", "lib-narrow"),
                 (r"^/usr/share/man.*$", "docs"),
-                (r"^/usr/share/terminfo/i/ibm.*$", "data-rare")]
+                (r"^/usr/share/terminfo/i/ibm.*$", "data-rare"),
+                # locale data gets picked up via file_is_locale
+                (r"^/(?:usr/|usr.*)share/locale/", "ignore")]
+
             for pat_args in patterns_ncurses:
                 if self.file_pat_match(filename, *pat_args):
                     return
@@ -768,33 +747,10 @@ class FileManager(object):
                 (r"^/usr/share/info/libc\.info(?:-\d+)?$", "doc"),
                 # extras
                 (r"^/usr/bin/makedb$", "extras"),
-                (r"^/usr/lib64/libnss_db\.so(?:\.\d+)?$", "extras")]
+                (r"^/usr/lib64/libnss_db\.so(?:\.\d+)?$", "extras"),
+                # locale data gets picked up via file_is_locale
+                (r"^/(?:usr/|usr.*)share/locale/", "ignore")]
 
-                #(r"^/usr/share/locale/(?:en_US|C)\.UTF\-8/[a-zA-Z0-9\.\_\+\-\/]*", "libc6", "", "", True),
-                #(r"^/usr/lib64/audit/sotruss-lib\.so$", "libc6", "", "", True),
-                #(r"^/usr/lib64/gconv/[a-zA-Z0-9\.\_\+\-\/]*", "libc6", "", "", True),
-                #(r"^/usr/lib64/glibc/getconf/[a-zA-Z0-9\.\_\+\-\/]*", "libc6", "", "", True),
-                #(r"^/usr/lib64/l(?:ib(?:BrokenLocale\-|(?:(?:nss_(?:(?:compat|files|d(?:ns|b))|hesiod)\-|pthread\-|resolv\-|m(?:vec)?\-|dl\-|c\-)|(?:(?:cryp|r)t|util|nsl|anl)\-))2\.33\.90{3}\.so|ib(?:BrokenLocale\.so\.1|thread_db\.so\.1|pthread\.so\.0|(?:(?:cryp|r)t|util|nsl|anl)\.so\.1|mvec\.so\.1|[cm]\.so\.6)|d\-(?:linux\-x86\-64\.so\.2|2\.33\.90{3}\.so)|ib(?:thread_db\-1\.0|pcprofile|SegFault|memusage)\.so|ibnss_(?:(?:compat|files|d(?:ns|b))|hesiod)\.so\.2|ib(?:nss_(?:(?:compat|files|d(?:ns|b))|hesiod)\.so|mvec\.so)|ib(?:resolv|dl)\.so\.2)$", "libc6", "", "", True),
-                #(r"^/usr/lib64/haswel{2}/libm(?:\-2\.3{2}\.90{3}\.so|\.so\.6)$", "libc6", "", "", True),
-                #(r"^/usr/share/defaults/etc/rpc$", "libc6-dev", "", "", True),
-                #(r"^/usr/bin/ldconfig$", "libc6", "", "", True),
-                #(r"^/usr/lib64/libnss_(?:(?:compat|files|d(?:ns|b))(?:\-2\.33\.9000\.so|\.so(?:\.2)?)|hesiod(?:\-2\.33\.9000\.so|\.so(?:\.2)?))$", "extras"),
-                #(r"^/usr/lib64/haswel{2}/lib(?:c(?:rypt(?:\-2\.3{2}\.90{3}\.so|\.so\.1)|(?:\-2\.3{2}\.90{3}\.so|\.so\.6))|mvec(?:\-2\.3{2}\.90{3}\.so|\.so\.1))$", "lib-avx2"),
-                #(r"^/usr/share/locale/[a-zA-Z0-9\.\_\+\-\/]*", "locale"),
-                #(r"^/usr/share/i18n/[a-zA-Z0-9\.\_\+\-\/]*", "locale"),
-                #(r"^/usr/bin/localedef$", "locale"),
-                #(r"^/usr/lib64/(?:[MSg]crt1|crt[1in])\.o$", "dev"),
-                #(r"^/usr/lib64/lib(?:BrokenLocale\.so|c(?:_nonshared\.a|\.so)|(?:nss_hesiod|ns(?:s_(?:file|dn)s|l)|thread_db|pthread|r(?:esolv|t)|crypt|util|(?:an|d)l|m)\.so)$", "dev"),
-                #(r"^/usr/lib32/[a-zA-Z0-9\.\_\+\-]*\.[ao]$", "dev32"),
-                #(r"^/usr/lib32/[a-zA-Z0-9\.\_\+\-]*\.so$", "libc32"),
-                #(r"^/usr/lib/ld-linux.so.2$", "libc32"),
-                #(r"^/usr/bin/lddlibc4$", "libc32"),
-                #(r"^/usr/lib32/gconv/[a-zA-Z0-9\.\_\+\-\/]*", "libc32"),
-                #(r"^/usr/lib32/glibc/getconf/[a-zA-Z0-9\.\_\+\-\/]*", "libc32"),
-                #(r"^/usr/lib32/audit/sotruss-lib\.so$", "libc32"),
-                #(r"^/usr/lib32/l(?:ib(?:BrokenLocale\.so\.1|(?:thread_db|(?:cryp|r)t|util|nsl|anl)\.so\.1|pthread\.so\.0|[cm]\.so\.6)|ib(?:nss_(?:compat|hesiod|files|d(?:ns|b))|resolv|dl)\.so\.2|d\-linux\.so\.2)$", "libc32"),
-                #(r"^/usr/share/info/libc\.info", "doc"),
-                #(r"^/usr/bin/makedb$", "extras")]
             for pat_args in patterns_glibc:
                 if self.file_pat_match(filename, *pat_args):
                     return
@@ -805,7 +761,10 @@ class FileManager(object):
                 # (<raw pattern>, <package>, <optional replacement>, <optional prefix>, <-n subpackage:True or False>)
                 # order matters, first match wins!
                 (r"^/usr/lib/rpm[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*$", "main"),
-                (r"^/usr/lib64/haswell/libgmp\.so\.(?:[0-9\.])*$", "lib-hsw")]
+                (r"^/usr/lib64/haswell/libgmp\.so\.(?:[0-9\.])*$", "lib-hsw"),
+                # locale data gets picked up via file_is_locale
+                (r"^/(?:usr/|usr.*)share/locale/", "ignore")]
+
             for pat_args in patterns_gmp:
                 if self.file_pat_match(filename, *pat_args):
                     return
@@ -831,7 +790,9 @@ class FileManager(object):
                 (r"^/usr/lib/modules/\d+\.\d+\.\d+-\d+\.native/build", "dev"),
                 # main
                 (r"^/usr/lib/kernel", "main"),
-                (r"^/usr/lib/modules", "main")]
+                (r"^/usr/lib/modules", "main"),
+                # locale data gets picked up via file_is_locale
+                (r"^/(?:usr/|usr.*)share/locale/", "ignore")]
 
             for pat_args in patterns_linux:
                 if self.file_pat_match(filename, *pat_args):
