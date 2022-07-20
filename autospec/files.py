@@ -810,6 +810,33 @@ class FileManager(object):
                 if self.file_pat_match(filename, *pat_args):
                     return
 
+        if self.package_name == "linux":
+            patterns_linux = [
+                # Patterns for matching files, format is a tuple as follows:
+                # (<raw pattern>, <package>, <optional replacement>, <optional prefix>, <-n subpackage:True or False>)
+                # order matters, first match wins!
+                (r"^/usr/lib/rpm[a-zA-Z0-9\.\_\+\-\/]*/[a-zA-Z0-9\.\_\+\-\/]*$", "main"),
+                # applications
+                (r"^/usr/bin", "applications"),
+                (r"^/usr/sbin", "applications"),
+                (r"^/usr/share", "applications"),
+                (r"^/usr/lib64", "applications"),
+                (r"^/usr/include", "applications"),
+                # extra
+                (r"^/usr/lib/kernel/System\.map-\d+\.\d+\.\d+-\d+\.native$", "extra"),
+                (r"^/usr/lib/kernel/vmlinux-\d+\.\d+\.\d+-\d+\.native$", "extra"),
+                # cpio
+                (r"^/usr/lib/kernel/initrd-org\.clearlinux\.native\.\d+\.\d+\.\d+-\d+$", "cpio"),
+                # dev
+                (r"^/usr/lib/modules/\d+\.\d+\.\d+-\d+\.native/build", "dev"),
+                # main
+                (r"^/usr/lib/kernel", "main"),
+                (r"^/usr/lib/modules", "main")]
+
+            for pat_args in patterns_linux:
+                if self.file_pat_match(filename, *pat_args):
+                    return
+
         for pat_args in patterns:
             if self.file_pat_match(filename, *pat_args):
                 return
