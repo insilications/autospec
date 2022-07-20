@@ -2722,7 +2722,7 @@ class Specfile(object):
         self._write_strip("pip install --root=%{buildroot}-v3 --no-deps --ignore-installed dist/*.whl")
         self._write_strip("popd")
 
-        #self.write_find_lang()
+        # self.write_find_lang()
 
     def write_distutils3_pattern(self):
         """Write build pattern for python packages using distutils3."""
@@ -4344,12 +4344,12 @@ class Specfile(object):
 
     def write_find_lang(self):
         """Write %find_lang macro to spec file."""
-        if self.config.find_lang:
+        if self.config.find_lang and self.config.config_opts["findlang"]:
             self._write_strip("## custom find_lang start")
             for line in self.config.find_lang:
                 self._write("{}\n".format(line))
             self._write_strip("## custom find_lang end")
-        elif self.locales and self.config.config_opts["findlang"]:
+        else:
             self._write_strip("## start %find_lang macros")
             for lang in self.locales:
                 self._write("%find_lang {}\n".format(lang))

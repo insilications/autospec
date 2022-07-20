@@ -676,7 +676,7 @@ class Config(object):
         config_f["autospec"]["verify_required"] = "false"
         config_f["autospec"]["keepstatic"] = "true"
         config_f["autospec"]["keepbuildroot"] = "false"
-        config_f["autospec"]["findlang"] = "true"
+        config_f["autospec"]["findlang"] = "false"
         config_f["autospec"]["filters_provreq"] = "true"
         config_f["autospec"]["use_oneapi"] = "false"
         config_f["autospec"]["custom_bashrc"] = "false"
