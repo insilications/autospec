@@ -94,8 +94,8 @@ class Build(object):
         self.mock_dir = ""
         self.short_circuit = ""
         self.do_file_restart = True
-        #self.patch_name_line = re.compile(r'^Patch #[0-9]+ \((.*)\):$')
-        #self.patch_fail_line = re.compile(r'^Skipping patch.$')
+        self.patch_name_line = re.compile(r'^Patch #[0-9]+ \((.*)\):$')
+        self.patch_fail_line = re.compile(r'^Skipping patch.$')
 
     def write_cargo_config(self, mock_dir, content_name, config):
         """Write cargo config.toml to package .cargo builddir home directory."""
@@ -398,11 +398,12 @@ class Build(object):
         with util.open_auto(filename, "r") as buildlog:
             loglines = buildlog.readlines()
         for line in loglines:
-            #if patch_name_match := self.patch_name_line.search(line):
-                #patch_name = patch_name_match.groups()[0]
-            #if patch_name:
-                #if self.patch_fail_line.search(line):
-                    #self.must_restart += config.remove_backport_patch(patch_name)
+            if self.short_circuit == "prep":
+                if patch_name_match := self.patch_name_line.search(line):
+                    patch_name = patch_name_match.groups()[0]
+                if patch_name:
+                    if self.patch_fail_line.search(line):
+                        self.must_restart += config.remove_backport_patch(patch_name)
             if (self.short_circuit != "prep" and self.short_circuit != "binary"):
                 for pat in config.pkgconfig_pats:
                     self.simple_pattern_pkgconfig(line, *pat, config.config_opts.get('32bit'), requirements)
@@ -437,7 +438,6 @@ class Build(object):
                 filemanager.fix_broken_pkg_config_versioning(content.name)
                 if config.config_opts["altcargo1"] or config.config_opts["altcargo_pgo"]:
                     filemanager.write_cargo_find_install_assets(content.name)
-            # elif infiles == 1 and "not matching the package arch" not in line:
             elif infiles == 1:
                 # exclude blank lines from consideration...
                 file = line.strip()
@@ -454,24 +454,25 @@ class Build(object):
                 missing_file = "/" + line.split(match)[1].strip()
                 filemanager.remove_file(missing_file)
 
-            if line.startswith("Executing(%clean") and returncode == 0:
-                if self.short_circuit == "binary":
-                    print("RPM binary build successful")
-                    self.success = 1
-                elif self.short_circuit is None:
-                    print("RPM build successful")
-                    self.success = 1
+            if returncode == 0:
+                if line.startswith("Executing(%clean"):
+                    if self.short_circuit == "binary":
+                        print("RPM binary successful")
+                        self.success = 1
+                    elif self.short_circuit is None:
+                        print("RPM build successful")
+                        self.success = 1
 
-            if line.startswith("Child return code was: 0") and returncode == 0:
-                if self.short_circuit == "prep":
-                    print("RPM short circuit prep build successful")
-                    self.success = 1
-                elif self.short_circuit == "build":
-                    print("RPM build build successful")
-                    self.success = 1
-                elif self.short_circuit == "install":
-                    print("RPM install build successful")
-                    self.success = 1
+                if line.startswith("Child return code was: 0"):
+                    if self.short_circuit == "prep":
+                        print("RPM short circuit prep successful")
+                        self.success = 1
+                    elif self.short_circuit == "build":
+                        print("RPM short circuit build successful")
+                        self.success = 1
+                    elif self.short_circuit == "install":
+                        print("RPM short circuit install successful")
+                        self.success = 1
 
         if self.success == 1 and self.short_circuit == "build" and config.config_opts.get("altflags_pgo_ext"):
             if config.config_opts.get("altflags_pgo_ext_phase"):

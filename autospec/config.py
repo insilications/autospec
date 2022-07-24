@@ -1022,11 +1022,12 @@ class Config(object):
         new_content = []
         for line in series_content:
             if line.strip() == patch_name:
-                continue
-            new_content.append(line)
+                new_content.append(f"# {line}")
+            else:
+                new_content.append(line)
         self.write_file(series_file, new_content)
         self.patches.remove(patch_name)
-        print_info(f'Removed patch: {patch_name}')
+        print_warning(f'Removed patch: {patch_name}')
         return 1
 
     def parse_config_files(self, bump, filemanager, version, requirements):
