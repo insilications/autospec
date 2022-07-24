@@ -53,10 +53,6 @@ def link_new_rpms_here():
             make_cmd,
             check=True,
             shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            universal_newlines=True,
         )
     except subprocess.CalledProcessError as err:
         print_fatal(f"Error: {make_cmd}: {err}")

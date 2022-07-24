@@ -1129,19 +1129,19 @@ class Config(object):
             print(f"Adding additional build (buildreq) requirement: {extra}")
             requirements.add_buildreq(extra)
 
-        #cache_file = os.path.join(self.download_path, "buildreq_cache")
-        #content = self.read_conf_file(cache_file)
-        #if content and content[0] == version:
-            #for extra in content[1:]:
-                #print("Adding additional build (cache) requirement: %s" % extra)
-                #requirements.add_buildreq(extra)
-        #else:
-            #try:
-                #os.unlink(cache_file)
-            #except FileNotFoundError:
-                #pass
-            #except Exception as e:
-                #print_warning(f"Unable to remove buildreq_cache file: {e}")
+        cache_file = os.path.join(self.download_path, "buildreq_cache")
+        content = self.read_conf_file(cache_file)
+        if content and content[0] == version:
+            for extra in content[1:]:
+                print("Adding additional build (cache) requirement: %s." % extra)
+                requirements.add_buildreq(extra)
+        else:
+            try:
+                os.unlink(cache_file)
+            except FileNotFoundError:
+                pass
+            except Exception as e:
+                print_warning(f"Unable to remove buildreq_cache file: {e}")
 
         content = self.read_conf_file(os.path.join(self.download_path, "pkgconfig_add"))
         for extra in content:

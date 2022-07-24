@@ -393,8 +393,20 @@ class Build(object):
         self.file_restart = 0
         infiles = 0
         patch_name = ""
+        lsof_cmd = f"lsof -w -Fa {filename} | grep 'a[uw -]'"
+        build_log_ready = False
+        match = f"File not found: /builddir/build/BUILDROOT/{content.name}-{content.version}-{content.release}.x86_64"
 
         # Flush the build-log to disk, before reading it
+        util.call("sync")
+        while not build_log_ready:
+            try:
+                lsof = subprocess.check_call(lsof_cmd, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL, shell=True)
+            except subprocess.CalledProcessError as err:
+                build_log_ready = True
+                break
+            print_info("Waiting for build.log to be ready...")
+            continue
         util.call("sync")
         with util.open_auto(filename, "r") as buildlog:
             loglines = buildlog.readlines()
@@ -435,24 +447,23 @@ class Build(object):
                         infiles = 2
 
             if infiles == 0 and "Installed (but unpackaged) file(s) found:" in line:
-                infiles = 1
                 filemanager.fix_broken_pkg_config_versioning(content.name)
                 if config.config_opts["altcargo1"] or config.config_opts["altcargo_pgo"]:
                     filemanager.write_cargo_find_install_assets(content.name)
+                infiles = 1
             elif infiles == 1:
                 # exclude blank lines from consideration...
                 file = line.strip()
                 if file and file[0] == "/":
                     filemanager.push_file(file, content.name)
-                    print(file)
+                    #print(file)
 
             if line.startswith("Sorry: TabError: inconsistent use of tabs and spaces in indentation"):
                 print(line)
                 returncode = 99
 
-            match = f"File not found: /builddir/build/BUILDROOT/{content.name}-{content.version}-{content.release}.x86_64/"
             if match in line:
-                missing_file = "/" + line.split(match)[1].strip()
+                missing_file = line.split(match)[1].strip()
                 filemanager.remove_file(missing_file)
 
             if returncode == 0:

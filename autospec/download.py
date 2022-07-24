@@ -19,9 +19,8 @@
 
 import os
 import sys
-from io import BytesIO
-
 import pycurl
+from io import BytesIO
 from util import print_fatal
 
 def do_curl_get_effective_url(url):
