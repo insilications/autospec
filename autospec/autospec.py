@@ -675,12 +675,12 @@ def package(
 
     if short_circuit == "prep" or short_circuit is None:
         requirements.scan_for_configure(_dir, content.name, conf)
-        specdescription.scan_for_description(content.name, _dir, conf.license_translations, conf.license_blacklist)
+        #specdescription.scan_for_description(content.name, _dir, conf.license_translations, conf.license_blacklist)
         # Start one directory higher so we scan *all* versions for licenses
         license.scan_for_licenses(os.path.dirname(_dir), conf, content.name)
-        commitmessage.scan_for_changes(conf.download_path, _dir, conf.transforms)
+        #commitmessage.scan_for_changes(conf.download_path, _dir, conf.transforms)
         conf.add_sources(archives, content)
-        check.scan_for_tests(_dir, conf, requirements, content)
+        #check.scan_for_tests(_dir, conf, requirements, content)
 
     #
     # Now, we have enough to write out a specfile, and try to build it.
@@ -695,10 +695,6 @@ def package(
         interactive_mode = not args.non_interactive
         pkg_integrity.check(url, conf, interactive=interactive_mode)
         pkg_integrity.load_specfile(specfile)
-
-    if short_circuit == "prep" or short_circuit is None:
-        conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
-        # conf.create_reqs_cache(content.version, requirements.reqs_cache)
 
     specfile.write_spec()
     filemanager.load_specfile_information(specfile, content)
@@ -747,11 +743,9 @@ def package(
     #if short_circuit is None or short_circuit == "install":
         #check.check_regression(conf.download_path, conf.config_opts["skip_tests"])
 
-    #conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
-    #conf.create_reqs_cache(content.version, requirements.reqs_cache)
-
     if package.success == 0:
-        #conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
+        conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
+        #conf.create_reqs_cache(content.version, requirements.reqs_cache)
         print_fatal("Build failed, aborting")
         sys.exit(1)
     elif (package.success == 1):
@@ -782,6 +776,9 @@ def package(
                 #commitmessage.guess_commit_message(pkg_integrity.IMPORTED, conf, content)
                 #git.commit_to_git(conf, content.name, package.success)
 
+            conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
+            #conf.create_reqs_cache(content.version, requirements.reqs_cache)
+
         elif (short_circuit == "prep"):
             write_out(conf.download_path + "/release", content.release + "\n")
 
@@ -807,9 +804,11 @@ def package(
                 #git.commit_to_git(conf, content.name, package.success)
             #else:
                 #print("To commit your changes, git add the relevant files and run 'git commit -F commitmsg'")
-            link_new_rpms_here()
 
-        #conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
+            conf.create_buildreq_cache(content.version, requirements.buildreqs_cache)
+            #conf.create_reqs_cache(content.version, requirements.reqs_cache)
+
+            link_new_rpms_here()
 
 
 if __name__ == "__main__":

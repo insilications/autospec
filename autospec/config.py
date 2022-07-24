@@ -722,9 +722,9 @@ class Config(object):
             pkgs = sorted(buildreqs_cache)
         else:
             pkgs = sorted(set(content[1:]).union(buildreqs_cache))
-        with open(os.path.join(self.download_path, "buildreq_cache"), "w") as cachefile:
+        with open(os.path.join(self.download_path, 'buildreq_cache'), "w") as cachefile:
             cachefile.write("\n".join([version] + pkgs))
-        self.config_files.add("buildreq_cache")
+        self.config_files.add('buildreq_cache')
 
     def create_versions(self, versions):
         """Make versions file."""

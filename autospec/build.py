@@ -96,6 +96,7 @@ class Build(object):
         self.do_file_restart = True
         self.patch_name_line = re.compile(r'^Patch #[0-9]+ \((.*)\):$')
         self.patch_fail_line = re.compile(r'^Skipping patch.$')
+        self.missing_pat = re.compile(r"^.*No matching package to install: '(.*)'$")
 
     def write_cargo_config(self, mock_dir, content_name, config):
         """Write cargo config.toml to package .cargo builddir home directory."""
@@ -373,13 +374,13 @@ class Build(object):
         if returncode == 0:
             return True
         self.must_restart = 0
+        self.file_restart = 0
         is_clean = True
         util.call("sync")
         with util.open_auto(filename, "r") as rootlog:
             loglines = rootlog.readlines()
-        missing_pat = re.compile(r"^.*No matching package to install: '(.*)'$")
         for line in loglines:
-            match = missing_pat.match(line)
+            match = self.missing_pat.match(line)
             if match is not None:
                 util.print_fatal("Cannot resolve dependency name: {}".format(match.group(1)))
                 is_clean = False
@@ -561,14 +562,14 @@ class Build(object):
             #self.copy_from_system_pgo(self.mock_dir, content.name)
 
         # sanity check the build log
-        if not os.path.exists(config.download_path + "/results/build.log"):
+        if not os.path.exists(f"{config.download_path}/results/build.log"):
             util.print_fatal("Mock command failed, results log does not exist. User may not have correct permissions.")
             exit(1)
 
         if not self.parse_buildroot_log(config.download_path + "/results/root.log", ret):
             return
 
-        self.parse_build_results(config.download_path + "/results/build.log", ret, filemanager, config, requirements, content)
+        self.parse_build_results(f"{config.download_path}/results/build.log", ret, filemanager, config, requirements, content)
         if filemanager.has_banned:
             util.print_fatal("Content in banned paths found, aborting build")
             exit(1)
