@@ -3210,7 +3210,7 @@ class Specfile(object):
             if self.config.subdir:
                 self._write_strip("pushd " + self.config.subdir)
             self.write_build_append()
-            self._write_strip("%qmake {} {}".format(extra_qmake_args, self.config.extra_configure))
+            self._write_strip("%qmake {} {} {}".format(extra_qmake_args, self.config.extra_configure, self.config.extra_configure64))
             self._write_strip("test -r config.log && cat config.log")
             self.write_make_line()
             if self.config.subdir:
