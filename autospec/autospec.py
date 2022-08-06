@@ -133,7 +133,7 @@ def read_old_metadata():
     )
 
 
-def save_mock_logs(path, iteration):
+def save_mock_logs(path, iteration, short_circuit):
     """Save Mock build logs to <path>/results/round<iteration>-*.log."""
     basedir = os.path.join(path, "results")
     loglist = [
@@ -146,7 +146,7 @@ def save_mock_logs(path, iteration):
     ]
     for log in loglist:
         src = "{}/{}.log".format(basedir, log)
-        dest = "{}/round{}-{}.log".format(basedir, iteration, log)
+        dest = "{}/{}-round{}-{}.log".format(basedir, short_circuit, iteration, log)
         os.rename(src, dest)
 
 
@@ -265,6 +265,9 @@ def main():
     )
     parser.add_argument(
         "-dbg", "--debug", action="store_true", dest="debug", default=False, help="Enable debugging",
+    )
+    parser.add_argument(
+        "-fbrpm", "--force_build_srpm", action="store_true", dest="force_build_srpm", default=False, help="Force building srpm",
     )
 
     args = parser.parse_args()
@@ -627,7 +630,7 @@ def package(
 
     #check_requirements(args.git)
     conf.detect_build_from_url(url)
-    package = build.Build()
+    package = build.Build(config=conf)
 
     #
     # First, download the tarball, extract it and then do a set
@@ -687,32 +690,37 @@ def package(
     filemanager.load_specfile(specfile)
     load_specfile(conf, specfile)
 
-    if args.integrity:
-        interactive_mode = not args.non_interactive
-        pkg_integrity.check(url, conf, interactive=interactive_mode)
-        pkg_integrity.load_specfile(specfile)
+    #if args.integrity:
+        #interactive_mode = not args.non_interactive
+        #pkg_integrity.check(url, conf, interactive=interactive_mode)
+        #pkg_integrity.load_specfile(specfile)
 
     specfile.write_spec()
     filemanager.load_specfile_information(specfile, content)
+    mock_build_dir = f"{mock_dir}/clear-{content.name}/root/builddir/build/"
+    py_version = '{0}.{1}.{2}'.format(*sys.version_info[:3])
+    print_info(f"Python Version: {py_version}")
     if short_circuit == "prep":
-        util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/SRPMS/")
-        util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/BUILD/")
+        #util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/SRPMS/")
+        #util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/BUILD/")
+        util.print_warning("KK 1")
+        shutil.rmtree(f"{mock_build_dir}/SRPMS/", ignore_errors=True)
+        shutil.rmtree(f"{mock_build_dir}/BUILD/", ignore_errors=True)
     if short_circuit == "install":
-        util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/RPMS/")
+        #util.call(f"sudo rm -rf {mock_dir}/clear-{content.name}/root/builddir/build/RPMS/")
+        shutil.rmtree(f"{mock_build_dir}/RPMS/", ignore_errors=True)
     while 1:
-        package.package(
-            filemanager, args.mock_config, args.mock_opts, conf, requirements, content,mock_dir, short_circuit, do_file_restart, args.cleanup,
-        )
+        package.package(filemanager=filemanager, mockconfig=args.mock_config, mockopts=args.mock_opts, config=conf, requirements=requirements, content=content, mock_dir=mock_dir, short_circuit=short_circuit, do_file_restart=do_file_restart, force_build_srpm=args.force_build_srpm, cleanup=args.cleanup)
         if (short_circuit != package.short_circuit):
-            print_info(f"short_circuit: {short_circuit}")
-            print_info(f"package.short_circuit: {package.short_circuit}")
+            print_info(f"1 short_circuit: {short_circuit}")
+            print_info(f"1 package.short_circuit: {package.short_circuit}")
             short_circuit = package.short_circuit
-            print_info(f"new short_circuit: {short_circuit}")
+            print_info(f"1 new short_circuit: {short_circuit}")
 
-        filemanager.load_specfile_information(specfile, content)
         filemanager.load_specfile(specfile)
         specfile.write_spec()
-        filemanager.newfiles_printed = 0
+        filemanager.load_specfile_information(specfile, content)
+        filemanager.newfiles_printed = False
 
         mock_chroot = f"{mock_dir}/clear-{package.uniqueext}/root/builddir/build/BUILDROOT/{content.name}-{content.version}-{content.release}.x86_64"
         if filemanager.clean_directories(mock_chroot):
@@ -723,18 +731,18 @@ def package(
         if do_file_restart:
             if package.round > 20 or (package.must_restart == 0 and package.file_restart == 0):
                 if (short_circuit == "install"):
-                    print_info(f"short_circuit: {short_circuit}")
-                    print_info(f"package.short_circuit: {package.short_circuit}")
+                    print_info(f"2 short_circuit: {short_circuit}")
+                    print_info(f"2 package.short_circuit: {package.short_circuit}")
                     short_circuit = "binary"
-                    print_info(f"new short_circuit: {short_circuit}")
+                    print_info(f"2 new short_circuit: {short_circuit}")
                     continue
                 else:
                     break
         else:
-            if (package.round > 20 or package.must_restart == 0):
+            if package.round > 20 or (package.must_restart == 0 and package.file_restart == 0):
                 break
 
-        save_mock_logs(conf.download_path, package.round)
+        save_mock_logs(conf.download_path, package.round, short_circuit)
 
     #if short_circuit is None or short_circuit == "install":
         #check.check_regression(conf.download_path, conf.config_opts["skip_tests"])

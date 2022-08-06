@@ -92,9 +92,6 @@ class FileManager(object):
                 self.package.file_restart += 1
             else:
                 self.package.must_restart += 1
-            if not self.newfiles_printed:
-                print("  New %files content found")
-                self.newfiles_printed = True
 
         else:
             if package not in self.subpackages:
@@ -116,9 +113,10 @@ class FileManager(object):
                 self.package.file_restart += 1
             else:
                 self.package.must_restart += 1
-            if not self.newfiles_printed:
-                print("  New %files content found")
-                self.newfiles_printed = True
+
+        if not self.newfiles_printed:
+            print("  New %files content found")
+            self.newfiles_printed = True
 
     def only32bit_exclude(self, filename):
         """Exclude files not necessary for a 32bit only package."""

@@ -77,13 +77,13 @@ def get_mock_cmd():
     if sys.executable == "/usr/bin/python":
         return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /usr/bin/mock'
     else:
-        return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /home/boni/.local/pypy-venv/bin/python --jit max_unroll_recursion=16,disable_unrolling=300 /home/boni/.local/pypy-venv/bin/mock'
-        #return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /home/boni/.local/pypy-venv/bin/python --jit max_unroll_recursion=16,disable_unrolling=300,vec_all=1,vec=1 /home/boni/.local/pypy-venv/bin/mock'
+        #return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /home/boni/.local/pypy-venv/bin/python3 --jit max_unroll_recursion=16,disable_unrolling=300 /home/boni/.local/pypy-venv/bin/mock'
+        return 'sudo PYTHONMALLOC=malloc MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 LD_PRELOAD=/usr/lib64/libmimalloc.so /home/boni/.local/pypy-venv/bin/mock'
 
 class Build(object):
     """Manage package builds."""
 
-    def __init__(self):
+    def __init__(self, config):
         """Initialize default build settings."""
         self.success = 0
         self.round = 0
@@ -97,6 +97,15 @@ class Build(object):
         self.patch_name_line = re.compile(r'^Patch #[0-9]+ \((.*)\):$')
         self.patch_fail_line = re.compile(r'^Skipping patch.$')
         self.missing_pat = re.compile(r"^.*No matching package to install: '(.*)'$")
+        self.rpms_folder = f"{config.download_path}/rpms"
+        self.results_folder = f"{config.download_path}/results"
+        self.results_build_log = f"{self.results_folder}/build.log"
+        self.results_root_log = f"{self.results_folder}/root.log"
+        self.results_mock_srpm_log = f"{self.results_folder}/mock_srpm.log"
+        self.results_mock_build_log = f"{self.results_folder}/mock_build.log"
+        self.results_srpm_root_log = f"{self.results_folder}/srpm-root.log"
+        self.results_srpm_build_log = f"{self.results_folder}/srpm-build.log"
+        self.mock_cmd = get_mock_cmd()
 
     def write_cargo_config(self, mock_dir, content_name, config):
         """Write cargo config.toml to package .cargo builddir home directory."""
@@ -223,49 +232,49 @@ class Build(object):
                     #if append_new_gitrule:
                         #gitignore.write("!pgo.tar.gz\n")
 
-    def write_python_flags_fix(self, mock_dir, content_name, config):
-        """Patch python to use custom flags."""
-        python_dir_dst = f"{mock_dir}/clear-{content_name}/root/usr/lib/python3.9"
-        python_dir_patched_file = f"{python_dir_dst}/patched"
-        patch_file = "/aot/build/clearlinux/projects/autospec/autospec/0001-Fix-PYTHON-flags.patch"
-        patch_cmd = f"sudo /usr/bin/patch --backup -p1 --fuzz=2 --input={patch_file}"
-        if not os.path.isfile(python_dir_patched_file):
-            try:
-                process = subprocess.run(
-                    patch_cmd,
-                    check=True,
-                    shell=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    universal_newlines=True,
-                    cwd=python_dir_dst,
-                )
-            except subprocess.CalledProcessError as err:
-                revert_patch = [(f.path, f.path.replace(".orig", "")) for f in scantree(python_dir_dst) if f.is_file() and os.path.splitext(f.name)[1].lower() == ".orig"]
-                for pcs in revert_patch:
-                    process = subprocess.run(
-                        f"sudo cp {pcs[0]} {pcs[1]}",
-                        check=False,
-                        shell=True,
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.STDOUT,
-                        text=True,
-                        universal_newlines=True,
-                        cwd=python_dir_dst,
-                    )
-                print_fatal(f"Unable to patch custom flags in {python_dir_dst}: {err}")
-                sys.exit(1)
-            process = subprocess.run(
-                f"echo patched | sudo tee patched",
-                check=False,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                universal_newlines=True,
-                cwd=python_dir_dst,
-            )
+    #def write_python_flags_fix(self, mock_dir, content_name, config):
+        #"""Patch python to use custom flags."""
+        #python_dir_dst = f"{mock_dir}/clear-{content_name}/root/usr/lib/python3.9"
+        #python_dir_patched_file = f"{python_dir_dst}/patched"
+        #patch_file = "/aot/build/clearlinux/projects/autospec/autospec/0001-Fix-PYTHON-flags.patch"
+        #patch_cmd = f"sudo /usr/bin/patch --backup -p1 --fuzz=2 --input={patch_file}"
+        #if not os.path.isfile(python_dir_patched_file):
+            #try:
+                #process = subprocess.run(
+                    #patch_cmd,
+                    #check=True,
+                    #shell=True,
+                    #stdout=subprocess.PIPE,
+                    #stderr=subprocess.STDOUT,
+                    #text=True,
+                    #universal_newlines=True,
+                    #cwd=python_dir_dst,
+                #)
+            #except subprocess.CalledProcessError as err:
+                #revert_patch = [(f.path, f.path.replace(".orig", "")) for f in scantree(python_dir_dst) if f.is_file() and os.path.splitext(f.name)[1].lower() == ".orig"]
+                #for pcs in revert_patch:
+                    #process = subprocess.run(
+                        #f"sudo cp {pcs[0]} {pcs[1]}",
+                        #check=False,
+                        #shell=True,
+                        #stdout=subprocess.PIPE,
+                        #stderr=subprocess.STDOUT,
+                        #text=True,
+                        #universal_newlines=True,
+                        #cwd=python_dir_dst,
+                    #)
+                #print_fatal(f"Unable to patch custom flags in {python_dir_dst}: {err}")
+                #sys.exit(1)
+            #process = subprocess.run(
+                #f"echo patched | sudo tee patched",
+                #check=False,
+                #shell=True,
+                #stdout=subprocess.PIPE,
+                #stderr=subprocess.STDOUT,
+                #text=True,
+                #universal_newlines=True,
+                #cwd=python_dir_dst,
+            #)
 
     def simple_pattern_pkgconfig(self, line, pattern, pkgconfig, conf32, requirements):
         """Check for pkgconfig patterns and restart build as needed."""
@@ -396,6 +405,8 @@ class Build(object):
         lsof_cmd = f"lsof -w -Fa {filename} | grep 'a[uw -]'"
         build_log_ready = False
         match = f"File not found: /builddir/build/BUILDROOT/{content.name}-{content.version}-{content.release}.x86_64"
+        # %prep=1 %build=2 %install=3 %clean=4
+        executing = 0
 
         # Flush the build-log to disk, before reading it
         util.call("sync")
@@ -467,24 +478,27 @@ class Build(object):
                 filemanager.remove_file(missing_file)
 
             if returncode == 0:
-                if line.startswith("Executing(%clean"):
-                    if self.short_circuit == "binary":
-                        print("RPM binary successful")
-                        self.success = 1
-                    elif self.short_circuit is None:
-                        print("RPM build successful")
-                        self.success = 1
-
-                if line.startswith("Child return code was: 0"):
+                if executing == 0:
+                    if line.startswith("Executing(%prep)"):
+                        executing = 1
+                    elif line.startswith("Executing(%build)"):
+                        executing = 2
+                    elif line.startswith("Executing(%install)"):
+                        executing = 3
+                    elif line.startswith("Executing(%clean)"):
+                        executing = 4
+                elif line.startswith("Child return code was: 0"):
                     if self.short_circuit == "prep":
                         print("RPM short circuit prep successful")
-                        self.success = 1
                     elif self.short_circuit == "build":
                         print("RPM short circuit build successful")
-                        self.success = 1
                     elif self.short_circuit == "install":
                         print("RPM short circuit install successful")
-                        self.success = 1
+                    elif self.short_circuit == "binary":
+                        print("RPM binary successful")
+                    elif self.short_circuit is None:
+                        print("RPM build successful")
+                    self.success = 1
 
         if self.success == 1 and self.short_circuit == "build" and config.config_opts.get("altflags_pgo_ext"):
             if config.config_opts.get("altflags_pgo_ext_phase"):
@@ -492,15 +506,15 @@ class Build(object):
             else:
                 self.copy_to_system_pgo(self.mock_dir, content.name, config)
 
-    def package(self, filemanager, mockconfig, mockopts, config, requirements, content, mock_dir, short_circuit, do_file_restart, cleanup=False):
+    def package(self, filemanager, mockconfig, mockopts, config, requirements, content, mock_dir, short_circuit, do_file_restart, force_build_srpm, cleanup=False):
         """Run main package build routine."""
         self.do_file_restart = do_file_restart
         self.mock_dir = mock_dir
         self.short_circuit = short_circuit
         self.round += 1
         self.success = 0
-        mock_cmd = get_mock_cmd()
-        print("Building package " + content.name + " round", self.round)
+
+        print(f"Package {content.name} round {self.round}")
 
         self.uniqueext = content.name
 
@@ -510,37 +524,44 @@ class Build(object):
             cleanup_flag = "--no-cleanup-after"
 
         print("{0} mock chroot at {1}/clear-{2}".format(content.name, self.mock_dir, self.uniqueext))
+        if self.short_circuit == "prep" or force_build_srpm:
+            if self.round == 1:
+                shutil.rmtree(self.results_folder, ignore_errors=True)
+                os.makedirs(self.results_folder)
+                shutil.rmtree(self.rpms_folder, ignore_errors=True)
+                os.makedirs(self.rpms_folder)
 
-        if self.round == 1:
-            shutil.rmtree('{}/results'.format(config.download_path), ignore_errors=True)
-            os.makedirs('{}/results'.format(config.download_path))
+            cmd_args_buildsrpm = [
+                self.mock_cmd,
+                f"--root={mockconfig}",
+                "--buildsrpm",
+                "--sources=./",
+                f"--spec={content.name}.spec",
+                f"--uniqueext={self.uniqueext}",
+                "--resultdir=results/",
+                "--no-cleanup-after",
+                "--no-clean",
+                mockopts,
+            ]
 
-        cmd_args = [
-            mock_cmd,
+            util.call(" ".join(cmd_args_buildsrpm),
+                    logfile=self.results_mock_srpm_log,
+                    cwd=config.download_path)
+
+            # back up srpm mock logs
+            os.rename(self.results_root_log, self.results_srpm_root_log)
+            os.rename(self.results_build_log, self.results_srpm_build_log)
+            util.call("sync")
+            util.print_warning("Teste 1")
+        #srcrpm = f"results/{content.name}-{content.version}-{content.release}.src.rpm"
+        srcrpm = f"{self.results_folder}/{content.name}-{content.version}-{content.release}.src.rpm"
+        print_info(f"srcrpm: {srcrpm}")
+
+        util.print_warning("Teste 2")
+        cmd_args_build = [
+            self.mock_cmd,
             f"--root={mockconfig}",
-            "--buildsrpm",
-            "--sources=./",
-            f"--spec={content.name}.spec",
-            f"--uniqueext={self.uniqueext}",
-            "--result=results/",
-            cleanup_flag,
-            mockopts,
-        ]
-
-        util.call(" ".join(cmd_args),
-                  logfile=f"{config.download_path}/results/mock_srpm.log",
-                  cwd=config.download_path)
-
-        # back up srpm mock logs
-        util.call("mv results/root.log results/srpm-root.log", cwd=config.download_path)
-        util.call("mv results/build.log results/srpm-build.log", cwd=config.download_path)
-
-        srcrpm = f"results/{content.name}-{content.version}-{content.release}.src.rpm"
-
-        cmd_args = [
-            mock_cmd,
-            f"--root={mockconfig}",
-            "--result=results/",
+            "--resultdir=results/",
             srcrpm,
             f"--uniqueext={self.uniqueext}",
             cleanup_flag,
@@ -549,17 +570,17 @@ class Build(object):
 
         if self.do_file_restart:
             if self.must_restart == 0 and self.file_restart > 0 and set(filemanager.excludes) == set(filemanager.manual_excludes):
-                cmd_args.append("--no-clean")
-                cmd_args.append("--short-circuit=binary")
+                cmd_args_build.append("--no-clean")
+                cmd_args_build.append("--short-circuit=binary")
                 self.short_circuit = "binary"
                 print_info("Will --short-circuit=binary: self.must_restart == 0")
             elif self.short_circuit == "binary":
-                cmd_args.append("--no-clean")
-                cmd_args.append("--short-circuit=binary")
+                cmd_args_build.append("--no-clean")
+                cmd_args_build.append("--short-circuit=binary")
                 print_info("Will --short-circuit=binary")
 
-        ret = util.call(" ".join(cmd_args),
-                        logfile=f"{config.download_path}/results/mock_build.log",
+        ret = util.call(" ".join(cmd_args_build),
+                        logfile=self.results_mock_build_log,
                         check=False,
                         cwd=config.download_path)
 
@@ -573,14 +594,14 @@ class Build(object):
             #self.copy_from_system_pgo(self.mock_dir, content.name)
 
         # sanity check the build log
-        if not os.path.exists(f"{config.download_path}/results/build.log"):
+        if not os.path.exists(self.results_build_log):
             util.print_fatal("Mock command failed, results log does not exist. User may not have correct permissions.")
             exit(1)
 
-        if not self.parse_buildroot_log(config.download_path + "/results/root.log", ret):
+        if not self.parse_buildroot_log(self.results_root_log, ret):
             return
 
-        self.parse_build_results(f"{config.download_path}/results/build.log", ret, filemanager, config, requirements, content)
+        self.parse_build_results(self.results_build_log, ret, filemanager, config, requirements, content)
         if filemanager.has_banned:
             util.print_fatal("Content in banned paths found, aborting build")
             exit(1)
